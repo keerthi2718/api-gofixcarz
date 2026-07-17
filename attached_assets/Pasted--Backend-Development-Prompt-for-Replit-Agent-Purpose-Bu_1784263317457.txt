@@ -1,0 +1,400 @@
+# Backend Development Prompt for Replit Agent
+
+## Purpose
+
+Build a **production-ready FastAPI backend (APIs only)** for a **Garage Management Mobile Application**.
+
+The mobile application frontend already exists in another project. Your responsibility is to build only the backend REST APIs.
+
+Do **not** build any frontend.
+
+---
+
+# Tech Stack
+
+Use the following technologies:
+
+* Python 3.12+
+* FastAPI
+* PostgreSQL
+* SQLAlchemy 2.0 (Async)
+* asyncpg
+* Alembic (Database Migrations)
+* Pydantic v2
+* JWT Authentication
+* Uvicorn
+* Python-dotenv
+* Loguru
+* Pytest
+* Docker & Docker Compose
+* Swagger / OpenAPI
+
+Use **async/await throughout the project**.
+
+---
+
+# Project Architecture
+
+Follow Clean Architecture.
+
+```text
+app/
+│
+├── api/
+│   └── v1/
+│       ├── auth.py
+│       ├── dashboard.py
+│       ├── jobs.py
+│       ├── bookings.py
+│       ├── analytics.py
+│       ├── profile.py
+│       ├── garage.py
+│       ├── service_packages.py
+│       └── notifications.py
+│
+├── core/
+│   ├── config.py
+│   ├── security.py
+│   ├── exceptions.py
+│   └── logging.py
+│
+├── database/
+│   ├── session.py
+│   ├── base.py
+│   └── migrations/
+│
+├── models/
+├── schemas/
+├── repositories/
+├── services/
+├── dependencies/
+├── middleware/
+├── utils/
+└── main.py
+```
+
+---
+
+# Database
+
+Use PostgreSQL.
+
+
+# Authentication
+
+Implement OTP Authentication.
+
+After OTP verification generate JWT Access Token.
+
+Protected APIs must use JWT.
+
+### APIs
+
+POST /api/v1/auth/sign-up
+
+POST /api/v1/auth/sign-in
+
+POST /api/v1/auth/send-otp
+
+POST /api/v1/auth/verify-otp
+
+POST /api/v1/auth/logout
+
+---
+
+# Dashboard
+
+GET /api/v1/dashboard
+
+Return
+
+* Today's Jobs
+* Open Jobs
+* Completed Jobs
+* Bookings Today
+* Revenue
+* Recent Activities
+
+---
+
+# Jobs Module
+
+Implement complete CRUD.
+
+Job Status
+
+* OPEN
+* IN_PROGRESS
+* WAITING_FOR_PARTS
+* QUALITY_CHECK
+* COMPLETED
+* CANCELLED
+
+### APIs
+
+POST /api/v1/jobs
+
+GET /api/v1/jobs
+
+Support
+
+* Pagination
+* Search
+* Sorting
+* Filtering
+* Date Range
+
+GET /api/v1/jobs/{job_id}
+
+PUT /api/v1/jobs/{job_id}
+
+PATCH /api/v1/jobs/{job_id}/status
+
+PATCH /api/v1/jobs/{job_id}/complete
+
+DELETE /api/v1/jobs/{job_id}
+
+Whenever status changes create Job Timeline history.
+
+---
+
+# Customers
+
+Create Customer CRUD APIs.
+
+Each Job belongs to one Customer.
+
+---
+
+# Vehicles
+
+Create Vehicle CRUD APIs.
+
+Vehicle belongs to Customer.
+
+---
+
+# Bookings
+
+Bookings are created from another application.
+
+Garage App only manages them.
+
+### APIs
+
+GET /api/v1/bookings
+
+GET /api/v1/bookings/{booking_id}
+
+PATCH /api/v1/bookings/{booking_id}/accept
+
+PATCH /api/v1/bookings/{booking_id}/reject
+
+POST /api/v1/bookings/{booking_id}/create-job
+
+---
+
+# Analytics
+
+GET /api/v1/analytics
+
+Support
+
+* Daily
+* Weekly
+* Monthly
+* Custom Date Range
+
+Return
+
+* Revenue
+* Job Count
+* Pending Jobs
+* Completed Jobs
+* Graph Data
+
+---
+
+# Profile
+
+GET /api/v1/profile
+
+PUT /api/v1/profile
+
+---
+
+# Garage
+
+GET /api/v1/garage
+
+PUT /api/v1/garage
+
+Include
+
+* Garage Name
+* Owner
+* Address
+* Alternate Number
+* Working Hours
+* Latitude
+* Longitude
+
+---
+
+# Service Packages
+
+CRUD APIs
+
+GET
+
+POST
+
+PUT
+
+DELETE
+
+---
+
+# Notifications
+
+GET Notifications
+
+PATCH Mark Read
+
+---
+
+# Static APIs
+
+Privacy Policy
+
+Help & Support
+
+---
+
+# Database Tables
+
+Create normalized PostgreSQL tables.
+
+* users
+* garages
+* customers
+* vehicles
+* bookings
+* jobs
+* job_timelines
+* service_packages
+* notifications
+
+Include:
+
+* Primary Keys
+* Foreign Keys
+* Constraints
+* Indexes
+* created_at
+* updated_at
+* soft delete (deleted_at where applicable)
+
+---
+
+
+# Validation
+
+Use Pydantic v2.
+
+Validate
+
+* Mobile Number
+* Email
+* Dates
+* Enum Values
+* Pagination
+* Required Fields
+
+Separate schemas into:
+
+* Create
+* Update
+* Response
+
+---
+
+# Error Handling
+
+Create Global Exception Middleware.
+
+Return consistent JSON responses.
+
+Example
+
+```json
+{
+  "success": false,
+  "message": "Job not found",
+  "errors": [],
+  "status_code": 404
+}
+```
+
+---
+
+# Security
+
+* JWT Authentication
+* Password hashing (if credentials are introduced later)
+* CORS
+* Environment Variables
+* SQL Injection Protection
+* Input Validation
+
+---
+
+# API Features
+
+Implement
+
+* Async Database Operations
+* Pagination
+* Search
+* Sorting
+* Filtering
+* Logging
+* Dependency Injection
+* OpenAPI Documentation
+* Repository Pattern
+* Service Layer
+* Database Transactions
+
+---
+
+# Testing
+
+Provide
+
+* Unit Tests
+* Integration Tests
+* Sample Seed Data
+
+---
+
+# Deliverables
+
+Generate a production-ready FastAPI backend including:
+
+* Complete folder structure
+* PostgreSQL schema
+* Repository layer
+* Service layer
+* API routers
+* JWT authentication
+* Request/Response schemas
+* Global exception handling
+* Logging
+* Swagger documentation
+* Dockerfile
+* docker-compose.yml
+* .env.example
+* requirements.txt
+* README.md with setup instructions
+
+The generated project should follow FastAPI best practices, be fully asynchronous, scalable, maintainable, and ready for integration with the existing mobile application frontend.
