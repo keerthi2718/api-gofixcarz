@@ -1,0 +1,63 @@
+import uuid
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, field_validator
+
+
+class GarageUpdate(BaseModel):
+    name: Optional[str] = None
+    owner: Optional[str] = None
+    address: Optional[str] = None
+    alternate_number: Optional[str] = None
+    working_hours: Optional[Dict[str, Any]] = None
+    latitude: Optional[Decimal] = None
+    longitude: Optional[Decimal] = None
+
+    @field_validator("name", "owner")
+    @classmethod
+    def not_empty(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None and not v.strip():
+            raise ValueError("Field must not be empty")
+        return v.strip() if v else v
+
+    @field_validator("latitude")
+    @classmethod
+    def validate_lat(cls, v: Optional[Decimal]) -> Optional[Decimal]:
+        if v is not None and not (-90 <= float(v) <= 90):
+            raise ValueError("Latitude must be between -90 and 90")
+        return v
+
+    @field_validator("longitude")
+    @classmethod
+    def validate_lng(cls, v: Optional[Decimal]) -> Optional[Decimal]:
+        if v is not None and not (-180 <= float(v) <= 180):
+            raise ValueError("Longitude must be between -180 and 180")
+        return v
+
+
+class GarageCreate(BaseModel):
+    name: str
+    owner: str
+    address: Optional[str] = None
+    alternate_number: Optional[str] = None
+    working_hours: Optional[Dict[str, Any]] = None
+    latitude: Optional[Decimal] = None
+    longitude: Optional[Decimal] = None
+
+
+class GarageResponse(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    name: str
+    owner: str
+    address: Optional[str] = None
+    alternate_number: Optional[str] = None
+    working_hours: Optional[Dict[str, Any]] = None
+    latitude: Optional[Decimal] = None
+    longitude: Optional[Decimal] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

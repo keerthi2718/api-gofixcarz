@@ -1,211 +1,346 @@
 # Garage Management API
 
-Production-ready FastAPI backend for the Garage Management Mobile Application.
-
-## Tech Stack
-
-- **Python 3.12+** · **FastAPI** · **SQLAlchemy 2.0 async** · **asyncpg**
-- **PostgreSQL** · **Alembic** (migrations) · **Pydantic v2**
-- **JWT** authentication · **MSG91** SMS OTP · **Loguru** logging
-- **Uvicorn** ASGI server · **httpx** HTTP client
+A production-ready REST API for managing a car garage — built with **FastAPI**, **SQLAlchemy 2 async**, and **PostgreSQL**. Designed to be consumed by a mobile client.
 
 ---
 
-## Quick Start
+## Table of Contents
 
-### Option 1 — Local (uvicorn)
+1. [Prerequisites](#prerequisites)
+2. [Environment Variables](#environment-variables)
+3. [Local Setup](#local-setup)
+4. [Running the Server](#running-the-server)
+5. [Database Migrations](#database-migrations)
+6. [Seed Data](#seed-data)
+7. [Running Tests](#running-tests)
+8. [Connecting with DBeaver / pgAdmin](#connecting-with-dbeaver--pgadmin)
+9. [Postman Collection](#postman-collection)
+10. [Backup & Restore](#backup--restore)
+11. [API Overview](#api-overview)
+12. [Project Structure](#project-structure)
+13. [Deployment Notes](#deployment-notes)
 
-```bash
-# 1. Create a virtual environment
-python -m venv .venv && source .venv/bin/activate
+---
 
-# 2. Install dependencies
-pip install -r requirements.txt
+## Prerequisites
 
-# 3. Configure environment
-cp .env.example .env
-# Edit .env with your DATABASE_URL, SESSION_SECRET, MSG91_AUTH_KEY
+| Tool | Version |
+|------|---------|
+| Python | 3.11+ |
+| PostgreSQL | 14+ |
+| pip | latest |
 
-# 4. Run migrations
-python -m alembic upgrade head
+Optional for Docker:
 
-# 5. (Optional) seed sample data
-python -m app.utils.seed
-
-# 6. Start the server
-uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
-```
-
-API available at `http://localhost:8080/api`
-Swagger docs at `http://localhost:8080/api/docs`
-
-### Option 2 — Docker Compose
-
-```bash
-cp .env.example .env          # edit as needed
-docker compose up --build
-```
-
-The API will be available at `http://localhost:8000/api`.
+| Tool | Version |
+|------|---------|
+| Docker | 24+ |
+| Docker Compose | 2.x |
 
 ---
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | ✅ | PostgreSQL connection string (`postgresql://user:pass@host:port/db`) |
-| `SESSION_SECRET` | ✅ | Secret key for JWT signing (generate with `python -c "import secrets; print(secrets.token_hex(32))"`) |
-| `MSG91_AUTH_KEY` | ✅ | MSG91 API authentication key |
-| `OTP_EXPIRY_SECONDS` | ❌ | OTP validity window in seconds (default: 300) |
-| `DEBUG` | ❌ | Enable SQL query logging (default: false) |
-| `ENVIRONMENT` | ❌ | `development` or `production` (default: development) |
-
----
-
-## Running Migrations
+Copy `.env.example` to `.env` and fill in the values:
 
 ```bash
-# Apply all pending migrations
-python -m alembic upgrade head
-
-# Rollback one migration
-python -m alembic downgrade -1
-
-# Show current migration status
-python -m alembic current
-
-# Show migration history
-python -m alembic history
+cp .env.example .env
 ```
 
-> **Note:** Alembic uses a synchronous psycopg2 connection. The runtime app uses async asyncpg — both work against the same database.
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection URL | — (required) |
+| `SESSION_SECRET` | JWT signing key (use a 32-byte random hex) | — (required) |
+| `MSG91_AUTH_KEY` | MSG91 API key for OTP SMS | — (optional in dev) |
+| `ENVIRONMENT` | `development` or `production` | `development` |
+| `DEBUG` | Enable SQLAlchemy echo | `false` |
+| `OTP_EXPIRY_SECONDS` | OTP validity window | `300` |
+| `CORS_ORIGINS` | Allowed CORS origins (JSON array) | `["*"]` |
 
----
-
-## Connecting with DBeaver / pgAdmin
-
-Use the components of your `DATABASE_URL` to connect:
-
-| Field | Value |
-|---|---|
-| Host | From `DATABASE_URL` (e.g. `localhost` or `helium`) |
-| Port | `5432` |
-| Database | From `DATABASE_URL` |
-| Username | From `DATABASE_URL` |
-| Password | From `DATABASE_URL` |
-| SSL | Disable for local; Enable for cloud |
-
-In **Replit**, your `DATABASE_URL` is available in the environment. You can find the individual components with:
+Generate a strong secret key:
 
 ```bash
-python -c "
-from urllib.parse import urlparse
-import os
-u = urlparse(os.environ['DATABASE_URL'])
-print(f'Host: {u.hostname}\nPort: {u.port}\nDB: {u.path[1:]}\nUser: {u.username}')
-"
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
 ---
 
-## API Documentation
-
-Interactive Swagger UI: `/api/docs`  
-ReDoc: `/api/redoc`  
-OpenAPI JSON: `/api/openapi.json`
-
-### Auth Flow
-
-```
-POST /api/v1/auth/sign-up   → create account + send OTP
-POST /api/v1/auth/sign-in   → send OTP to existing mobile
-POST /api/v1/auth/send-otp  → resend OTP
-POST /api/v1/auth/verify-otp → verify OTP → receive JWT
-POST /api/v1/auth/logout    → (client discards JWT)
-```
-
-All protected endpoints require:
-```
-Authorization: Bearer <access_token>
-```
-
-### Response Envelope
-
-All responses follow this structure:
-
-```json
-{
-  "success": true,
-  "message": "Human-readable message",
-  "data": { ... },
-  "errors": [],
-  "status_code": 200
-}
-```
-
----
-
-## Importing the Postman Collection
-
-> Generated in Task #3. Once available:
-
-1. Open Postman → Import
-2. Select `Garage_API.postman_collection.json`
-3. Import `Garage.postman_environment.json` and set it as active
-4. Set `base_url` to your API URL (e.g. `https://your-replit-domain.repl.co`)
-5. Use **Sign Up** then **Verify OTP** — the JWT is saved automatically to `access_token`
-
----
-
-## Database Backup & Restore
-
-### Backup
+## Local Setup
 
 ```bash
-# Creates backups/backup_YYYYMMDD_HHMMSS.sql
-./scripts/backup_db.sh
+# Clone the repo and enter the project directory
+git clone <repo>
+cd artifacts/api-server
+
+# Create a virtual environment (optional but recommended)
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Copy and configure env
+cp .env.example .env
+# Edit .env — set DATABASE_URL and SESSION_SECRET at minimum
 ```
 
-### Restore
+---
+
+## Running the Server
+
+### Uvicorn (development)
 
 ```bash
-./scripts/restore_db.sh backups/backup_20250101_120000.sql
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-> Both scripts read `DATABASE_URL` from the environment (or `.env`).
+Swagger UI: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
+ReDoc: [http://localhost:8000/api/redoc](http://localhost:8000/api/redoc)
+
+### Docker Compose (full stack)
+
+```bash
+docker compose up --build
+```
+
+This starts:
+- `api` — FastAPI app on port 8000
+- `db` — PostgreSQL on port 5432
+
+### Docker only (bring your own DB)
+
+```bash
+docker build -t garage-api .
+docker run -p 8000:8000 \
+  -e DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/garage_db" \
+  -e SESSION_SECRET="your-secret" \
+  garage-api
+```
+
+---
+
+## Database Migrations
+
+Migrations are managed by **Alembic** using a synchronous psycopg2 connection (asyncpg doesn't support `$$` dollar-quoted PL/pgSQL blocks in migration scripts).
+
+```bash
+# Apply all migrations
+alembic upgrade head
+
+# Create a new migration (after changing models)
+alembic revision --autogenerate -m "your description"
+
+# Roll back one step
+alembic downgrade -1
+
+# View current revision
+alembic current
+
+# View migration history
+alembic history
+```
+
+> **Note**: On Replit, `DATABASE_URL` is injected automatically. Alembic reads `alembic/env.py` which converts the URL to a synchronous `psycopg2` connection.
+
+---
+
+## Seed Data
+
+The seed script populates representative data — 1 garage, 5 customers, 10 vehicles, 20 jobs (all statuses), 5 bookings, 5 service packages, and 10 notifications:
+
+```bash
+python -m app.utils.seed
+```
+
+The script is **idempotent** — re-running it skips records that already exist. After seeding:
+
+- **Mobile**: `9000000000`
+- **Sign in**: `POST /api/v1/auth/sign-in` with the mobile above, then `POST /api/v1/auth/verify-otp` to get a JWT.
 
 ---
 
 ## Running Tests
 
 ```bash
-# Install test dependencies (included in requirements.txt)
-pytest tests/ -v
-
-# Run only unit tests
+# Unit tests only (fast, no DB)
 pytest tests/unit/ -v
 
-# Run only integration tests (requires live DB)
+# Integration tests (requires running server + DB)
 pytest tests/integration/ -v
+
+# All tests
+pytest -v
+
+# With coverage report
+pip install pytest-cov
+pytest --cov=app --cov-report=term-missing
+```
+
+Unit tests cover:
+- OTP generation and expiry (`tests/unit/test_otp.py`)
+- Job status transition state machine (`tests/unit/test_job_status.py`)
+- Analytics date bucketing logic (`tests/unit/test_analytics.py`)
+
+Integration tests cover the full auth flow and job/customer/vehicle CRUD against the live database.
+
+---
+
+## Connecting with DBeaver / pgAdmin
+
+1. Parse `DATABASE_URL` — format: `postgresql://USER:PASSWORD@HOST:PORT/DBNAME`
+2. In DBeaver: **New Connection → PostgreSQL**
+   - Host: `HOST` from the URL
+   - Port: `PORT` (usually `5432`)
+   - Database: `DBNAME`
+   - Username: `USER`
+   - Password: `PASSWORD`
+3. On Replit, the internal host is `helium` and SSL is not used — uncheck "Use SSL".
+
+> On Replit, the `DATABASE_URL` is available as an environment variable at runtime. You can print it (never commit it) with `echo $DATABASE_URL`.
+
+---
+
+## Postman Collection
+
+Two files are provided:
+
+| File | Purpose |
+|------|---------|
+| `Garage_API.postman_collection.json` | All endpoints with sample bodies and test scripts |
+| `Garage.postman_environment.json` | Environment variables (`base_url`, `access_token`, etc.) |
+
+### Import steps
+
+1. Open Postman → **Import** → drag both JSON files.
+2. Select the **Garage Management — Local** environment in the top-right dropdown.
+3. Run **Sign Up** → **Verify OTP** — the test script auto-saves the JWT to `{{access_token}}`.
+4. All other requests use `{{access_token}}` via collection-level Bearer auth.
+
+### Workflow
+
+```
+Sign Up → Verify OTP ← JWT saved automatically
+           ↓
+       Dashboard / Jobs / Customers / Vehicles / Bookings / Analytics
 ```
 
 ---
 
-## Deployment
+## Backup & Restore
 
-The project is fully portable. To deploy on any cloud:
+Scripts require `pg_dump` and `psql` in your PATH (they come with PostgreSQL client tools).
 
-1. Set the environment variables listed above
-2. Point `DATABASE_URL` at your PostgreSQL instance
-3. Run `python -m alembic upgrade head` once
-4. Start with `uvicorn app.main:app --host 0.0.0.0 --port 8080`
-
-Or use Docker:
+### Backup
 
 ```bash
-docker build -t garage-api .
-docker run -e DATABASE_URL=... -e SESSION_SECRET=... -e MSG91_AUTH_KEY=... -p 8080:8000 garage-api
+bash scripts/backup_db.sh
+# Creates: backups/backup_YYYYMMDD_HHMMSS.sql
+```
+
+### Restore
+
+```bash
+bash scripts/restore_db.sh backups/backup_20260717_120000.sql
+```
+
+The scripts parse `DATABASE_URL` automatically.
+
+---
+
+## API Overview
+
+All responses use the envelope format:
+
+```json
+{
+  "success": true,
+  "message": "...",
+  "data": { ... },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+Paginated endpoints return:
+
+```json
+{
+  "items": [...],
+  "total": 42,
+  "page": 1,
+  "page_size": 20,
+  "pages": 3
+}
+```
+
+### Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/health` | — | Health check (DB ping) |
+| GET | `/api/version` | — | App name and version |
+| **Auth** | | | |
+| POST | `/api/v1/auth/sign-up` | — | Register new user |
+| POST | `/api/v1/auth/sign-in` | — | Request OTP for existing user |
+| POST | `/api/v1/auth/send-otp` | — | Resend OTP |
+| POST | `/api/v1/auth/verify-otp` | — | Verify OTP → JWT |
+| POST | `/api/v1/auth/logout` | ✓ | Invalidate session |
+| **Dashboard** | | | |
+| GET | `/api/v1/dashboard` | ✓ | KPIs + recent activity |
+| **Analytics** | | | |
+| GET | `/api/v1/analytics` | ✓ | Revenue + job counts (`period`, `start_date`, `end_date`) |
+| **Profile** | | | |
+| GET | `/api/v1/profile` | ✓ | Get current user profile |
+| PUT | `/api/v1/profile` | ✓ | Update name / email / mobile |
+| **Garage** | | | |
+| GET | `/api/v1/garage` | ✓ | Get garage info |
+| PUT | `/api/v1/garage` | ✓ | Update name, address, working hours, lat/lng |
+| **Customers** | | | |
+| POST | `/api/v1/customers` | ✓ | Create customer |
+| GET | `/api/v1/customers` | ✓ | List customers (paginated, searchable) |
+| GET | `/api/v1/customers/{id}` | ✓ | Get customer |
+| PUT | `/api/v1/customers/{id}` | ✓ | Update customer |
+| DELETE | `/api/v1/customers/{id}` | ✓ | Soft-delete customer |
+| **Vehicles** | | | |
+| POST | `/api/v1/vehicles` | ✓ | Create vehicle |
+| GET | `/api/v1/vehicles` | ✓ | List vehicles (paginated, filterable by customer) |
+| GET | `/api/v1/vehicles/{id}` | ✓ | Get vehicle with job history |
+| PUT | `/api/v1/vehicles/{id}` | ✓ | Update vehicle |
+| DELETE | `/api/v1/vehicles/{id}` | ✓ | Soft-delete vehicle |
+| **Jobs** | | | |
+| POST | `/api/v1/jobs` | ✓ | Create job (auto `JOB-YYYYMMDD-NNNN` number) |
+| GET | `/api/v1/jobs` | ✓ | List jobs (paginated, filter by status/date, search) |
+| GET | `/api/v1/jobs/{id}` | ✓ | Get job with full timeline |
+| PUT | `/api/v1/jobs/{id}` | ✓ | Update job details |
+| PATCH | `/api/v1/jobs/{id}/status` | ✓ | Advance job status |
+| PATCH | `/api/v1/jobs/{id}/complete` | ✓ | Mark complete + set final amount |
+| DELETE | `/api/v1/jobs/{id}` | ✓ | Soft-delete job |
+| **Bookings** | | | |
+| GET | `/api/v1/bookings` | ✓ | List bookings (paginated, filterable by status) |
+| GET | `/api/v1/bookings/{id}` | ✓ | Get booking detail |
+| PATCH | `/api/v1/bookings/{id}/accept` | ✓ | Accept pending booking |
+| PATCH | `/api/v1/bookings/{id}/reject` | ✓ | Reject booking |
+| POST | `/api/v1/bookings/{id}/create-job` | ✓ | Convert booking → job atomically |
+| **Service Packages** | | | |
+| POST | `/api/v1/service-packages` | ✓ | Create package |
+| GET | `/api/v1/service-packages` | ✓ | List packages (searchable, active filter) |
+| GET | `/api/v1/service-packages/{id}` | ✓ | Get package |
+| PUT | `/api/v1/service-packages/{id}` | ✓ | Update package |
+| DELETE | `/api/v1/service-packages/{id}` | ✓ | Soft-delete package |
+| **Notifications** | | | |
+| GET | `/api/v1/notifications` | ✓ | List notifications (unread first) |
+| PATCH | `/api/v1/notifications/{id}/read` | ✓ | Mark notification as read |
+| **Static** | | | |
+| GET | `/api/v1/static/privacy-policy` | — | Privacy policy text |
+| GET | `/api/v1/static/help-support` | — | Help & support text |
+
+### Job Status Machine
+
+```
+OPEN → IN_PROGRESS → WAITING_FOR_PARTS → IN_PROGRESS
+                   → QUALITY_CHECK → IN_PROGRESS
+                                   → COMPLETED (terminal)
+     → CANCELLED (terminal, from any non-terminal state)
 ```
 
 ---
@@ -215,21 +350,57 @@ docker run -e DATABASE_URL=... -e SESSION_SECRET=... -e MSG91_AUTH_KEY=... -p 80
 ```
 artifacts/api-server/
 ├── app/
-│   ├── api/v1/          # Route handlers (auth, jobs, customers, …)
-│   ├── core/            # Config, security, logging, exceptions
-│   ├── database/        # SQLAlchemy engine, session, base models
-│   ├── dependencies/    # FastAPI dependency injection (auth, db)
-│   ├── middleware/       # Request ID, logging middleware
-│   ├── models/          # SQLAlchemy ORM models (9 tables)
-│   ├── repositories/    # DB query layer
-│   ├── schemas/         # Pydantic v2 request/response schemas
-│   ├── services/        # Business logic layer
-│   └── utils/           # MSG91 SMS, seed script
-├── alembic/             # Database migrations
-├── scripts/             # backup_db.sh, restore_db.sh
-├── backups/             # SQL dump files (git-ignored)
+│   ├── api/v1/            # Route handlers
+│   │   ├── auth.py
+│   │   ├── dashboard.py
+│   │   ├── analytics.py
+│   │   ├── profile.py
+│   │   ├── garage.py
+│   │   ├── customers.py
+│   │   ├── vehicles.py
+│   │   ├── jobs.py
+│   │   ├── bookings.py
+│   │   ├── service_packages.py
+│   │   ├── notifications.py
+│   │   └── static.py
+│   ├── core/              # Config, logging, security, exceptions
+│   ├── database/          # Engine, session factory
+│   ├── dependencies/      # FastAPI deps (auth, garage scope)
+│   ├── middleware/        # Request ID logging
+│   ├── models/            # SQLAlchemy ORM models
+│   ├── repositories/      # DB query layer
+│   ├── schemas/           # Pydantic request/response models
+│   ├── services/          # Business logic
+│   └── utils/             # MSG91 helper, seed script
+├── alembic/               # Database migrations
+├── scripts/               # backup_db.sh, restore_db.sh
+├── tests/
+│   ├── unit/              # Fast, no-DB tests
+│   └── integration/       # Live-server tests
+├── Garage_API.postman_collection.json
+├── Garage.postman_environment.json
 ├── requirements.txt
+├── .env.example
 ├── Dockerfile
 ├── docker-compose.yml
-└── .env.example
+└── README.md
 ```
+
+---
+
+## Deployment Notes
+
+### Replit
+
+- `DATABASE_URL` and `SESSION_SECRET` (aliased from `SESSION_SECRET`) are injected as Replit secrets — no `.env` file needed.
+- Run migrations before starting: `alembic upgrade head`.
+- The workflow command is: `uvicorn app.main:app --host 0.0.0.0 --port $PORT --reload`.
+
+### Production checklist
+
+- [ ] Set `ENVIRONMENT=production` and `DEBUG=false`
+- [ ] Generate a strong `SESSION_SECRET` (32+ bytes)
+- [ ] Set `CORS_ORIGINS` to your specific frontend domain(s)
+- [ ] Run `alembic upgrade head` before deploying
+- [ ] Configure a cron job or scheduled task to run `scripts/backup_db.sh` daily
+- [ ] Set `MSG91_AUTH_KEY` for real OTP SMS delivery

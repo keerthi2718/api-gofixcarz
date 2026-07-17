@@ -1,0 +1,404 @@
+{
+  "info": {
+    "name": "Garage Management API",
+    "_postman_id": "garage-mgmt-api-v1",
+    "description": "Complete API collection for the Garage Management backend. Import alongside Garage.postman_environment.json.\n\nFlow:\n1. POST /auth/sign-up\n2. POST /auth/verify-otp  ← JWT auto-saved to {{access_token}}\n3. Use any protected endpoint — token is applied automatically via collection auth.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{access_token}}", "type": "string"}]
+  },
+  "variable": [
+    {"key": "base_url", "value": "{{base_url}}"}
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {"method": "GET", "url": "{{base_url}}/api/health"}
+        },
+        {
+          "name": "Version",
+          "request": {"method": "GET", "url": "{{base_url}}/api/version"}
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Sign Up",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/sign-up",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mobile\": \"9876543210\", \"name\": \"John Doe\", \"email\": \"john@example.com\"}"
+            }
+          }
+        },
+        {
+          "name": "Sign In",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/sign-in",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mobile\": \"9876543210\"}"
+            }
+          }
+        },
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/send-otp",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mobile\": \"9876543210\"}"
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.success && json.data && json.data.access_token) {",
+                  "    pm.environment.set('access_token', json.data.access_token);",
+                  "    console.log('JWT saved to access_token');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/verify-otp",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"mobile\": \"9876543210\", \"otp\": \"123456\"}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/auth/logout",
+            "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{access_token}}"}]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/dashboard"}
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Monthly Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/analytics?period=monthly", "host": ["{{base_url}}"], "path": ["api","v1","analytics"], "query": [{"key": "period", "value": "monthly"}]}}
+        },
+        {
+          "name": "Daily Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/analytics?period=daily", "host": ["{{base_url}}"], "path": ["api","v1","analytics"], "query": [{"key": "period", "value": "daily"}]}}
+        },
+        {
+          "name": "Custom Range Analytics",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/analytics?period=custom&start_date=2026-01-01&end_date=2026-07-17", "host": ["{{base_url}}"], "path": ["api","v1","analytics"], "query": [{"key": "period", "value": "custom"}, {"key": "start_date", "value": "2026-01-01"}, {"key": "end_date", "value": "2026-07-17"}]}}
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/profile"}
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/profile",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Updated Name\", \"email\": \"updated@example.com\"}"}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Garage",
+      "item": [
+        {
+          "name": "Get Garage",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/garage"}
+        },
+        {
+          "name": "Update Garage",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/garage",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"My AutoCare Centre\", \"owner\": \"John Doe\", \"address\": \"123 Main St, City\", \"working_hours\": {\"mon\": \"09:00-18:00\", \"tue\": \"09:00-18:00\", \"wed\": \"09:00-18:00\", \"thu\": \"09:00-18:00\", \"fri\": \"09:00-18:00\", \"sat\": \"09:00-13:00\", \"sun\": \"closed\"}, \"latitude\": 18.5204, \"longitude\": 73.8567}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Create Customer",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/customers",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Alice Smith\", \"mobile\": \"9876543211\", \"email\": \"alice@example.com\", \"address\": \"456 Park Ave\", \"notes\": \"Regular customer\"}"}
+          }
+        },
+        {
+          "name": "List Customers",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/customers?page=1&page_size=20", "host": ["{{base_url}}"], "path": ["api","v1","customers"], "query": [{"key": "page", "value": "1"}, {"key": "page_size", "value": "20"}]}}
+        },
+        {
+          "name": "Search Customers",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/customers?search=alice", "host": ["{{base_url}}"], "path": ["api","v1","customers"], "query": [{"key": "search", "value": "alice"}]}}
+        },
+        {
+          "name": "Get Customer",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/customers/{{customer_id}}"}
+        },
+        {
+          "name": "Update Customer",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/customers/{{customer_id}}",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"notes\": \"VIP customer — priority service\"}"}
+          }
+        },
+        {
+          "name": "Delete Customer",
+          "request": {"method": "DELETE", "url": "{{base_url}}/api/v1/customers/{{customer_id}}"}
+        }
+      ]
+    },
+    {
+      "name": "Vehicles",
+      "item": [
+        {
+          "name": "Create Vehicle",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/vehicles",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"customer_id\": \"{{customer_id}}\", \"make\": \"Toyota\", \"model\": \"Corolla\", \"year\": 2022, \"registration_plate\": \"MH01AB1234\", \"colour\": \"White\", \"vin\": \"1HGBH41JXMN109186\"}"}
+          }
+        },
+        {
+          "name": "List Vehicles",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/vehicles?page=1&page_size=20", "host": ["{{base_url}}"], "path": ["api","v1","vehicles"], "query": [{"key": "page", "value": "1"}, {"key": "page_size", "value": "20"}]}}
+        },
+        {
+          "name": "List Vehicles by Customer",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/vehicles?customer_id={{customer_id}}", "host": ["{{base_url}}"], "path": ["api","v1","vehicles"], "query": [{"key": "customer_id", "value": "{{customer_id}}"}]}}
+        },
+        {
+          "name": "Get Vehicle",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}"}
+        },
+        {
+          "name": "Update Vehicle",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"colour\": \"Silver\", \"notes\": \"Regular customer vehicle\"}"}
+          }
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {"method": "DELETE", "url": "{{base_url}}/api/v1/vehicles/{{vehicle_id}}"}
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Create Job",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/jobs",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"customer_id\": \"{{customer_id}}\", \"vehicle_id\": \"{{vehicle_id}}\", \"description\": \"Full service and oil change\", \"estimated_amount\": 2500}"}
+          }
+        },
+        {
+          "name": "List Jobs",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/jobs?page=1&page_size=20&sort_by=created_at&sort_dir=desc", "host": ["{{base_url}}"], "path": ["api","v1","jobs"], "query": [{"key": "page", "value": "1"}, {"key": "page_size", "value": "20"}, {"key": "sort_by", "value": "created_at"}, {"key": "sort_dir", "value": "desc"}]}}
+        },
+        {
+          "name": "Filter Jobs by Status",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/jobs?status=OPEN", "host": ["{{base_url}}"], "path": ["api","v1","jobs"], "query": [{"key": "status", "value": "OPEN"}]}}
+        },
+        {
+          "name": "Search Jobs",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/jobs?search=JOB-", "host": ["{{base_url}}"], "path": ["api","v1","jobs"], "query": [{"key": "search", "value": "JOB-"}]}}
+        },
+        {
+          "name": "Get Job",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/jobs/{{job_id}}"}
+        },
+        {
+          "name": "Update Job",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/jobs/{{job_id}}",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"description\": \"Full service, oil change, and brake inspection\", \"estimated_amount\": 3000}"}
+          }
+        },
+        {
+          "name": "Update Job Status",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/api/v1/jobs/{{job_id}}/status",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"status\": \"IN_PROGRESS\", \"notes\": \"Work started\"}"}
+          }
+        },
+        {
+          "name": "Complete Job",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base_url}}/api/v1/jobs/{{job_id}}/complete",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"final_amount\": 2400, \"notes\": \"All work completed successfully\"}"}
+          }
+        },
+        {
+          "name": "Delete Job",
+          "request": {"method": "DELETE", "url": "{{base_url}}/api/v1/jobs/{{job_id}}"}
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "List Bookings",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/bookings?page=1&page_size=20", "host": ["{{base_url}}"], "path": ["api","v1","bookings"], "query": [{"key": "page", "value": "1"}, {"key": "page_size", "value": "20"}]}}
+        },
+        {
+          "name": "Filter Bookings by Status",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/bookings?status=PENDING", "host": ["{{base_url}}"], "path": ["api","v1","bookings"], "query": [{"key": "status", "value": "PENDING"}]}}
+        },
+        {
+          "name": "Get Booking",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/bookings/{{booking_id}}"}
+        },
+        {
+          "name": "Accept Booking",
+          "request": {"method": "PATCH", "url": "{{base_url}}/api/v1/bookings/{{booking_id}}/accept"}
+        },
+        {
+          "name": "Reject Booking",
+          "request": {"method": "PATCH", "url": "{{base_url}}/api/v1/bookings/{{booking_id}}/reject"}
+        },
+        {
+          "name": "Create Job from Booking",
+          "request": {"method": "POST", "url": "{{base_url}}/api/v1/bookings/{{booking_id}}/create-job"}
+        }
+      ]
+    },
+    {
+      "name": "Service Packages",
+      "item": [
+        {
+          "name": "Create Service Package",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/service-packages",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\": \"Full Service\", \"description\": \"Oil, filter, brakes, and tyres\", \"price\": 3999, \"duration_minutes\": 240, \"is_active\": true}"}
+          }
+        },
+        {
+          "name": "List Service Packages",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/service-packages?active_only=true", "host": ["{{base_url}}"], "path": ["api","v1","service-packages"], "query": [{"key": "active_only", "value": "true"}]}}
+        },
+        {
+          "name": "Get Service Package",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/service-packages/{{pkg_id}}"}
+        },
+        {
+          "name": "Update Service Package",
+          "request": {
+            "method": "PUT",
+            "url": "{{base_url}}/api/v1/service-packages/{{pkg_id}}",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"price\": 4499, \"is_active\": true}"}
+          }
+        },
+        {
+          "name": "Delete Service Package",
+          "request": {"method": "DELETE", "url": "{{base_url}}/api/v1/service-packages/{{pkg_id}}"}
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/notifications?page=1&page_size=20", "host": ["{{base_url}}"], "path": ["api","v1","notifications"], "query": [{"key": "page", "value": "1"}, {"key": "page_size", "value": "20"}]}}
+        },
+        {
+          "name": "Unread Notifications",
+          "request": {"method": "GET", "url": {"raw": "{{base_url}}/api/v1/notifications?unread_only=true", "host": ["{{base_url}}"], "path": ["api","v1","notifications"], "query": [{"key": "unread_only", "value": "true"}]}}
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {"method": "PATCH", "url": "{{base_url}}/api/v1/notifications/{{notif_id}}/read"}
+        }
+      ]
+    },
+    {
+      "name": "Static",
+      "item": [
+        {
+          "name": "Privacy Policy",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/static/privacy-policy"}
+        },
+        {
+          "name": "Help & Support",
+          "request": {"method": "GET", "url": "{{base_url}}/api/v1/static/help-support"}
+        }
+      ]
+    }
+  ]
+}

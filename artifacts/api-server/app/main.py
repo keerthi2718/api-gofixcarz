@@ -146,11 +146,27 @@ from app.api.v1.auth import router as auth_router  # noqa: E402
 from app.api.v1.customers import router as customers_router  # noqa: E402
 from app.api.v1.vehicles import router as vehicles_router  # noqa: E402
 from app.api.v1.jobs import router as jobs_router  # noqa: E402
+from app.api.v1.bookings import router as bookings_router  # noqa: E402
+from app.api.v1.dashboard import router as dashboard_router  # noqa: E402
+from app.api.v1.analytics import router as analytics_router  # noqa: E402
+from app.api.v1.profile import router as profile_router  # noqa: E402
+from app.api.v1.garage import router as garage_router  # noqa: E402
+from app.api.v1.service_packages import router as service_packages_router  # noqa: E402
+from app.api.v1.notifications import router as notifications_router  # noqa: E402
+from app.api.v1.static import router as static_router  # noqa: E402
 
 v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+v1_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 v1_router.include_router(customers_router, prefix="/customers", tags=["Customers"])
 v1_router.include_router(vehicles_router, prefix="/vehicles", tags=["Vehicles"])
 v1_router.include_router(jobs_router, prefix="/jobs", tags=["Jobs"])
+v1_router.include_router(bookings_router, prefix="/bookings", tags=["Bookings"])
+v1_router.include_router(analytics_router, prefix="/analytics", tags=["Analytics"])
+v1_router.include_router(profile_router, prefix="/profile", tags=["Profile"])
+v1_router.include_router(garage_router, prefix="/garage", tags=["Garage"])
+v1_router.include_router(service_packages_router, prefix="/service-packages", tags=["Service Packages"])
+v1_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
+v1_router.include_router(static_router, prefix="/static", tags=["Static"])
 
 app.include_router(v1_router)
