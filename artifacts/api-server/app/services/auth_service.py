@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import BadRequestException, UnauthorizedException
+from app.core.exceptions import BadRequestException, ConflictException, UnauthorizedException
 from app.core.security import (
     create_access_token,
     generate_otp,
@@ -27,7 +27,7 @@ class AuthService:
     async def sign_up(self, data: SignUpRequest) -> dict:
         existing = await self.user_repo.get_by_mobile(data.mobile)
         if existing:
-            raise BadRequestException("Mobile number already registered. Please sign in.")
+            raise ConflictException("Mobile number already registered. Please sign in.")
         user = await self.user_repo.create(
             mobile=data.mobile, name=data.name, email=str(data.email) if data.email else None
         )
