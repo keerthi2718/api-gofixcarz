@@ -1,0 +1,1 @@
+- [Garage API — asyncpg & Alembic quirks](garage-api-db-quirks.md) — asyncpg rejects sslmode in URL and $$ blocks; Alembic uses psycopg2 sync; Replit Postgres (helium) has no SSL.
