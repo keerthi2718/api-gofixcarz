@@ -2,6 +2,7 @@ import json
 import time
 from contextlib import asynccontextmanager
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,10 +46,41 @@ class OTPBodyCacheMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+async def _delete_expired_refresh_tokens() -> None:
+    """Scheduled job: purge expired refresh tokens from the database."""
+    try:
+        async with async_session() as session:
+            from app.repositories.refresh_token_repository import RefreshTokenRepository  # noqa: PLC0415
+            repo = RefreshTokenRepository(session)
+            deleted = await repo.delete_expired()
+            await session.commit()
+        logger.info(f"Expired refresh token cleanup: {deleted} row(s) deleted")
+    except Exception:
+        logger.exception("Expired refresh token cleanup failed")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
+
+    scheduler = AsyncIOScheduler()
+    # Run once at startup, then every 24 hours
+    scheduler.add_job(
+        _delete_expired_refresh_tokens,
+        trigger="interval",
+        hours=24,
+        id="delete_expired_refresh_tokens",
+        replace_existing=True,
+        max_instances=1,
+        misfire_grace_time=3600,
+    )
+    scheduler.start()
+    # Kick off an immediate first run so stale rows are cleared on restart too
+    await _delete_expired_refresh_tokens()
+
     yield
+
+    scheduler.shutdown(wait=False)
     await engine.dispose()
     logger.info("Shutdown complete")
 

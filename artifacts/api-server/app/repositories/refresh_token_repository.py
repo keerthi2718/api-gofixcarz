@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.refresh_token import RefreshToken
@@ -50,3 +50,18 @@ class RefreshTokenRepository:
             )
             .values(revoked_at=now)
         )
+
+    async def delete_expired(self) -> int:
+        """Delete all refresh tokens whose expires_at is in the past.
+
+        Safe to run concurrently — only touches rows that are already expired
+        and therefore can never be used for authentication.
+
+        Returns the number of rows deleted.
+        """
+        now = datetime.now(timezone.utc)
+        result = await self.session.execute(
+            delete(RefreshToken).where(RefreshToken.expires_at < now)
+        )
+        await self.session.flush()
+        return result.rowcount
