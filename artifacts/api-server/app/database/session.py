@@ -44,8 +44,8 @@ engine = create_async_engine(
     _db_url,
     echo=settings.DEBUG,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
     connect_args=_connect_args,
 )
 

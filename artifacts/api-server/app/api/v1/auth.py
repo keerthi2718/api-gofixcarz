@@ -1,7 +1,9 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import JSONResponse
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
@@ -21,6 +23,27 @@ router = APIRouter()
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 
 
+def _mobile_key(request: Request) -> str:
+    """Sync rate-limit key based on mobile number.
+
+    The OTPBodyCacheMiddleware (registered in main.py) pre-reads and parses
+    the JSON body onto request.state._body_json for OTP routes before slowapi
+    evaluates this function. Falls back to client IP if the field is absent.
+
+    Mobile is normalized identically to the Pydantic schema validators (strip
+    whitespace) so that semantically equivalent numbers share a single bucket
+    and cannot bypass the limit by varying leading/trailing spaces.
+    """
+    body: dict = getattr(request.state, "_body_json", {})
+    mobile: str = str(body.get("mobile", "")).strip()
+    if mobile:
+        return f"mobile:{mobile}"
+    return get_remote_address(request)
+
+
+limiter = Limiter(key_func=get_remote_address)
+
+
 @router.post("/sign-up", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
 async def sign_up(data: SignUpRequest, session: DBSession):
     """Register a new user and send OTP."""
@@ -33,16 +56,18 @@ async def sign_up(data: SignUpRequest, session: DBSession):
 
 
 @router.post("/sign-in", response_model=APIResponse)
-async def sign_in(data: SignInRequest, session: DBSession):
-    """Sign in with mobile number — sends OTP."""
+@limiter.limit("5/minute", key_func=_mobile_key)
+async def sign_in(request: Request, data: SignInRequest, session: DBSession):
+    """Sign in with mobile number — sends OTP. Rate-limited to 5/min per mobile number."""
     service = AuthService(session)
     result = await service.sign_in(data)
     return APIResponse.ok(data=result, message=result["message"])
 
 
 @router.post("/send-otp", response_model=APIResponse)
-async def send_otp(data: SendOTPRequest, session: DBSession):
-    """Send a fresh OTP to a registered mobile number."""
+@limiter.limit("5/minute", key_func=_mobile_key)
+async def send_otp(request: Request, data: SendOTPRequest, session: DBSession):
+    """Send a fresh OTP to a registered mobile number. Rate-limited to 5/min per mobile number."""
     service = AuthService(session)
     result = await service.send_otp(data)
     return APIResponse.ok(data=result, message=result["message"])

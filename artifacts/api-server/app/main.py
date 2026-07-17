@@ -1,3 +1,4 @@
+import json
 import time
 from contextlib import asynccontextmanager
 
@@ -5,7 +6,12 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 from sqlalchemy import text
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.exceptions import AppException
@@ -15,6 +21,28 @@ from app.database.session import async_session, engine
 setup_logging()
 
 START_TIME = time.time()
+
+# ── Rate limiter ──────────────────────────────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
+
+# ── Body-cache middleware ─────────────────────────────────────────────────────
+class OTPBodyCacheMiddleware(BaseHTTPMiddleware):
+    """Pre-read JSON body for OTP routes so the sync rate-limit key_func can access it.
+
+    Starlette caches the raw body internally after the first read, so FastAPI's
+    dependency injection can still parse it normally afterwards.
+    """
+    _OTP_PATHS = frozenset({"/api/v1/auth/sign-in", "/api/v1/auth/send-otp"})
+
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path in self._OTP_PATHS:
+            try:
+                raw = await request.body()
+                request.state._body_json = json.loads(raw)
+            except Exception:
+                request.state._body_json = {}
+        return await call_next(request)
 
 
 @asynccontextmanager
@@ -34,7 +62,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ── Middleware ────────────────────────────────────────────────────────────────
+# Attach limiter to app state so SlowAPIMiddleware can find it
+app.state.limiter = limiter
+
+# ── Middleware (last-added = outermost = runs first) ──────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -43,12 +74,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Global per-IP rate limit (200 req/min)
+app.add_middleware(SlowAPIMiddleware)
+
+# OTP body cache must wrap SlowAPIMiddleware so the mobile key is ready before
+# slowapi evaluates the per-endpoint rate-limit key function.
+app.add_middleware(OTPBodyCacheMiddleware)
+
 from app.middleware.request_id import RequestIDMiddleware  # noqa: E402
 
 app.add_middleware(RequestIDMiddleware)
 
 
 # ── Exception handlers ────────────────────────────────────────────────────────
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
@@ -104,10 +145,18 @@ health_router = APIRouter(tags=["Health"])
 @health_router.get("/api/healthz")
 async def health():
     db_ok = False
+    pool_stats: dict = {}
     try:
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
         db_ok = True
+        pool = engine.sync_engine.pool
+        pool_stats = {
+            "pool_size": pool.size(),
+            "checked_in": pool.checkedin(),
+            "checked_out": pool.checkedout(),
+            "overflow": pool.overflow(),
+        }
     except Exception as e:
         logger.error(f"DB health check failed: {e}")
     return {
@@ -118,6 +167,7 @@ async def health():
             "database": "connected" if db_ok else "disconnected",
             "uptime_seconds": round(time.time() - START_TIME, 2),
             "version": settings.APP_VERSION,
+            "pool": pool_stats,
         },
         "errors": [],
         "status_code": 200,

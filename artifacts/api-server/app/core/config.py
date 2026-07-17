@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     MSG91_ROUTE: str = "4"
     MSG91_COUNTRY: str = "91"
 
+    # Database connection pool
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 

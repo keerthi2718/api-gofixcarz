@@ -13,6 +13,8 @@ loguru==0.7.3
 python-dotenv==1.1.0
 python-multipart==0.0.20
 
+slowapi==0.1.9
+
 # Testing
 pytest==8.3.5
 pytest-asyncio==0.24.0
