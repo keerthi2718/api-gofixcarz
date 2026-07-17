@@ -1,4 +1,6 @@
+import hashlib
 import random
+import secrets
 import string
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
@@ -19,7 +21,7 @@ def create_access_token(subject: Any, expires_delta: Optional[timedelta] = None)
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -32,6 +34,21 @@ def decode_access_token(token: str) -> Optional[str]:
         return subject
     except JWTError:
         return None
+
+
+def generate_refresh_token() -> str:
+    """Generate a cryptographically secure random refresh token (URL-safe)."""
+    return secrets.token_urlsafe(48)
+
+
+def hash_refresh_token(token: str) -> str:
+    """SHA-256 hash a refresh token for storage."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def get_refresh_token_expiry() -> datetime:
+    """Return the refresh token expiry datetime."""
+    return datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
 
 def generate_otp(length: int = None) -> str:

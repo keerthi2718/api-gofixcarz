@@ -8,6 +8,7 @@ from app.models.job import Job
 from app.models.job_timeline import JobTimeline
 from app.models.service_package import ServicePackage
 from app.models.notification import Notification
+from app.models.refresh_token import RefreshToken
 
 __all__ = [
     "User",
@@ -19,4 +20,5 @@ __all__ = [
     "JobTimeline",
     "ServicePackage",
     "Notification",
+    "RefreshToken",
 ]

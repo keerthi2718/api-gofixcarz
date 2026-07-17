@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     # JWT — uses Replit's SESSION_SECRET
     SECRET_KEY: str = Field(default="dev-secret-key-change-in-production", alias="SESSION_SECRET")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30  # 30 minutes
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30  # 30 days
 
     # OTP
     OTP_EXPIRY_SECONDS: int = 300  # 5 minutes

@@ -31,3 +31,4 @@ class User(Base, SoftDeleteMixin):
 
     # Relationships
     garages: Mapped[list["Garage"]] = relationship("Garage", back_populates="user")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user")

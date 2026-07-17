@@ -4,7 +4,15 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, UnauthorizedException
-from app.core.security import create_access_token, generate_otp, get_otp_expiry
+from app.core.security import (
+    create_access_token,
+    generate_otp,
+    generate_refresh_token,
+    get_otp_expiry,
+    get_refresh_token_expiry,
+    hash_refresh_token,
+)
+from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import SignUpRequest, SignInRequest, SendOTPRequest, VerifyOTPRequest, TokenResponse, UserResponse
 from app.utils.msg91 import send_otp_sms
@@ -14,6 +22,7 @@ class AuthService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.user_repo = UserRepository(session)
+        self.refresh_token_repo = RefreshTokenRepository(session)
 
     async def sign_up(self, data: SignUpRequest) -> dict:
         existing = await self.user_repo.get_by_mobile(data.mobile)
@@ -74,13 +83,75 @@ class AuthService:
         if user.otp != data.otp:
             raise UnauthorizedException("Invalid OTP.")
         await self.user_repo.clear_otp(user)
-        token = create_access_token(subject=str(user.id))
+
+        # Issue access token + refresh token
+        access_token = create_access_token(subject=str(user.id))
+        raw_refresh = generate_refresh_token()
+        refresh_hash = hash_refresh_token(raw_refresh)
+        refresh_expires = get_refresh_token_expiry()
+        await self.refresh_token_repo.create(
+            user_id=user.id,
+            token_hash=refresh_hash,
+            expires_at=refresh_expires,
+        )
+
         return TokenResponse(
-            access_token=token,
+            access_token=access_token,
+            refresh_token=raw_refresh,
             token_type="bearer",
             user=UserResponse.model_validate(user),
         )
 
-    async def logout(self, user_id: str) -> dict:
-        # JWT is stateless; client discards the token
+    async def refresh(self, raw_refresh_token: str) -> TokenResponse:
+        """Exchange a valid refresh token for a new access token (+ rotated refresh token)."""
+        token_hash = hash_refresh_token(raw_refresh_token)
+        stored = await self.refresh_token_repo.get_by_hash(token_hash)
+
+        if not stored:
+            raise UnauthorizedException("Invalid refresh token.")
+        if stored.revoked_at is not None:
+            raise UnauthorizedException("Refresh token has been revoked.")
+        now = datetime.now(timezone.utc)
+        expires = stored.expires_at
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if now > expires:
+            raise UnauthorizedException("Refresh token has expired. Please sign in again.")
+
+        user = await self.user_repo.get_by_id(stored.user_id)
+        if not user or not user.is_active:
+            raise UnauthorizedException("Account not found or inactive.")
+
+        # Revoke the used token (rotation — one-time use)
+        await self.refresh_token_repo.revoke(stored)
+
+        # Issue a new pair
+        access_token = create_access_token(subject=str(user.id))
+        raw_new_refresh = generate_refresh_token()
+        new_hash = hash_refresh_token(raw_new_refresh)
+        new_expires = get_refresh_token_expiry()
+        await self.refresh_token_repo.create(
+            user_id=user.id,
+            token_hash=new_hash,
+            expires_at=new_expires,
+        )
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=raw_new_refresh,
+            token_type="bearer",
+            user=UserResponse.model_validate(user),
+        )
+
+    async def logout(self, user_id: str, raw_refresh_token: Optional[str] = None) -> dict:
+        """Revoke the supplied refresh token (or all tokens if none provided)."""
+        if raw_refresh_token:
+            token_hash = hash_refresh_token(raw_refresh_token)
+            stored = await self.refresh_token_repo.get_by_hash(token_hash)
+            if stored and stored.revoked_at is None:
+                await self.refresh_token_repo.revoke(stored)
+        else:
+            # Revoke all sessions for the user
+            import uuid as _uuid
+            await self.refresh_token_repo.revoke_all_for_user(_uuid.UUID(user_id))
         return {"message": "Logged out successfully."}
