@@ -20,9 +20,12 @@ class User(Base, SoftDeleteMixin):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
+    first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     mobile: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
+    terms_accepted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     otp: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     otp_expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True

@@ -12,9 +12,11 @@ from app.core.security import (
     get_refresh_token_expiry,
     hash_refresh_token,
 )
+from app.repositories.garage_repository import GarageRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import SignUpRequest, SignInRequest, SendOTPRequest, VerifyOTPRequest, TokenResponse, UserResponse
+from app.schemas.garage import GarageCreate
 from app.utils.msg91 import send_otp_sms
 
 
@@ -22,20 +24,55 @@ class AuthService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.user_repo = UserRepository(session)
+        self.garage_repo = GarageRepository(session)
         self.refresh_token_repo = RefreshTokenRepository(session)
 
     async def sign_up(self, data: SignUpRequest) -> dict:
+        # Check for duplicate mobile
         existing = await self.user_repo.get_by_mobile(data.mobile)
         if existing:
             raise ConflictException("Mobile number already registered. Please sign in.")
+
+        # Check for duplicate email
+        existing_email = await self.user_repo.get_by_email(str(data.email))
+        if existing_email:
+            raise ConflictException("Email address already registered.")
+
+        # Build full name
+        full_name = data.first_name.strip()
+        if data.last_name and data.last_name.strip():
+            full_name = f"{full_name} {data.last_name.strip()}"
+
+        # Create user
         user = await self.user_repo.create(
-            mobile=data.mobile, name=data.name, email=str(data.email) if data.email else None
+            mobile=data.mobile,
+            first_name=data.first_name,
+            last_name=data.last_name,
+            name=full_name,
+            email=str(data.email),
+            terms_accepted=data.terms_accepted,
         )
+
+        # Create garage/workshop
+        garage_data = GarageCreate(
+            name=data.workshop_name,
+            owner=full_name,
+            address=data.address,
+            city=data.city,
+            state=data.state,
+            zipcode=data.zipcode,
+            country=data.country,
+            alternate_number=data.mobile_2,
+            weeks=data.weeks,
+        )
+        await self.garage_repo.create(user_id=user.id, data=garage_data)
+
         # Auto-send OTP after sign-up
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
         await send_otp_sms(data.mobile, otp)
+
         return {
             "message": "Account created. OTP sent to your mobile number.",
             "mobile": data.mobile,

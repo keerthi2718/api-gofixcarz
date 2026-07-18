@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -30,8 +30,23 @@ class UserRepository:
         )
         return result.scalar_one_or_none()
 
-    async def create(self, mobile: str, name: Optional[str] = None, email: Optional[str] = None) -> User:
-        user = User(mobile=mobile, name=name, email=email)
+    async def create(
+        self,
+        mobile: str,
+        first_name: Optional[str] = None,
+        last_name: Optional[str] = None,
+        name: Optional[str] = None,
+        email: Optional[str] = None,
+        terms_accepted: bool = False,
+    ) -> User:
+        user = User(
+            mobile=mobile,
+            first_name=first_name,
+            last_name=last_name,
+            name=name,
+            email=email,
+            terms_accepted=terms_accepted,
+        )
         self.session.add(user)
         await self.session.flush()
         await self.session.refresh(user)

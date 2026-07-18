@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -10,7 +10,12 @@ class GarageUpdate(BaseModel):
     name: Optional[str] = None
     owner: Optional[str] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zipcode: Optional[str] = None
+    country: Optional[str] = None
     alternate_number: Optional[str] = None
+    weeks: Optional[List[str]] = None
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
@@ -41,7 +46,12 @@ class GarageCreate(BaseModel):
     name: str
     owner: str
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zipcode: Optional[str] = None
+    country: Optional[str] = None
     alternate_number: Optional[str] = None
+    weeks: Optional[List[str]] = None
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
@@ -53,7 +63,12 @@ class GarageResponse(BaseModel):
     name: str
     owner: str
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zipcode: Optional[str] = None
+    country: Optional[str] = None
     alternate_number: Optional[str] = None
+    weeks: Optional[List[str]] = None
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
