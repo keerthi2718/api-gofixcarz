@@ -4,10 +4,12 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.core.money import Money
+
 
 class TimeSeriesPoint(BaseModel):
     label: str          # e.g. "2026-07-01" or "Week 27" or "Jul 2026"
-    revenue: Decimal
+    revenue: Money
     job_count: int
     completed_count: int
 
@@ -25,7 +27,7 @@ class AnalyticsResponse(BaseModel):
     period: str
     start_date: date
     end_date: date
-    total_revenue: Decimal
+    total_revenue: Money
     total_jobs: int
     status_counts: JobStatusCounts
     graph_data: list[TimeSeriesPoint]

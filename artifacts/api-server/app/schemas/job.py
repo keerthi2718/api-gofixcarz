@@ -5,6 +5,7 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, field_validator, model_validator
 
+from app.core.money import Money
 from app.models.job import JobStatus
 from app.schemas.customer import CustomerResponse
 from app.schemas.vehicle import VehicleResponse
@@ -52,13 +53,13 @@ class LabourData(BaseModel):
         return v
 
 
-class BillingData(BaseModel):
-    """Calculated billing breakdown (populated by /complete)."""
-    services_total: Decimal
-    labour_total: Decimal
-    subtotal: Decimal
-    gst_amount: Decimal   # 18% of subtotal
-    grand_total: Decimal
+class BillingResponse(BaseModel):
+    """Calculated billing breakdown — all amounts serialised to 2 dp."""
+    services_total: Money
+    labour_total: Money
+    subtotal: Money
+    gst_amount: Money   # 18% of subtotal
+    grand_total: Money
 
 
 # ── Timeline ─────────────────────────────────────────────────────────────────
@@ -214,13 +215,13 @@ class JobResponse(BaseModel):
     inspection: Optional[Any] = None
     services: Optional[List[Any]] = None
     labour: Optional[Any] = None
-    billing: Optional[Any] = None
+    billing: Optional[BillingResponse] = None
 
-    # Core fields
+    # Core monetary fields — always 2 dp
     status: JobStatus
     description: Optional[str] = None
-    estimated_amount: Optional[Decimal] = None
-    final_amount: Optional[Decimal] = None
+    estimated_amount: Optional[Money] = None
+    final_amount: Optional[Money] = None
     completed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime

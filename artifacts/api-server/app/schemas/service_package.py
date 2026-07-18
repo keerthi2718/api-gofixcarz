@@ -5,6 +5,8 @@ from typing import Optional
 
 from pydantic import BaseModel, field_validator
 
+from app.core.money import Money
+
 
 class ServicePackageCreate(BaseModel):
     name: str
@@ -55,7 +57,7 @@ class ServicePackageResponse(BaseModel):
     garage_id: uuid.UUID
     name: str
     description: Optional[str] = None
-    price: Decimal
+    price: Money
     duration_minutes: Optional[int] = None
     is_active: bool
     created_at: datetime

@@ -4,6 +4,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.core.money import Money
+
 
 class RecentActivity(BaseModel):
     job_id: str
@@ -24,6 +26,6 @@ class DashboardResponse(BaseModel):
     cancelled_jobs: int
     bookings_today: int
     pending_bookings: int
-    revenue_today: Decimal
-    revenue_this_month: Decimal
+    revenue_today: Money
+    revenue_this_month: Money
     recent_activities: list[RecentActivity]
