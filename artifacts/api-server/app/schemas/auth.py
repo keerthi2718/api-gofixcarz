@@ -1,28 +1,44 @@
+import re
 import uuid
 from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
-import re
+
+from app.core.constants import DEFAULT_COUNTRY_CODE, VALID_COUNTRY_CODES
 
 _VALID_WHEELERS = {"2W", "3W", "4W", "6W"}
 
+# Regex for a plain 10-digit mobile
+_MOBILE_RE = re.compile(r"^\d{10}$")
+# Regex for a valid email (rough check — Pydantic EmailStr handles the real one)
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+# Regex for zipcode: digits only, 4–10 chars
+_ZIPCODE_RE = re.compile(r"^\d{4,10}$")
+
 
 def _validate_country_code(v: str) -> str:
-    """Accept formats like '91', '+91', '1', '+1' — strip leading '+' and whitespace."""
+    """Strip leading '+', check against the allowed list."""
     v = v.strip().lstrip("+")
-    if not re.fullmatch(r"\d{1,4}", v):
-        raise ValueError("Country code must be 1–4 digits (e.g. '91' or '+91')")
+    if v not in VALID_COUNTRY_CODES:
+        raise ValueError(
+            f"'{v}' is not a recognised country code. "
+            "Use a valid E.164 numeric country code (e.g. '91' for India, '1' for USA)."
+        )
     return v
 
 
 def _validate_mobile_10(v: str) -> str:
     """Exactly 10 digits, no spaces."""
     v = v.strip()
-    if not re.fullmatch(r"\d{10}", v):
+    if not _MOBILE_RE.fullmatch(v):
         raise ValueError("Mobile number must be exactly 10 digits")
     return v
 
+
+# ──────────────────────────────────────────────────────────
+# Sign-up
+# ──────────────────────────────────────────────────────────
 
 class SignUpRequest(BaseModel):
     first_name: str
@@ -34,10 +50,11 @@ class SignUpRequest(BaseModel):
     state: Optional[str] = None
     zipcode: Optional[str] = None
     country: Optional[str] = None
-    country_code: str                       # e.g. "91" or "+91"
-    mobile: str                             # exactly 10 digits
-    country_code_2: Optional[str] = None   # for second phone
-    mobile_2: Optional[str] = None         # exactly 10 digits
+    # Country codes — validated against the allowed list; default is India "91"
+    country_code: str = DEFAULT_COUNTRY_CODE
+    mobile: str                              # exactly 10 digits
+    country_code_2: Optional[str] = None    # for second phone
+    mobile_2: Optional[str] = None          # exactly 10 digits
     wheelers: Optional[List[str]] = None
     terms_accepted: bool
 
@@ -81,6 +98,16 @@ class SignUpRequest(BaseModel):
             return v
         return _validate_mobile_10(v)
 
+    @field_validator("zipcode")
+    @classmethod
+    def validate_zipcode(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        v = v.strip()
+        if not _ZIPCODE_RE.fullmatch(v):
+            raise ValueError("Zipcode must be 4–10 digits (numbers only)")
+        return v
+
     @field_validator("wheelers")
     @classmethod
     def validate_wheelers(cls, v: Optional[List[str]]) -> Optional[List[str]]:
@@ -105,9 +132,17 @@ class SignUpRequest(BaseModel):
             raise ValueError("country_code_2 is required when mobile_2 is provided")
         return self
 
+    @model_validator(mode="after")
+    def mobiles_must_differ(self) -> "SignUpRequest":
+        if self.mobile_2 and self.mobile == self.mobile_2:
+            raise ValueError(
+                "Primary mobile and alternate mobile must be different numbers"
+            )
+        return self
+
     @property
     def full_mobile(self) -> str:
-        """Combined number stored in DB and used for SMS: e.g. '919876543210'."""
+        """Combined number for MSG91: country_code + mobile (e.g. '919876543210')."""
         return f"{self.country_code}{self.mobile}"
 
     @property
@@ -117,53 +152,69 @@ class SignUpRequest(BaseModel):
         return None
 
 
+# ──────────────────────────────────────────────────────────
+# Sign-in  (email OR 10-digit mobile — single field)
+# ──────────────────────────────────────────────────────────
+
 class SignInRequest(BaseModel):
-    country_code: str   # e.g. "91"
-    mobile: str         # exactly 10 digits
+    """
+    Accept either an email address or a 10-digit mobile number in the
+    `login` field. No country code is required — the backend resolves it
+    from the stored user record.
+    """
+    login: str   # email or 10-digit mobile
 
-    @field_validator("country_code")
+    @field_validator("login")
     @classmethod
-    def validate_country_code(cls, v: str) -> str:
-        return _validate_country_code(v)
-
-    @field_validator("mobile")
-    @classmethod
-    def validate_mobile(cls, v: str) -> str:
-        return _validate_mobile_10(v)
+    def validate_login(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("login is required")
+        # Detect type and validate accordingly
+        if "@" in v:
+            if not _EMAIL_RE.fullmatch(v):
+                raise ValueError("Invalid email address")
+        else:
+            if not _MOBILE_RE.fullmatch(v):
+                raise ValueError(
+                    "login must be a valid email address or a 10-digit mobile number"
+                )
+        return v
 
     @property
-    def full_mobile(self) -> str:
-        return f"{self.country_code}{self.mobile}"
+    def is_email(self) -> bool:
+        return "@" in self.login
 
+
+# ──────────────────────────────────────────────────────────
+# Send OTP  (just mobile — no country code)
+# ──────────────────────────────────────────────────────────
 
 class SendOTPRequest(BaseModel):
-    country_code: str
+    """
+    Request a fresh OTP. Supply the plain 10-digit mobile number only.
+    The backend looks up the registered country code and builds the full
+    number before calling MSG91.
+    """
     mobile: str
-
-    @field_validator("country_code")
-    @classmethod
-    def validate_country_code(cls, v: str) -> str:
-        return _validate_country_code(v)
 
     @field_validator("mobile")
     @classmethod
     def validate_mobile(cls, v: str) -> str:
         return _validate_mobile_10(v)
 
-    @property
-    def full_mobile(self) -> str:
-        return f"{self.country_code}{self.mobile}"
 
+# ──────────────────────────────────────────────────────────
+# Verify OTP  (just mobile + otp — no country code)
+# ──────────────────────────────────────────────────────────
 
 class VerifyOTPRequest(BaseModel):
-    country_code: str
+    """
+    Verify an OTP. Supply the plain 10-digit mobile and the OTP code.
+    Country code is resolved from the stored user record.
+    """
     mobile: str
     otp: str
-
-    @field_validator("country_code")
-    @classmethod
-    def validate_country_code(cls, v: str) -> str:
-        return _validate_country_code(v)
 
     @field_validator("mobile")
     @classmethod
@@ -178,10 +229,10 @@ class VerifyOTPRequest(BaseModel):
             raise ValueError("OTP must be 4–8 digits")
         return v
 
-    @property
-    def full_mobile(self) -> str:
-        return f"{self.country_code}{self.mobile}"
 
+# ──────────────────────────────────────────────────────────
+# Response schemas
+# ──────────────────────────────────────────────────────────
 
 class UserResponse(BaseModel):
     id: uuid.UUID
@@ -189,6 +240,8 @@ class UserResponse(BaseModel):
     last_name: Optional[str]
     name: Optional[str]
     mobile: str
+    country_code: str = DEFAULT_COUNTRY_CODE
+    country_code_2: Optional[str] = None
     email: Optional[str]
     is_active: bool
     created_at: datetime

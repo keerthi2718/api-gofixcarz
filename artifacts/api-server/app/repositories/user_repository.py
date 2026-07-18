@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy import select
@@ -19,6 +19,7 @@ class UserRepository:
         return result.scalar_one_or_none()
 
     async def get_by_mobile(self, mobile: str) -> Optional[User]:
+        """Look up by plain 10-digit mobile number."""
         result = await self.session.execute(
             select(User).where(User.mobile == mobile, User.deleted_at.is_(None))
         )
@@ -33,6 +34,8 @@ class UserRepository:
     async def create(
         self,
         mobile: str,
+        country_code: str = "91",
+        country_code_2: Optional[str] = None,
         first_name: Optional[str] = None,
         last_name: Optional[str] = None,
         name: Optional[str] = None,
@@ -41,6 +44,8 @@ class UserRepository:
     ) -> User:
         user = User(
             mobile=mobile,
+            country_code=country_code,
+            country_code_2=country_code_2,
             first_name=first_name,
             last_name=last_name,
             name=name,

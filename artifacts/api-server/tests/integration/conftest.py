@@ -16,13 +16,30 @@ def event_loop():
     loop.close()
 
 
+def _unique_mobile() -> str:
+    return str(uuid.uuid4().int % 10**10).zfill(10)
+
+
+def _signup_payload(mobile: str, suffix: str = "") -> dict:
+    """Return a valid sign-up payload for the given mobile."""
+    tag = suffix or mobile[-6:]
+    return {
+        "first_name": "Test",
+        "workshop_name": f"Test Workshop {tag}",
+        "email": f"test_{tag}@fixture.com",
+        "country_code": "91",
+        "mobile": mobile,
+        "terms_accepted": True,
+    }
+
+
 @pytest_asyncio.fixture(scope="session")
 async def auth_token():
     """Sign up a fresh test user and return a valid JWT."""
-    mobile = f"8{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
 
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/sign-up", json={"mobile": mobile, "name": "Integration Test"})
+        r = await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
         assert r.status_code == 201, r.text
 
     # Read OTP directly from DB

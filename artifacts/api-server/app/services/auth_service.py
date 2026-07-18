@@ -34,13 +34,17 @@ class AuthService:
         self.garage_repo = GarageRepository(session)
         self.refresh_token_repo = RefreshTokenRepository(session)
 
+    # ──────────────────────────────────────────────────────
+    # Sign-up
+    # ──────────────────────────────────────────────────────
+
     async def sign_up(self, data: SignUpRequest) -> dict:
-        # Check for duplicate mobile (stored as country_code + mobile)
-        existing = await self.user_repo.get_by_mobile(data.full_mobile)
+        # Unique mobile check (plain 10-digit)
+        existing = await self.user_repo.get_by_mobile(data.mobile)
         if existing:
             raise ConflictException("Mobile number already registered. Please sign in.")
 
-        # Check for duplicate email
+        # Unique email check
         existing_email = await self.user_repo.get_by_email(str(data.email))
         if existing_email:
             raise ConflictException("Email address already registered.")
@@ -50,9 +54,11 @@ class AuthService:
         if data.last_name and data.last_name.strip():
             full_name = f"{full_name} {data.last_name.strip()}"
 
-        # Create user (mobile stored as full international number)
+        # Create user — mobile stored as plain 10 digits; country code separate
         user = await self.user_repo.create(
-            mobile=data.full_mobile,
+            mobile=data.mobile,
+            country_code=data.country_code,
+            country_code_2=data.country_code_2 if data.mobile_2 else None,
             first_name=data.first_name,
             last_name=data.last_name,
             name=full_name,
@@ -69,49 +75,82 @@ class AuthService:
             state=data.state,
             zipcode=data.zipcode,
             country=data.country,
+            # alternate_number stored as full international number for the garage
             alternate_number=data.full_mobile_2,
             wheelers=data.wheelers,
         )
         await self.garage_repo.create(user_id=user.id, data=garage_data)
 
-        # Auto-send OTP after sign-up
+        # Auto-send OTP — combine country_code + mobile for MSG91
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        await send_otp_sms(data.full_mobile, otp)
+        full_mobile = f"{data.country_code}{data.mobile}"
+        await send_otp_sms(full_mobile, otp)
 
         return {
             "message": "Account created. OTP sent to your mobile number.",
-            "mobile": data.full_mobile,
+            "mobile": data.mobile,
+            "country_code": data.country_code,
         }
+
+    # ──────────────────────────────────────────────────────
+    # Sign-in  (email OR mobile — no country code from client)
+    # ──────────────────────────────────────────────────────
 
     async def sign_in(self, data: SignInRequest) -> dict:
-        user = await self.user_repo.get_by_mobile(data.full_mobile)
-        if not user:
-            raise BadRequestException("Mobile number not registered. Please sign up first.")
+        if data.is_email:
+            user = await self.user_repo.get_by_email(data.login)
+            if not user:
+                raise BadRequestException("Email not registered. Please sign up first.")
+        else:
+            user = await self.user_repo.get_by_mobile(data.login)
+            if not user:
+                raise BadRequestException(
+                    "Mobile number not registered. Please sign up first."
+                )
+
         if not user.is_active:
             raise UnauthorizedException("Account is inactive.")
+
+        # Build full international number from stored country_code
+        full_mobile = f"{user.country_code}{user.mobile}"
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        await send_otp_sms(data.full_mobile, otp)
+        await send_otp_sms(full_mobile, otp)
+
         return {
-            "message": "OTP sent to your mobile number.",
-            "mobile": data.full_mobile,
+            "message": "OTP sent to your registered mobile number.",
+            "mobile": user.mobile,
+            "country_code": user.country_code,
         }
 
+    # ──────────────────────────────────────────────────────
+    # Send OTP  (just mobile — country code from user record)
+    # ──────────────────────────────────────────────────────
+
     async def send_otp(self, data: SendOTPRequest) -> dict:
-        user = await self.user_repo.get_by_mobile(data.full_mobile)
+        user = await self.user_repo.get_by_mobile(data.mobile)
         if not user:
             raise BadRequestException("Mobile number not registered.")
+        full_mobile = f"{user.country_code}{user.mobile}"
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        await send_otp_sms(data.full_mobile, otp)
-        return {"message": "OTP sent successfully.", "mobile": data.full_mobile}
+        await send_otp_sms(full_mobile, otp)
+        return {
+            "message": "OTP sent successfully.",
+            "mobile": user.mobile,
+            "country_code": user.country_code,
+        }
+
+    # ──────────────────────────────────────────────────────
+    # Verify OTP  (just mobile + otp — country code from user record)
+    # ──────────────────────────────────────────────────────
 
     async def verify_otp(self, data: VerifyOTPRequest) -> TokenResponse:
-        user = await self.user_repo.get_by_mobile(data.full_mobile)
+        user = await self.user_repo.get_by_mobile(data.mobile)
         if not user:
             raise BadRequestException("Mobile number not registered.")
         if not user.otp or not user.otp_expires_at:
@@ -119,8 +158,7 @@ class AuthService:
         now = datetime.now(timezone.utc)
         otp_expires = user.otp_expires_at
         if otp_expires.tzinfo is None:
-            from datetime import timezone as tz
-            otp_expires = otp_expires.replace(tzinfo=tz.utc)
+            otp_expires = otp_expires.replace(tzinfo=timezone.utc)
         if now > otp_expires:
             raise BadRequestException("OTP has expired. Please request a new OTP.")
         if user.otp != data.otp:
@@ -143,6 +181,10 @@ class AuthService:
             token_type="bearer",
             user=UserResponse.model_validate(user),
         )
+
+    # ──────────────────────────────────────────────────────
+    # Refresh token
+    # ──────────────────────────────────────────────────────
 
     async def refresh(self, raw_refresh_token: str) -> TokenResponse:
         token_hash = hash_refresh_token(raw_refresh_token)
@@ -181,6 +223,10 @@ class AuthService:
             token_type="bearer",
             user=UserResponse.model_validate(user),
         )
+
+    # ──────────────────────────────────────────────────────
+    # Logout
+    # ──────────────────────────────────────────────────────
 
     async def logout(self, user_id: str, raw_refresh_token: Optional[str] = None) -> dict:
         if raw_refresh_token:

@@ -24,20 +24,26 @@ DBSession = Annotated[AsyncSession, Depends(get_session)]
 
 
 def _mobile_key(request: Request) -> str:
-    """Sync rate-limit key based on mobile number.
-
-    The OTPBodyCacheMiddleware (registered in main.py) pre-reads and parses
-    the JSON body onto request.state._body_json for OTP routes before slowapi
-    evaluates this function. Falls back to client IP if the field is absent.
-
-    Mobile is normalized identically to the Pydantic schema validators (strip
-    whitespace) so that semantically equivalent numbers share a single bucket
-    and cannot bypass the limit by varying leading/trailing spaces.
-    """
+    """Rate-limit key for /send-otp — keyed on the 'mobile' field."""
     body: dict = getattr(request.state, "_body_json", {})
     mobile: str = str(body.get("mobile", "")).strip()
     if mobile:
         return f"mobile:{mobile}"
+    return get_remote_address(request)
+
+
+def _login_key(request: Request) -> str:
+    """Rate-limit key for /sign-in — keyed on the 'login' field (email or mobile).
+
+    The OTPBodyCacheMiddleware (registered in main.py) pre-reads and parses
+    the JSON body onto request.state._body_json before slowapi evaluates this
+    function. The value is normalised (stripped) so that whitespace variants
+    share the same bucket and cannot bypass the limit.
+    """
+    body: dict = getattr(request.state, "_body_json", {})
+    login: str = str(body.get("login", "")).strip().lower()
+    if login:
+        return f"login:{login}"
     return get_remote_address(request)
 
 
@@ -56,9 +62,9 @@ async def sign_up(data: SignUpRequest, session: DBSession):
 
 
 @router.post("/sign-in", response_model=APIResponse)
-@limiter.limit("5/minute", key_func=_mobile_key)
+@limiter.limit("5/minute", key_func=_login_key)
 async def sign_in(request: Request, data: SignInRequest, session: DBSession):
-    """Sign in with mobile number — sends OTP. Rate-limited to 5/min per mobile number."""
+    """Sign in with email or mobile — sends OTP. Rate-limited to 5/min per login identifier."""
     service = AuthService(session)
     result = await service.sign_in(data)
     return APIResponse.ok(data=result, message=result["message"])

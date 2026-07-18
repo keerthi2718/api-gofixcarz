@@ -12,6 +12,26 @@ BASE_URL = "http://localhost:8080"
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _unique_mobile() -> str:
+    return str(uuid.uuid4().int % 10**10).zfill(10)
+
+
+def _signup_payload(mobile: str, suffix: str = "") -> dict:
+    """Return a valid sign-up payload for the given mobile.
+    
+    Uses the full mobile as the email tag to guarantee cross-test uniqueness.
+    """
+    tag = suffix or mobile  # full mobile avoids last-6-digit collisions
+    return {
+        "first_name": "Test",
+        "workshop_name": f"Test Workshop {mobile}",
+        "email": f"t{tag}@authtest.com",
+        "country_code": "91",
+        "mobile": mobile,
+        "terms_accepted": True,
+    }
+
+
 async def _read_otp_from_db(mobile: str) -> str:
     """Open a fresh DB connection (own engine) to read the OTP, then dispose."""
     from app.database.session import _build_async_url
@@ -34,7 +54,7 @@ async def _read_otp_from_db(mobile: str) -> str:
 async def _signup_and_get_tokens(mobile: str) -> dict:
     """Sign up a fresh user, read OTP from DB, verify it, return token data."""
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/sign-up", json={"mobile": mobile, "name": "Token Test"})
+        r = await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
         assert r.status_code == 201, r.text
 
     otp = await _read_otp_from_db(mobile)
@@ -44,6 +64,10 @@ async def _signup_and_get_tokens(mobile: str) -> dict:
         assert r.status_code == 200, r.text
         return r.json()["data"]
 
+
+# ---------------------------------------------------------------------------
+# Basic endpoint tests
+# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 async def test_health_endpoint():
@@ -63,28 +87,194 @@ async def test_version_endpoint():
     assert r.json()["data"]["app_name"] == "Garage Management API"
 
 
+# ---------------------------------------------------------------------------
+# Sign-up tests
+# ---------------------------------------------------------------------------
+
 @pytest.mark.asyncio
 async def test_sign_up_new_user():
-    mobile = f"7{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/sign-up", json={"mobile": mobile, "name": "Test"})
+        r = await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
     assert r.status_code == 201
     assert r.json()["success"] is True
+    data = r.json()["data"]
+    assert data["mobile"] == mobile
+    assert data["country_code"] == "91"
 
 
 @pytest.mark.asyncio
-async def test_sign_up_duplicate_fails():
-    mobile = f"6{uuid.uuid4().int % 10**9:09d}"
+async def test_sign_up_duplicate_mobile_fails():
+    mobile = _unique_mobile()
+    payload = _signup_payload(mobile)
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        await client.post("/api/v1/auth/sign-up", json={"mobile": mobile, "name": "Test"})
-        r = await client.post("/api/v1/auth/sign-up", json={"mobile": mobile, "name": "Test"})
+        await client.post("/api/v1/auth/sign-up", json=payload)
+        # Second attempt with same mobile, different email
+        payload2 = {**payload, "email": f"other_{mobile}@authtest.com"}
+        r = await client.post("/api/v1/auth/sign-up", json=payload2)
     assert r.status_code == 409
 
+
+@pytest.mark.asyncio
+async def test_sign_up_duplicate_email_fails():
+    mobile_a = _unique_mobile()
+    mobile_b = _unique_mobile()
+    payload = _signup_payload(mobile_a)
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        await client.post("/api/v1/auth/sign-up", json=payload)
+        payload2 = {**payload, "mobile": mobile_b}  # same email, different mobile
+        r = await client.post("/api/v1/auth/sign-up", json=payload2)
+    assert r.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_sign_up_mobile_equals_mobile2_fails():
+    mobile = _unique_mobile()
+    payload = {
+        **_signup_payload(mobile),
+        "country_code_2": "91",
+        "mobile_2": mobile,  # same as primary
+    }
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/sign-up", json=payload)
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_sign_up_invalid_zipcode_fails():
+    mobile = _unique_mobile()
+    payload = {**_signup_payload(mobile), "zipcode": "ABCDE"}
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/sign-up", json=payload)
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_sign_up_invalid_country_code_fails():
+    mobile = _unique_mobile()
+    payload = {**_signup_payload(mobile), "country_code": "999"}
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/sign-up", json=payload)
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_sign_up_terms_not_accepted_fails():
+    mobile = _unique_mobile()
+    payload = {**_signup_payload(mobile), "terms_accepted": False}
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/sign-up", json=payload)
+    assert r.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Sign-in tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_sign_in_with_mobile():
+    """Sign-in with 10-digit mobile — no country code required."""
+    mobile = _unique_mobile()
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
+        r = await client.post("/api/v1/auth/sign-in", json={"login": mobile})
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert data["mobile"] == mobile
+    assert "country_code" in data
+
+
+@pytest.mark.asyncio
+async def test_sign_in_with_email():
+    """Sign-in with registered email sends OTP to the user's mobile."""
+    mobile = _unique_mobile()
+    tag = mobile[-6:]
+    email = f"signin_{tag}@authtest.com"
+    payload = {**_signup_payload(mobile), "email": email}
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        await client.post("/api/v1/auth/sign-up", json=payload)
+        r = await client.post("/api/v1/auth/sign-in", json={"login": email})
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert data["mobile"] == mobile
+
+
+@pytest.mark.asyncio
+async def test_sign_in_unregistered_mobile_returns_400():
+    # Use a mobile with leading zeros that will never appear in seed data
+    unregistered = "0" + str(uuid.uuid4().int % 10**9).zfill(9)
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/sign-in", json={"login": unregistered})
+    assert r.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_sign_in_unregistered_email_returns_400():
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/sign-in", json={"login": "nobody@nowhere.com"})
+    assert r.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Send-OTP tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+async def test_send_otp_registered_mobile():
+    mobile = _unique_mobile()
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
+        r = await client.post("/api/v1/auth/send-otp", json={"mobile": mobile})
+    assert r.status_code == 200
+    data = r.json()["data"]
+    assert data["mobile"] == mobile
+    assert "country_code" in data
+
+
+@pytest.mark.asyncio
+async def test_send_otp_unregistered_mobile_returns_400():
+    unregistered = "0" + str(uuid.uuid4().int % 10**9).zfill(9)
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/send-otp", json={"mobile": unregistered})
+    assert r.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_send_otp_invalid_mobile_format():
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/send-otp", json={"mobile": "123"})
+    assert r.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Verify-OTP tests
+# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 async def test_verify_otp_returns_jwt(auth_token):
     assert auth_token and len(auth_token) > 20
 
+
+@pytest.mark.asyncio
+async def test_verify_otp_wrong_otp_returns_401():
+    mobile = _unique_mobile()
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
+        r = await client.post("/api/v1/auth/verify-otp", json={"mobile": mobile, "otp": "000000"})
+    assert r.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_verify_otp_unregistered_mobile_returns_400():
+    unregistered = "0" + str(uuid.uuid4().int % 10**9).zfill(9)
+    async with httpx.AsyncClient(base_url=BASE_URL) as client:
+        r = await client.post("/api/v1/auth/verify-otp", json={"mobile": unregistered, "otp": "123456"})
+    assert r.status_code == 400
+
+
+# ---------------------------------------------------------------------------
+# Protected endpoint
+# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 async def test_protected_endpoint_requires_auth():
@@ -111,7 +301,7 @@ async def test_profile_accessible_with_token(auth_token):
 @pytest.mark.asyncio
 async def test_verify_otp_returns_both_tokens():
     """OTP verification must return both access_token and refresh_token."""
-    mobile = f"91{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
     assert tokens.get("access_token"), "access_token missing from verify-otp response"
     assert tokens.get("refresh_token"), "refresh_token missing from verify-otp response"
@@ -121,7 +311,7 @@ async def test_verify_otp_returns_both_tokens():
 @pytest.mark.asyncio
 async def test_refresh_returns_new_token_pair_and_invalidates_old():
     """POST /refresh must return a fresh pair and mark the old refresh token revoked."""
-    mobile = f"92{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
     old_refresh = tokens["refresh_token"]
 
@@ -142,12 +332,11 @@ async def test_refresh_returns_new_token_pair_and_invalidates_old():
 @pytest.mark.asyncio
 async def test_revoked_refresh_token_returns_401():
     """A refresh token that has been explicitly revoked must be rejected."""
-    mobile = f"93{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
     refresh = tokens["refresh_token"]
     access = tokens["access_token"]
 
-    # Logout with explicit token to revoke it
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post(
             "/api/v1/auth/logout",
@@ -156,7 +345,6 @@ async def test_revoked_refresh_token_returns_401():
         )
     assert r.status_code == 200, r.text
 
-    # Attempt to use the now-revoked token
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
     assert r2.status_code == 401, "revoked token should be rejected"
@@ -165,12 +353,10 @@ async def test_revoked_refresh_token_returns_401():
 @pytest.mark.asyncio
 async def test_expired_refresh_token_returns_401():
     """A refresh token whose expires_at is in the past must be rejected."""
-    mobile = f"94{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
     refresh = tokens["refresh_token"]
 
-    # Force-expire the token in the database using a fresh engine (avoids
-    # event-loop conflicts with the module-level shared async_session)
     from app.database.session import _build_async_url
     from app.core.config import settings
     from app.models.refresh_token import RefreshToken
@@ -202,19 +388,17 @@ async def test_expired_refresh_token_returns_401():
 @pytest.mark.asyncio
 async def test_logout_with_token_revokes_only_that_session():
     """Logout with a specific token must revoke only that session, leaving others active."""
-    mobile = f"95{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     tokens_a = await _signup_and_get_tokens(mobile)
     access_a = tokens_a["access_token"]
     refresh_a = tokens_a["refresh_token"]
 
-    # Create a second session by refreshing
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_a})
     assert r.status_code == 200, r.text
     refresh_b = r.json()["data"]["refresh_token"]
     access_b = r.json()["data"]["access_token"]
 
-    # Logout session B only
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post(
             "/api/v1/auth/logout",
@@ -223,14 +407,10 @@ async def test_logout_with_token_revokes_only_that_session():
         )
     assert r.status_code == 200, r.text
 
-    # Session B's token must be rejected
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r_b = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_b})
     assert r_b.status_code == 401, "logged-out session should be rejected"
 
-    # Session A was already consumed by the first refresh call; rotation means it is also
-    # invalid — but the user object (access token) is still structurally valid.
-    # Verify the account itself is still reachable via the second access token.
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r_profile = await client.get(
             "/api/v1/profile",
@@ -242,19 +422,16 @@ async def test_logout_with_token_revokes_only_that_session():
 @pytest.mark.asyncio
 async def test_logout_without_token_revokes_all_sessions():
     """Logout without a refresh token must revoke every session for the user."""
-    mobile = f"96{uuid.uuid4().int % 10**9:09d}"
+    mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
-    access = tokens["access_token"]
     refresh1 = tokens["refresh_token"]
 
-    # Create a second session via refresh (also consumes refresh1, gives refresh2)
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh1})
     assert r.status_code == 200, r.text
     refresh2 = r.json()["data"]["refresh_token"]
     access2 = r.json()["data"]["access_token"]
 
-    # Logout without specifying a token — should nuke all sessions
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post(
             "/api/v1/auth/logout",
@@ -263,7 +440,6 @@ async def test_logout_without_token_revokes_all_sessions():
         )
     assert r.status_code == 200, r.text
 
-    # Both refresh tokens should now be invalid
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r1 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh1})
         r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh2})

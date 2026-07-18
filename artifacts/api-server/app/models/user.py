@@ -23,7 +23,12 @@ class User(Base, SoftDeleteMixin):
     first_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     last_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    # Stored as plain 10-digit number; country_code is kept separately.
     mobile: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    country_code: Mapped[str] = mapped_column(
+        String(10), nullable=False, server_default="91"
+    )
+    country_code_2: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
     terms_accepted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     otp: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
