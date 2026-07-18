@@ -29,7 +29,7 @@ class Garage(Base, SoftDeleteMixin):
     zipcode: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     country: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     alternate_number: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    weeks: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
+    wheelers: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     working_hours: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     latitude: Mapped[Optional[float]] = mapped_column(Numeric(10, 7), nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Numeric(10, 7), nullable=True)

@@ -33,13 +33,13 @@ def upgrade() -> None:
     op.add_column("garages", sa.Column("country", sa.String(100), nullable=True))
     op.add_column(
         "garages",
-        sa.Column("weeks", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("wheelers", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     )
 
 
 def downgrade() -> None:
     # --- garages table ---
-    op.drop_column("garages", "weeks")
+    op.drop_column("garages", "wheelers")
     op.drop_column("garages", "country")
     op.drop_column("garages", "zipcode")
     op.drop_column("garages", "state")

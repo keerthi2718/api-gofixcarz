@@ -5,7 +5,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 import re
 
-_VALID_WEEKS = {"2W", "3W", "4W", "6W"}
+_VALID_WHEELERS = {"2W", "3W", "4W", "6W"}
 
 
 def _validate_country_code(v: str) -> str:
@@ -38,7 +38,7 @@ class SignUpRequest(BaseModel):
     mobile: str                             # exactly 10 digits
     country_code_2: Optional[str] = None   # for second phone
     mobile_2: Optional[str] = None         # exactly 10 digits
-    weeks: Optional[List[str]] = None
+    wheelers: Optional[List[str]] = None
     terms_accepted: bool
 
     @field_validator("first_name")
@@ -81,15 +81,15 @@ class SignUpRequest(BaseModel):
             return v
         return _validate_mobile_10(v)
 
-    @field_validator("weeks")
+    @field_validator("wheelers")
     @classmethod
-    def validate_weeks(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+    def validate_wheelers(cls, v: Optional[List[str]]) -> Optional[List[str]]:
         if v is None:
             return v
-        invalid = [w for w in v if w not in _VALID_WEEKS]
+        invalid = [w for w in v if w not in _VALID_WHEELERS]
         if invalid:
             raise ValueError(
-                f"Invalid week options: {invalid}. Must be one of {sorted(_VALID_WEEKS)}"
+                f"Invalid wheeler options: {invalid}. Must be one of {sorted(_VALID_WHEELERS)}"
             )
         return v
 

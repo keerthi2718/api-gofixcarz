@@ -15,7 +15,7 @@ class GarageUpdate(BaseModel):
     zipcode: Optional[str] = None
     country: Optional[str] = None
     alternate_number: Optional[str] = None
-    weeks: Optional[List[str]] = None
+    wheelers: Optional[List[str]] = None
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
@@ -51,7 +51,7 @@ class GarageCreate(BaseModel):
     zipcode: Optional[str] = None
     country: Optional[str] = None
     alternate_number: Optional[str] = None
-    weeks: Optional[List[str]] = None
+    wheelers: Optional[List[str]] = None
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
@@ -68,7 +68,7 @@ class GarageResponse(BaseModel):
     zipcode: Optional[str] = None
     country: Optional[str] = None
     alternate_number: Optional[str] = None
-    weeks: Optional[List[str]] = None
+    wheelers: Optional[List[str]] = None
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None

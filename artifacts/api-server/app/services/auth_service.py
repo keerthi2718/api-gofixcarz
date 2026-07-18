@@ -70,7 +70,7 @@ class AuthService:
             zipcode=data.zipcode,
             country=data.country,
             alternate_number=data.full_mobile_2,
-            weeks=data.weeks,
+            wheelers=data.wheelers,
         )
         await self.garage_repo.create(user_id=user.id, data=garage_data)
 
