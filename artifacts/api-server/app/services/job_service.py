@@ -25,9 +25,10 @@ _TERMINAL = {JobStatus.COMPLETED, JobStatus.CANCELLED}
 # Allowed transitions: from -> set of valid next statuses
 _VALID_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     JobStatus.OPEN:              {JobStatus.IN_PROGRESS, JobStatus.CANCELLED},
-    JobStatus.IN_PROGRESS:       {JobStatus.WAITING_FOR_PARTS, JobStatus.QUALITY_CHECK, JobStatus.COMPLETED, JobStatus.CANCELLED},
+    JobStatus.IN_PROGRESS:       {JobStatus.WAITING_FOR_PARTS, JobStatus.QUALITY_CHECK, JobStatus.READY, JobStatus.COMPLETED, JobStatus.CANCELLED},
     JobStatus.WAITING_FOR_PARTS: {JobStatus.IN_PROGRESS, JobStatus.CANCELLED},
-    JobStatus.QUALITY_CHECK:     {JobStatus.IN_PROGRESS, JobStatus.COMPLETED, JobStatus.CANCELLED},
+    JobStatus.QUALITY_CHECK:     {JobStatus.IN_PROGRESS, JobStatus.READY, JobStatus.COMPLETED, JobStatus.CANCELLED},
+    JobStatus.READY:             {JobStatus.COMPLETED, JobStatus.CANCELLED},
     JobStatus.COMPLETED:         set(),
     JobStatus.CANCELLED:         set(),
 }
@@ -39,21 +40,21 @@ class JobService:
         self.customer_repo = CustomerRepository(session)
         self.vehicle_repo = VehicleRepository(session)
 
-    async def _validate_references(
-        self,
-        garage_id: uuid.UUID,
-        customer_id: uuid.UUID,
-        vehicle_id: uuid.UUID,
-    ) -> None:
-        customer = await self.customer_repo.get_by_id(customer_id, garage_id)
-        if not customer:
-            raise NotFoundException("Customer not found")
-        vehicle = await self.vehicle_repo.get_by_id(vehicle_id, garage_id)
-        if not vehicle:
-            raise NotFoundException("Vehicle not found")
-
     async def create(self, garage_id: uuid.UUID, data: JobCreate) -> JobResponse:
-        await self._validate_references(garage_id, data.customer_id, data.vehicle_id)
+        """Create a job.
+
+        Two paths:
+        - FK path (booking flow): customer_id + vehicle_id present → validate them.
+        - Direct path: inline customer/vehicle details → no FK lookup needed.
+        """
+        if data.customer_id and data.vehicle_id:
+            customer = await self.customer_repo.get_by_id(data.customer_id, garage_id)
+            if not customer:
+                raise NotFoundException("Customer not found")
+            vehicle = await self.vehicle_repo.get_by_id(data.vehicle_id, garage_id)
+            if not vehicle:
+                raise NotFoundException("Vehicle not found")
+
         job = await self.repo.create(garage_id, data)
         return JobResponse.model_validate(job)
 
@@ -71,7 +72,6 @@ class JobService:
     ) -> PaginatedData[JobResponse]:
         page_size = min(page_size, 100)
 
-        # Validate sort_by to prevent SQL injection
         allowed_sort_fields = {"created_at", "updated_at", "job_number", "status", "estimated_amount", "final_amount"}
         if sort_by not in allowed_sort_fields:
             sort_by = "created_at"
@@ -113,14 +113,6 @@ class JobService:
             raise BadRequestException(
                 f"Cannot edit a job that is {job.status.value}."
             )
-        if data.customer_id:
-            customer = await self.customer_repo.get_by_id(data.customer_id, garage_id)
-            if not customer:
-                raise NotFoundException("Customer not found")
-        if data.vehicle_id:
-            vehicle = await self.vehicle_repo.get_by_id(data.vehicle_id, garage_id)
-            if not vehicle:
-                raise NotFoundException("Vehicle not found")
         updated = await self.repo.update(job, data)
         return JobResponse.model_validate(updated)
 
@@ -153,7 +145,7 @@ class JobService:
             raise BadRequestException("Job is already completed.")
         if job.status == JobStatus.CANCELLED:
             raise BadRequestException("Cannot complete a cancelled job.")
-        updated = await self.repo.complete(job, data.final_amount, data.notes)
+        updated = await self.repo.complete(job, data.notes)
         return JobResponse.model_validate(updated)
 
     async def delete(self, garage_id: uuid.UUID, job_id: uuid.UUID) -> None:

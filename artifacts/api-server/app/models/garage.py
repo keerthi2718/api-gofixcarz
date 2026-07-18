@@ -1,7 +1,7 @@
 import uuid
 from typing import Optional
 
-from sqlalchemy import ForeignKey, Index, Numeric, String, Text
+from sqlalchemy import ForeignKey, Index, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,6 +31,7 @@ class Garage(Base, SoftDeleteMixin):
     alternate_number: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     wheelers: Mapped[Optional[list]] = mapped_column(JSONB, nullable=True)
     working_hours: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    job_seq: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     latitude: Mapped[Optional[float]] = mapped_column(Numeric(10, 7), nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Numeric(10, 7), nullable=True)
 

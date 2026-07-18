@@ -3,10 +3,13 @@ import time
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pathlib import Path
+
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -222,6 +225,11 @@ async def version():
 
 
 app.include_router(health_router)
+
+# ── Static files (job photos, etc.) ──────────────────────────────────────────
+_static_job_photos = Path(__file__).resolve().parents[1] / "static" / "job-photos"
+_static_job_photos.mkdir(parents=True, exist_ok=True)
+app.mount("/api/job-photos", StaticFiles(directory=str(_static_job_photos)), name="job-photos")
 
 # ── API v1 ───────────────────────────────────────────────────────────────────
 from app.api.v1.auth import router as auth_router  # noqa: E402

@@ -1,8 +1,9 @@
 import uuid
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -11,20 +12,30 @@ from app.models.job_timeline import JobTimeline
 from app.schemas.job import JobCreate, JobUpdate
 
 
+# GST rate applied at billing completion
+_GST_RATE = Decimal("0.18")
+
+
 class JobRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
-    async def _generate_job_number(self) -> str:
-        """Generate a unique job number of the form JOB-YYYYMMDD-NNNN."""
-        today = datetime.now(timezone.utc).strftime("%Y%m%d")
-        prefix = f"JOB-{today}-"
-        # Count jobs created today to produce a sequence number
-        count_q = select(func.count()).where(Job.job_number.like(f"{prefix}%"))
-        count: int = (await self.session.execute(count_q)).scalar_one()
-        return f"{prefix}{count + 1:04d}"
+    async def _next_job_seq(self, garage_id: uuid.UUID) -> int:
+        """Atomically increment and return the next job sequence number for a garage.
+
+        Uses UPDATE … RETURNING which is a single atomic statement in PostgreSQL.
+        """
+        from app.models.garage import Garage
+        stmt = (
+            update(Garage)
+            .where(Garage.id == garage_id)
+            .values(job_seq=Garage.job_seq + 1)
+            .returning(Garage.job_seq)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
     async def _add_timeline(
         self, job_id: uuid.UUID, status: JobStatus, notes: Optional[str] = None
@@ -84,6 +95,8 @@ class JobRepository:
             base_q = base_q.where(
                 or_(
                     Job.job_number.ilike(term),
+                    Job.customer_name.ilike(term),
+                    Job.registration_number.ilike(term),
                     Customer.name.ilike(term),
                     Vehicle.registration_plate.ilike(term),
                 )
@@ -117,13 +130,31 @@ class JobRepository:
     # ── Mutations ─────────────────────────────────────────────────────────────
 
     async def create(self, garage_id: uuid.UUID, data: JobCreate) -> Job:
-        job_number = await self._generate_job_number()
+        seq = await self._next_job_seq(garage_id)
+        job_number = f"JC-{seq:03d}"
+
+        # Build the job from the schema — only pass known model fields
         job = Job(
             id=uuid.uuid4(),
             garage_id=garage_id,
             job_number=job_number,
             status=JobStatus.OPEN,
-            **data.model_dump(),
+            # FK refs
+            customer_id=data.customer_id,
+            vehicle_id=data.vehicle_id,
+            booking_id=data.booking_id,
+            # Inline details
+            customer_name=data.customer_name,
+            customer_mobile=data.customer_mobile,
+            registration_number=data.registration_number,
+            brand=data.brand,
+            vehicle_model=data.vehicle_model,
+            fuel_type=data.fuel_type,
+            odometer_km=data.odometer_km,
+            photos=data.photos,
+            # Optional shared fields
+            description=data.description,
+            estimated_amount=data.estimated_amount,
         )
         self.session.add(job)
         await self.session.flush()
@@ -133,8 +164,19 @@ class JobRepository:
         return job
 
     async def update(self, job: Job, data: JobUpdate) -> Job:
-        for field, value in data.model_dump(exclude_unset=True).items():
+        """Apply partial updates for description, photos, inspection, services, labour.
+
+        Uses model_dump_json + json.loads to get JSON-safe Python types (no Decimal
+        objects) before handing values to SQLAlchemy JSONB columns.
+        """
+        import json as _json
+
+        # model_dump_json serialises Decimal → JSON number; json.loads brings back float
+        payload: dict = _json.loads(data.model_dump_json(exclude_unset=True))
+
+        for field, value in payload.items():
             setattr(job, field, value)
+
         job.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
         await self.session.refresh(job)
@@ -151,12 +193,36 @@ class JobRepository:
         await self.session.refresh(job)
         return job
 
-    async def complete(self, job: Job, final_amount=None, notes: Optional[str] = None) -> Job:
+    async def complete(self, job: Job, notes: Optional[str] = None) -> Job:
+        """Calculate billing from services + labour, set COMPLETED, store billing JSONB."""
+        # ── Billing calculation ──────────────────────────────────────────────
+        services_total = Decimal("0.00")
+        for item in (job.services or []):
+            price = Decimal(str(item.get("price", 0)))
+            qty = Decimal(str(item.get("qty", 1)))
+            services_total += price * qty
+
+        labour_total = Decimal("0.00")
+        if job.labour:
+            labour_total = Decimal(str(job.labour.get("charge", 0)))
+
+        subtotal = services_total + labour_total
+        gst_amount = (subtotal * _GST_RATE).quantize(Decimal("0.01"))
+        grand_total = subtotal + gst_amount
+
+        billing = {
+            "services_total": str(services_total.quantize(Decimal("0.01"))),
+            "labour_total": str(labour_total.quantize(Decimal("0.01"))),
+            "subtotal": str(subtotal.quantize(Decimal("0.01"))),
+            "gst_amount": str(gst_amount),
+            "grand_total": str(grand_total.quantize(Decimal("0.01"))),
+        }
+
+        job.billing = billing
+        job.final_amount = float(grand_total.quantize(Decimal("0.01")))
         job.status = JobStatus.COMPLETED
         job.completed_at = datetime.now(timezone.utc)
         job.updated_at = job.completed_at
-        if final_amount is not None:
-            job.final_amount = final_amount
         await self.session.flush()
         await self._add_timeline(job.id, JobStatus.COMPLETED, notes or "Job completed")
         await self.session.flush()
