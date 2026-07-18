@@ -1,0 +1,71 @@
+1. sign-up
+
+-> consider unique email and mobile
+-> mobile number 1 and alternate mobile number should not be same for the same user
+-> for country code we need dropdown of country codes instead of manual input for country code by default keep india if they want they can change
+-> for wheeler section take input as array instead of string
+-> there should be zip code validation
+-> store country code separately don't merge it with mobile numbers while retrieving the data then we can combine
+
+2. sign-in
+
+-> for sign-in the user will either log in with email or mobile it's up to them. when considering with mobile don't take country code separately
+
+3. verify-otp and send otp
+
+-> don't consider country code separately for verify and send otp
+
+4. Dashboard
+
+-> Fix the Dashboard API response so that all currency fields (such as revenue_today and revenue_this_month) are returned with exactly 2 decimal places. Investigate the root cause (PostgreSQL type, SQLAlchemy model, query, or serialization), use appropriate NUMERIC(10,2) precision if needed, and ensure the API returns numeric values (not strings). Also update the Swagger/OpenAPI examples to display only two decimal places.
+-> Not only in dashboard where ever we are displaying prices it should be with 2 decimals
+
+5. require an access token for
+
+-> Create/Update/Delete Service Packages
+-> Jobs CRUD
+-> Bookings Management
+-> Dashboard
+-> Analytics
+-> Profile
+-> Garage Details
+-> Notifications
+
+6. Jobs
+
+-> create jobs not only from bookings. create it by using vehicle details like customer name, mobile number, registration number, brand, model, fuel type, odometer (km) all the fields are mandatory and also provide an option for uploading of photos(optional)
+
+1.  
+    
+    *   Generates a unique `job_id` (e.g., "JC-001").
+    *   Sets initial status to "OPEN".
+    *   Adds a "JOB_CREATED" event to the timeline with the current timestamp.
+    *   Returns the created job.
+
+2.  *   Accepts partial updates for `inspection`, `services`, or `labour`.
+    *   Updates the existing job record without overwriting previous steps.
+
+3.  
+    *   Accepts a new `status` string (e.g., "QC", "READY").
+    *   Updates the main job status.
+    *   Automatically appends a new `TimelineEvent` to the `timeline` list with the new stage and current timestamp.
+
+4.  
+    *   Calculates the billing dynamically based on saved data:
+        *   `services_total` = Sum of (price * quantity) for all services.
+        *   `labour_total` = labour.charge
+        *   `subtotal` = services_total + labour_total
+        *   `gst_amount` = subtotal * 0.18
+        *   `grand_total` = subtotal + gst_amount
+    *   Updates the `billing` object with these calculations.
+    *   Changes the job status to "COMPLETED".
+    *   Returns the final calculated job card.
+
+5.  *   Accepts an optional query parameter `status_filter`.
+    *   If `status_filter` is provided, filter the jobs (e.g., `?status_filter=OPEN`).
+    *   If no filter, return all jobs.
+
+
+
+
+
