@@ -303,24 +303,30 @@ async def test_verify_otp_returns_both_tokens():
 
 
 @pytest.mark.asyncio
-async def test_refresh_returns_new_token_pair_and_invalidates_old():
-    """POST /refresh must return a fresh pair and mark the old refresh token revoked."""
+async def test_refresh_returns_new_access_token_keeps_same_refresh():
+    """POST /refresh issues a new access token but keeps the same refresh token (no rotation).
+
+    No rotation means the same refresh token can be reused indefinitely until it
+    expires or is explicitly revoked — safe against network-loss on mobile.
+    """
     mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
-    old_refresh = tokens["refresh_token"]
+    refresh = tokens["refresh_token"]
+    original_access = tokens["access_token"]
 
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh})
+        r = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
     assert r.status_code == 200, r.text
     new_tokens = r.json()["data"]
     assert new_tokens.get("access_token"), "new access_token missing"
-    assert new_tokens.get("refresh_token"), "new refresh_token missing"
-    assert new_tokens["refresh_token"] != old_refresh, "refresh token was not rotated"
+    # Note: tokens issued in the same second are byte-for-byte identical (same sub+exp);
+    # we verify the token is present and the refresh token was not rotated.
+    assert new_tokens["refresh_token"] == refresh, "refresh token must NOT be rotated"
 
-    # Old token must now be invalid
+    # Same token still usable — no revocation happened
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": old_refresh})
-    assert r2.status_code == 401, "revoked refresh token should return 401"
+        r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
+    assert r2.status_code == 200, "same refresh token should still be accepted"
 
 
 @pytest.mark.asyncio
@@ -380,62 +386,51 @@ async def test_expired_refresh_token_returns_401():
 
 
 @pytest.mark.asyncio
-async def test_logout_with_token_revokes_only_that_session():
-    """Logout with a specific token must revoke only that session, leaving others active."""
+async def test_logout_with_token_revokes_that_token():
+    """Logout with a refresh token must revoke it; the access token remains valid until expiry."""
     mobile = _unique_mobile()
-    tokens_a = await _signup_and_get_tokens(mobile)
-    access_a = tokens_a["access_token"]
-    refresh_a = tokens_a["refresh_token"]
-
-    async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_a})
-    assert r.status_code == 200, r.text
-    refresh_b = r.json()["data"]["refresh_token"]
-    access_b = r.json()["data"]["access_token"]
+    tokens = await _signup_and_get_tokens(mobile)
+    access = tokens["access_token"]
+    refresh = tokens["refresh_token"]
 
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post(
             "/api/v1/auth/logout",
-            json={"refresh_token": refresh_b},
-            headers={"Authorization": f"Bearer {access_b}"},
+            json={"refresh_token": refresh},
+            headers={"Authorization": f"Bearer {access}"},
         )
     assert r.status_code == 200, r.text
 
+    # Refresh token is now revoked
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r_b = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_b})
-    assert r_b.status_code == 401, "logged-out session should be rejected"
+        r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
+    assert r2.status_code == 401, "logged-out refresh token should be rejected"
 
+    # Existing access token still works (it lives until its own expiry)
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r_profile = await client.get(
             "/api/v1/profile",
-            headers={"Authorization": f"Bearer {access_b}"},
+            headers={"Authorization": f"Bearer {access}"},
         )
-    assert r_profile.status_code == 200, "active session access token should still work"
+    assert r_profile.status_code == 200, "access token should still be valid after logout"
 
 
 @pytest.mark.asyncio
 async def test_logout_without_token_revokes_all_sessions():
-    """Logout without a refresh token must revoke every session for the user."""
+    """Logout without a refresh token must revoke every refresh token for the user."""
     mobile = _unique_mobile()
     tokens = await _signup_and_get_tokens(mobile)
-    refresh1 = tokens["refresh_token"]
-
-    async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh1})
-    assert r.status_code == 200, r.text
-    refresh2 = r.json()["data"]["refresh_token"]
-    access2 = r.json()["data"]["access_token"]
+    refresh = tokens["refresh_token"]
+    access = tokens["access_token"]
 
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         r = await client.post(
             "/api/v1/auth/logout",
             json={},
-            headers={"Authorization": f"Bearer {access2}"},
+            headers={"Authorization": f"Bearer {access}"},
         )
     assert r.status_code == 200, r.text
 
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r1 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh1})
-        r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh2})
-    assert r1.status_code == 401, "session 1 should be revoked"
-    assert r2.status_code == 401, "session 2 should be revoked"
+        r2 = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
+    assert r2.status_code == 401, "all refresh tokens should be revoked after full logout"

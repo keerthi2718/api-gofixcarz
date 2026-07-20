@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, ConflictException, UnauthorizedException
@@ -55,16 +56,21 @@ class AuthService:
             full_name = f"{full_name} {data.last_name.strip()}"
 
         # Create user — mobile stored as plain 10 digits; country code separate
-        user = await self.user_repo.create(
-            mobile=data.mobile,
-            country_code=data.country_code,
-            country_code_2=data.country_code_2 if data.mobile_2 else None,
-            first_name=data.first_name,
-            last_name=data.last_name,
-            name=full_name,
-            email=str(data.email),
-            terms_accepted=data.terms_accepted,
-        )
+        try:
+            user = await self.user_repo.create(
+                mobile=data.mobile,
+                country_code=data.country_code,
+                country_code_2=data.country_code_2 if data.mobile_2 else None,
+                first_name=data.first_name,
+                last_name=data.last_name,
+                name=full_name,
+                email=str(data.email),
+                terms_accepted=data.terms_accepted,
+            )
+        except IntegrityError:
+            # Race condition: another request inserted the same mobile/email
+            # between our read-check and this write — treat as conflict.
+            raise ConflictException("Mobile number or email already registered.")
 
         # Create garage/workshop
         garage_data = GarageCreate(
@@ -200,21 +206,14 @@ class AuthService:
         if not user or not user.is_active:
             raise UnauthorizedException("Account not found or inactive.")
 
-        await self.refresh_token_repo.revoke(stored)
-
+        # No rotation: the refresh token stays valid until it expires naturally.
+        # Rotating on every use causes "revoked" errors on mobile when a network
+        # hiccup or app backgrounding prevents the new token from being saved.
         access_token = create_access_token(subject=str(user.id))
-        raw_new_refresh = generate_refresh_token()
-        new_hash = hash_refresh_token(raw_new_refresh)
-        new_expires = get_refresh_token_expiry()
-        await self.refresh_token_repo.create(
-            user_id=user.id,
-            token_hash=new_hash,
-            expires_at=new_expires,
-        )
 
         return TokenResponse(
             access_token=access_token,
-            refresh_token=raw_new_refresh,
+            refresh_token=raw_refresh_token,
             token_type="bearer",
             user=UserResponse.model_validate(user),
         )
