@@ -177,7 +177,7 @@ async def test_sign_in_with_mobile():
     mobile = _unique_mobile()
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
         await client.post("/api/v1/auth/sign-up", json=_signup_payload(mobile))
-        r = await client.post("/api/v1/auth/sign-in", json={"login": mobile})
+        r = await client.post("/api/v1/auth/sign-in", json={"mobile": mobile})
     assert r.status_code == 200
     data = r.json()["data"]
     assert data["mobile"] == mobile
@@ -185,18 +185,11 @@ async def test_sign_in_with_mobile():
 
 
 @pytest.mark.asyncio
-async def test_sign_in_with_email():
-    """Sign-in with registered email sends OTP to the user's mobile."""
-    mobile = _unique_mobile()
-    tag = mobile[-6:]
-    email = f"signin_{tag}@authtest.com"
-    payload = {**_signup_payload(mobile), "email": email}
+async def test_sign_in_with_email_rejected():
+    """Email is no longer accepted for sign-in — must return 422."""
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        await client.post("/api/v1/auth/sign-up", json=payload)
-        r = await client.post("/api/v1/auth/sign-in", json={"login": email})
-    assert r.status_code == 200
-    data = r.json()["data"]
-    assert data["mobile"] == mobile
+        r = await client.post("/api/v1/auth/sign-in", json={"mobile": "test@example.com"})
+    assert r.status_code == 422
 
 
 @pytest.mark.asyncio
@@ -204,15 +197,16 @@ async def test_sign_in_unregistered_mobile_returns_400():
     # Use a mobile with leading zeros that will never appear in seed data
     unregistered = "0" + str(uuid.uuid4().int % 10**9).zfill(9)
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/sign-in", json={"login": unregistered})
+        r = await client.post("/api/v1/auth/sign-in", json={"mobile": unregistered})
     assert r.status_code == 400
 
 
 @pytest.mark.asyncio
-async def test_sign_in_unregistered_email_returns_400():
+async def test_sign_in_invalid_format_returns_422():
+    """Non-numeric, non-10-digit values must be rejected before hitting the service."""
     async with httpx.AsyncClient(base_url=BASE_URL) as client:
-        r = await client.post("/api/v1/auth/sign-in", json={"login": "nobody@nowhere.com"})
-    assert r.status_code == 400
+        r = await client.post("/api/v1/auth/sign-in", json={"mobile": "nobody@nowhere.com"})
+    assert r.status_code == 422
 
 
 # ---------------------------------------------------------------------------

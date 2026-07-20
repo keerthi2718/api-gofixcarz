@@ -6,8 +6,7 @@ Strategy:
 - Use unique identifiers per test run to avoid counter cross-contamination.
 - Assert requests 1-5 succeed (non-429) and request 6 is HTTP 429.
 
-Note: /sign-in is keyed on the 'login' field (email or mobile).
-      /send-otp is keyed on the 'mobile' field.
+Note: Both /sign-in and /send-otp are keyed on the 'mobile' field.
 """
 import uuid
 from unittest.mock import AsyncMock, patch
@@ -35,7 +34,7 @@ def _make_mock_session():
 # ── sign-in rate limit ────────────────────────────────────────────────────────
 
 def test_sign_in_rate_limit_blocks_sixth_request():
-    """The 6th /sign-in call with the same login value in one minute must return 429."""
+    """The 6th /sign-in call with the same mobile in one minute must return 429."""
     mobile = _unique_mobile()
 
     app.dependency_overrides[get_session] = _make_mock_session()
@@ -50,7 +49,7 @@ def test_sign_in_rate_limit_blocks_sixth_request():
                 for _ in range(6):
                     r = client.post(
                         "/api/v1/auth/sign-in",
-                        json={"login": mobile},  # new field name
+                        json={"mobile": mobile},
                     )
                     statuses.append(r.status_code)
 
@@ -98,12 +97,12 @@ def test_send_otp_rate_limit_blocks_sixth_request():
         app.dependency_overrides.pop(get_session, None)
 
 
-# ── login field normalisation (whitespace) ────────────────────────────────────
+# ── mobile field normalisation (whitespace) ───────────────────────────────────
 
 def test_rate_limit_normalizes_login_whitespace():
-    """Login values with leading/trailing spaces share the same rate-limit bucket.
+    """Mobile values with leading/trailing spaces share the same rate-limit bucket.
 
-    A caller cannot bypass the 5/min limit by padding the login with spaces.
+    A caller cannot bypass the 5/min limit by padding the mobile with spaces.
     """
     mobile = _unique_mobile()
     padded = f"  {mobile}  "
@@ -119,15 +118,15 @@ def test_rate_limit_normalizes_login_whitespace():
                 statuses = []
                 # 4 requests with the canonical number
                 for _ in range(4):
-                    r = client.post("/api/v1/auth/sign-in", json={"login": mobile})
+                    r = client.post("/api/v1/auth/sign-in", json={"mobile": mobile})
                     statuses.append(r.status_code)
 
                 # 1 request with a padded variant — still same bucket (total = 5)
-                r = client.post("/api/v1/auth/sign-in", json={"login": padded})
+                r = client.post("/api/v1/auth/sign-in", json={"mobile": padded})
                 statuses.append(r.status_code)
 
                 # 6th attempt with the canonical number should be 429
-                r = client.post("/api/v1/auth/sign-in", json={"login": mobile})
+                r = client.post("/api/v1/auth/sign-in", json={"mobile": mobile})
                 statuses.append(r.status_code)
 
         assert all(s != 429 for s in statuses[:5]), (
@@ -141,7 +140,7 @@ def test_rate_limit_normalizes_login_whitespace():
 
 
 def test_rate_limit_is_per_login_not_global():
-    """Requests from different login values are counted separately."""
+    """Requests from different mobile values are counted separately."""
     mobile_a = _unique_mobile()
     mobile_b = _unique_mobile()
 
@@ -156,10 +155,10 @@ def test_rate_limit_is_per_login_not_global():
             with TestClient(app, raise_server_exceptions=False) as client:
                 # Exhaust mobile_a's limit
                 for _ in range(5):
-                    client.post("/api/v1/auth/sign-in", json={"login": mobile_a})
+                    client.post("/api/v1/auth/sign-in", json={"mobile": mobile_a})
 
                 # mobile_b should still get through
-                r = client.post("/api/v1/auth/sign-in", json={"login": mobile_b})
+                r = client.post("/api/v1/auth/sign-in", json={"mobile": mobile_b})
                 assert r.status_code != 429, (
                     f"mobile_b was incorrectly rate-limited: {r.status_code}"
                 )

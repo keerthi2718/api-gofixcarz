@@ -153,37 +153,25 @@ class SignUpRequest(BaseModel):
 
 
 # ──────────────────────────────────────────────────────────
-# Sign-in  (email OR 10-digit mobile — single field)
+# Sign-in  (10-digit mobile only)
 # ──────────────────────────────────────────────────────────
 
 class SignInRequest(BaseModel):
     """
-    Accept either an email address or a 10-digit mobile number in the
-    `login` field. No country code is required — the backend resolves it
-    from the stored user record.
+    Sign in with a plain 10-digit mobile number.
+    No country code required — resolved from the stored user record.
     """
-    login: str   # email or 10-digit mobile
+    mobile: str
 
-    @field_validator("login")
+    @field_validator("mobile")
     @classmethod
-    def validate_login(cls, v: str) -> str:
+    def validate_mobile(cls, v: str) -> str:
         v = v.strip()
         if not v:
-            raise ValueError("login is required")
-        # Detect type and validate accordingly
-        if "@" in v:
-            if not _EMAIL_RE.fullmatch(v):
-                raise ValueError("Invalid email address")
-        else:
-            if not _MOBILE_RE.fullmatch(v):
-                raise ValueError(
-                    "login must be a valid email address or a 10-digit mobile number"
-                )
+            raise ValueError("mobile is required")
+        if not _MOBILE_RE.fullmatch(v):
+            raise ValueError("mobile must be a 10-digit number")
         return v
-
-    @property
-    def is_email(self) -> bool:
-        return "@" in self.login
 
 
 # ──────────────────────────────────────────────────────────

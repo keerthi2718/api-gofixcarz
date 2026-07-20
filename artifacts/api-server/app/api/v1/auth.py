@@ -33,7 +33,7 @@ def _mobile_key(request: Request) -> str:
 
 
 def _login_key(request: Request) -> str:
-    """Rate-limit key for /sign-in — keyed on the 'login' field (email or mobile).
+    """Rate-limit key for /sign-in — keyed on the 'mobile' field.
 
     The OTPBodyCacheMiddleware (registered in main.py) pre-reads and parses
     the JSON body onto request.state._body_json before slowapi evaluates this
@@ -41,9 +41,9 @@ def _login_key(request: Request) -> str:
     share the same bucket and cannot bypass the limit.
     """
     body: dict = getattr(request.state, "_body_json", {})
-    login: str = str(body.get("login", "")).strip().lower()
-    if login:
-        return f"login:{login}"
+    mobile: str = str(body.get("mobile", "")).strip()
+    if mobile:
+        return f"mobile:{mobile}"
     return get_remote_address(request)
 
 
@@ -64,7 +64,7 @@ async def sign_up(data: SignUpRequest, session: DBSession):
 @router.post("/sign-in", response_model=APIResponse)
 @limiter.limit("5/minute", key_func=_login_key)
 async def sign_in(request: Request, data: SignInRequest, session: DBSession):
-    """Sign in with email or mobile — sends OTP. Rate-limited to 5/min per login identifier."""
+    """Sign in with mobile number — sends OTP. Rate-limited to 5/min per mobile."""
     service = AuthService(session)
     result = await service.sign_in(data)
     return APIResponse.ok(data=result, message=result["message"])

@@ -95,20 +95,15 @@ class AuthService:
         }
 
     # ──────────────────────────────────────────────────────
-    # Sign-in  (email OR mobile — no country code from client)
+    # Sign-in  (mobile only — no country code from client)
     # ──────────────────────────────────────────────────────
 
     async def sign_in(self, data: SignInRequest) -> dict:
-        if data.is_email:
-            user = await self.user_repo.get_by_email(data.login)
-            if not user:
-                raise BadRequestException("Email not registered. Please sign up first.")
-        else:
-            user = await self.user_repo.get_by_mobile(data.login)
-            if not user:
-                raise BadRequestException(
-                    "Mobile number not registered. Please sign up first."
-                )
+        user = await self.user_repo.get_by_mobile(data.mobile)
+        if not user:
+            raise BadRequestException(
+                "Mobile number not registered. Please sign up first."
+            )
 
         if not user.is_active:
             raise UnauthorizedException("Account is inactive.")
