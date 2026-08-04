@@ -9,7 +9,7 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
+
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -226,11 +226,6 @@ async def version():
 
 app.include_router(health_router)
 
-# ── Static files (job photos, etc.) ──────────────────────────────────────────
-_static_job_photos = Path(__file__).resolve().parents[1] / "static" / "job-photos"
-_static_job_photos.mkdir(parents=True, exist_ok=True)
-app.mount("/api/job-photos", StaticFiles(directory=str(_static_job_photos)), name="job-photos")
-
 # ── API v1 ───────────────────────────────────────────────────────────────────
 from app.api.v1.auth import router as auth_router  # noqa: E402
 from app.api.v1.customers import router as customers_router  # noqa: E402
@@ -244,6 +239,7 @@ from app.api.v1.garage import router as garage_router  # noqa: E402
 from app.api.v1.service_packages import router as service_packages_router  # noqa: E402
 from app.api.v1.notifications import router as notifications_router  # noqa: E402
 from app.api.v1.static import router as static_router  # noqa: E402
+from app.api.v1.images import router as images_router  # noqa: E402
 
 v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -258,5 +254,6 @@ v1_router.include_router(garage_router, prefix="/garage", tags=["Garage"])
 v1_router.include_router(service_packages_router, prefix="/service-packages", tags=["Service Packages"])
 v1_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 v1_router.include_router(static_router, prefix="/static", tags=["Static"])
+v1_router.include_router(images_router, prefix="/images", tags=["Images"])
 
 app.include_router(v1_router)

@@ -1,4 +1,3 @@
-import os
 import uuid
 from datetime import date
 from pathlib import Path
@@ -21,19 +20,19 @@ from app.schemas.job import (
 )
 from app.schemas.response import APIResponse, PaginatedData
 from app.services.job_service import JobService
+from app.utils.s3 import (
+    ALLOWED_CONTENT_TYPES,
+    MAX_FILE_SIZE_BYTES,
+    generate_download_url,
+    generate_upload_url,
+    make_object_key,
+)
 
 router = APIRouter()
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 
-# Photo storage directory (relative to the api-server root)
-_PHOTOS_DIR = Path(__file__).resolve().parents[3] / "static" / "job-photos"
-_PHOTOS_DIR.mkdir(parents=True, exist_ok=True)
-
-# Base URL path that the StaticFiles mount exposes
-_PHOTOS_URL_PREFIX = "/api/job-photos"
-
-_ALLOWED_PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
-_MAX_PHOTO_SIZE_MB = 10
+# Allowed extensions mirror the S3 utility's ALLOWED_CONTENT_TYPES
+_ALLOWED_PHOTO_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 @router.post("/upload-photo", response_model=APIResponse[dict])
@@ -41,11 +40,11 @@ async def upload_job_photo(
     garage: CurrentGarage,
     file: UploadFile = File(...),
 ):
-    """Upload a photo for a job.
+    """Upload a photo for a job and store it in S3.
 
-    Returns a URL that can be passed in the `photos` list when creating or
-    updating a job.  Files are stored on local disk; in production replace
-    with object-storage writes.
+    Reads the uploaded file, validates type and size, uploads it directly
+    to S3 from the server, and returns a pre-signed GET URL valid for 1 hour.
+    Store the returned `url` in the job's `photos` list.
     """
     ext = Path(file.filename or "").suffix.lower()
     if ext not in _ALLOWED_PHOTO_EXTS:
@@ -61,24 +60,48 @@ async def upload_job_photo(
         )
 
     contents = await file.read()
-    if len(contents) > _MAX_PHOTO_SIZE_MB * 1024 * 1024:
+    if len(contents) > MAX_FILE_SIZE_BYTES:
         return JSONResponse(
             status_code=413,
             content=APIResponse(
                 success=False,
-                message=f"File too large. Maximum size is {_MAX_PHOTO_SIZE_MB} MB.",
+                message="File too large. Maximum size is 5 MB.",
                 data=None,
                 errors=[],
                 status_code=413,
             ).model_dump(),
         )
 
-    filename = f"{uuid.uuid4().hex}{ext}"
-    dest = _PHOTOS_DIR / filename
-    dest.write_bytes(contents)
+    # Derive content type from extension
+    import mimetypes
+    content_type = mimetypes.types_map.get(ext, "image/jpeg")
 
-    url = f"{_PHOTOS_URL_PREFIX}/{filename}"
-    return APIResponse.ok(data={"url": url, "filename": filename}, message="Photo uploaded")
+    # Build S3 key scoped to this garage's job photos
+    prefix = f"garages/{garage.id}/job-photos"
+    object_key, _ = make_object_key(prefix, file.filename or f"photo{ext}")
+
+    # Upload directly to S3 from the server
+    import boto3
+    from app.core.config import settings
+    s3 = boto3.client(
+        "s3",
+        region_name=settings.AWS_REGION,
+        aws_access_key_id=settings.AWS_API_KEY,
+        aws_secret_access_key=settings.AWS_SECRET_KEY,
+    )
+    s3.put_object(
+        Bucket=settings.S3_BUCKET_NAME,
+        Key=object_key,
+        Body=contents,
+        ContentType=content_type,
+    )
+
+    # Return a pre-signed download URL (1 hour)
+    url = generate_download_url(object_key)
+    return APIResponse.ok(
+        data={"url": url, "object_key": object_key},
+        message="Photo uploaded",
+    )
 
 
 @router.post("", response_model=APIResponse[JobResponse], status_code=status.HTTP_201_CREATED)

@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 20
 
+    # AWS S3
+    AWS_API_KEY: str = ""          # Access Key ID
+    AWS_SECRET_KEY: str = ""       # Secret Access Key
+    S3_BUCKET_NAME: str = ""
+    AWS_REGION: str = "ap-south-1"
+    S3_UPLOAD_EXPIRES: int = 300   # seconds — pre-signed PUT URL lifetime
+    S3_DOWNLOAD_EXPIRES: int = 3600  # seconds — pre-signed GET URL lifetime
+
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 

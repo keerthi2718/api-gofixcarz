@@ -49,3 +49,11 @@ class GarageRepository:
         await self.session.flush()
         await self.session.refresh(garage)
         return garage
+
+    async def set_logo(self, garage: Garage, object_key: str) -> Garage:
+        """Store the S3 object key as the garage logo."""
+        garage.logo_url = object_key
+        garage.updated_at = datetime.now(timezone.utc)
+        await self.session.flush()
+        await self.session.refresh(garage)
+        return garage
