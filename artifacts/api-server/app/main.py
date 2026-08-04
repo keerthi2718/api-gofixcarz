@@ -159,7 +159,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    # Escape braces so loguru doesn't try to format them as template placeholders
+    safe = str(exc).replace("{", "{{").replace("}", "}}")
+    logger.opt(exception=True).error(f"Unhandled exception: {safe}")
     return JSONResponse(
         status_code=500,
         content={
@@ -193,7 +195,7 @@ async def health():
             "overflow": pool.overflow(),
         }
     except Exception as e:
-        logger.error(f"DB health check failed: {e}")
+        logger.error("DB health check failed: {}", str(e).replace("{", "{{").replace("}", "}}"))
     return {
         "success": True,
         "message": "OK",
