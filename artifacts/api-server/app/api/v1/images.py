@@ -11,7 +11,7 @@ Flow:
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException
@@ -32,6 +32,16 @@ DBSession = Annotated[AsyncSession, Depends(get_session)]
 class UploadUrlRequest(BaseModel):
     file_name: str
     content_type: str
+
+    @field_validator("file_name")
+    @classmethod
+    def file_name_must_not_be_url(cls, v: str) -> str:
+        if v.startswith("http://") or v.startswith("https://"):
+            raise ValueError(
+                "file_name must be a filename (e.g. 'logo.jpg'), not a URL. "
+                "Upload the file binary directly to the upload_url returned by this endpoint."
+            )
+        return v
 
 
 class UploadUrlResponse(BaseModel):
