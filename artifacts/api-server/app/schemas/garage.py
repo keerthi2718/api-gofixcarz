@@ -72,7 +72,8 @@ class GarageResponse(BaseModel):
     working_hours: Optional[Dict[str, Any]] = None
     latitude: Optional[Decimal] = None
     longitude: Optional[Decimal] = None
-    # S3 object key stored in DB; a fresh pre-signed URL is generated on read
+    # `logo_object_key` is persisted; `logo_url` is a short-lived signed read URL.
+    logo_object_key: Optional[str] = None
     logo_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime

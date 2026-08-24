@@ -1,4 +1,4 @@
-"""AWS S3 helpers — pre-signed URL generation only.
+"""AWS S3 helpers for signed URLs and safe garage-scoped object management.
 
 The backend holds all AWS credentials; the mobile app never sees them.
 All uploads go through a short-lived pre-signed PUT URL; all reads go
@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import mimetypes
 import uuid
+from datetime import datetime
 from typing import Tuple
 
 import boto3
@@ -34,6 +35,47 @@ def _client():
         aws_access_key_id=settings.AWS_API_KEY,
         aws_secret_access_key=settings.AWS_SECRET_KEY,
     )
+
+
+def garage_prefix(garage_id: uuid.UUID | str) -> str:
+    """Return the S3 prefix reserved for one garage."""
+    return f"garages/{garage_id}/"
+
+
+def is_garage_object_key(object_key: str, garage_id: uuid.UUID | str) -> bool:
+    """Return whether a key is a safe object key owned by the given garage."""
+    if not object_key or object_key.startswith(("/", "http://", "https://")):
+        return False
+    if ".." in object_key.split("/"):
+        return False
+    return object_key.startswith(garage_prefix(garage_id))
+
+
+def object_exists(object_key: str) -> bool:
+    """Return whether an object exists, re-raising unexpected S3 failures."""
+    try:
+        _client().head_object(Bucket=settings.S3_BUCKET_NAME, Key=object_key)
+        return True
+    except ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code", ""))
+        if code in {"404", "NoSuchKey", "NotFound"}:
+            return False
+        raise
+
+
+def delete_object(object_key: str) -> None:
+    """Delete one S3 object. The caller must validate ownership first."""
+    _client().delete_object(Bucket=settings.S3_BUCKET_NAME, Key=object_key)
+
+
+def list_objects(prefix: str) -> list[tuple[str, datetime]]:
+    """List object keys and modification times below an S3 prefix."""
+    paginator = _client().get_paginator("list_objects_v2")
+    objects: list[tuple[str, datetime]] = []
+    for page in paginator.paginate(Bucket=settings.S3_BUCKET_NAME, Prefix=prefix):
+        for item in page.get("Contents", []):
+            objects.append((item["Key"], item["LastModified"]))
+    return objects
 
 
 def generate_upload_url(

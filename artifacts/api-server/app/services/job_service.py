@@ -5,6 +5,7 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, NotFoundException
+from app.models.garage import Garage
 from app.models.job import JobStatus
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.job_repository import JobRepository
@@ -18,6 +19,8 @@ from app.schemas.job import (
     JobUpdate,
 )
 from app.schemas.response import PaginatedData
+from app.services.image_lifecycle_service import ImageLifecycleService
+from app.utils.s3 import generate_download_url, is_garage_object_key
 
 # Terminal statuses — no further transitions allowed
 _TERMINAL = {JobStatus.COMPLETED, JobStatus.CANCELLED}
@@ -32,6 +35,23 @@ _VALID_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     JobStatus.COMPLETED:         set(),
     JobStatus.CANCELLED:         set(),
 }
+
+
+def _with_photo_urls(response: JobResponse | JobDetailResponse) -> JobResponse | JobDetailResponse:
+    """Expose each stored object key with a fresh signed read URL."""
+    if response.photos is not None:
+        response.photos = [
+            {
+                "object_key": key,
+                "url": (
+                    generate_download_url(key)
+                    if isinstance(key, str) and is_garage_object_key(key, response.garage_id)
+                    else None
+                ),
+            }
+            for key in response.photos
+        ]
+    return response
 
 
 class JobService:
@@ -55,8 +75,10 @@ class JobService:
             if not vehicle:
                 raise NotFoundException("Vehicle not found")
 
+        lifecycle = ImageLifecycleService(self.repo.session)
+        await lifecycle.validate_object_keys(garage_id, data.photos)
         job = await self.repo.create(garage_id, data)
-        return JobResponse.model_validate(job)
+        return _with_photo_urls(JobResponse.model_validate(job))
 
     async def list(
         self,
@@ -90,7 +112,7 @@ class JobService:
             page_size=page_size,
         )
         return PaginatedData(
-            items=[JobResponse.model_validate(j) for j in items],
+            items=[_with_photo_urls(JobResponse.model_validate(j)) for j in items],
             total=total,
             page=page,
             page_size=page_size,
@@ -101,7 +123,7 @@ class JobService:
         job = await self.repo.get_by_id(job_id, garage_id, load_relations=True)
         if not job:
             raise NotFoundException("Job not found")
-        return JobDetailResponse.model_validate(job)
+        return _with_photo_urls(JobDetailResponse.model_validate(job))
 
     async def update(
         self, garage_id: uuid.UUID, job_id: uuid.UUID, data: JobUpdate
@@ -113,8 +135,24 @@ class JobService:
             raise BadRequestException(
                 f"Cannot edit a job that is {job.status.value}."
             )
+        lifecycle = ImageLifecycleService(self.repo.session)
+        photos_are_updated = "photos" in data.model_fields_set
+        previous_keys = {
+            key for key in (job.photos or []) if isinstance(key, str)
+        }
+        if photos_are_updated:
+            await lifecycle.validate_object_keys(garage_id, data.photos)
+
         updated = await self.repo.update(job, data)
-        return JobResponse.model_validate(updated)
+        if photos_are_updated:
+            # Persist the replacement list before removing objects that are no
+            # longer referenced. This prevents a DB failure from losing images.
+            await self.repo.session.commit()
+            garage = await self.repo.session.get(Garage, garage_id)
+            if garage:
+                for object_key in previous_keys - set(data.photos or []):
+                    await lifecycle.delete_if_unreferenced(garage, object_key)
+        return _with_photo_urls(JobResponse.model_validate(updated))
 
     async def change_status(
         self, garage_id: uuid.UUID, job_id: uuid.UUID, data: JobStatusUpdate
@@ -133,7 +171,7 @@ class JobService:
                 f"Allowed: {', '.join(s.value for s in allowed) or 'none'}."
             )
         updated = await self.repo.change_status(job, data.status, data.notes)
-        return JobResponse.model_validate(updated)
+        return _with_photo_urls(JobResponse.model_validate(updated))
 
     async def complete(
         self, garage_id: uuid.UUID, job_id: uuid.UUID, data: JobCompleteUpdate
@@ -146,10 +184,19 @@ class JobService:
         if job.status == JobStatus.CANCELLED:
             raise BadRequestException("Cannot complete a cancelled job.")
         updated = await self.repo.complete(job, data.notes)
-        return JobResponse.model_validate(updated)
+        return _with_photo_urls(JobResponse.model_validate(updated))
 
     async def delete(self, garage_id: uuid.UUID, job_id: uuid.UUID) -> None:
         job = await self.repo.get_by_id(job_id, garage_id)
         if not job:
             raise NotFoundException("Job not found")
+        photo_keys = {key for key in (job.photos or []) if isinstance(key, str)}
         await self.repo.delete(job)
+        # This app soft-deletes jobs, so remove their images after the soft
+        # delete has committed. Unreferenced checks protect reused keys.
+        await self.repo.session.commit()
+        garage = await self.repo.session.get(Garage, garage_id)
+        if garage:
+            lifecycle = ImageLifecycleService(self.repo.session)
+            for object_key in photo_keys:
+                await lifecycle.delete_if_unreferenced(garage, object_key)

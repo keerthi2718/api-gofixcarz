@@ -24,7 +24,6 @@ from app.utils.s3 import (
     ALLOWED_CONTENT_TYPES,
     MAX_FILE_SIZE_BYTES,
     generate_download_url,
-    generate_upload_url,
     make_object_key,
 )
 
@@ -44,7 +43,8 @@ async def upload_job_photo(
 
     Reads the uploaded file, validates type and size, uploads it directly
     to S3 from the server, and returns a pre-signed GET URL valid for 1 hour.
-    Store the returned `url` in the job's `photos` list.
+    Store the returned `object_key` in the job's `photos` list. Job responses
+    expose that key together with a fresh signed S3 read URL.
     """
     ext = Path(file.filename or "").suffix.lower()
     if ext not in _ALLOWED_PHOTO_EXTS:

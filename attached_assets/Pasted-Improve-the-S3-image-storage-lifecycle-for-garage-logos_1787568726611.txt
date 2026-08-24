@@ -1,0 +1,108 @@
+Improve the S3 image-storage lifecycle for garage logos and job photos.
+
+The backend uses AWS S3 with these environment variables:
+
+AWS_API_KEY
+AWS_SECRET_KEY
+S3_BUCKET_NAME
+AWS_REGION
+
+API base path:
+
+/api/v1
+
+Current upload flow:
+
+POST /api/v1/images/upload-url
+Mobile uploads the image binary to the returned S3 upload_url
+Mobile saves the returned object_key on the garage or job
+Implement the following:
+
+1. Store only S3 object keys in the database
+Store values such as:
+
+garages/<garage-id>/<unique-id>.jpg
+
+Do not store signed URLs permanently in the database.
+
+2. Validate photo keys
+When saving a garage logo or job photo:
+
+Confirm the key belongs to the current garage.
+
+Confirm the object exists in the configured S3 bucket using head_object.
+
+Reject invalid, external, or old paths such as:
+
+jobs/before_service/...
+
+Reject object keys belonging to another garage.
+
+3. Return fresh signed URLs
+When returning garage or job details:
+
+Keep the stored object_key available.
+Generate a fresh signed S3 GET URL for every image.
+Never return expired cached URLs from the database.
+Example response:
+
+{
+  "object_key": "garages/garage-id/image-id.jpg",
+  "url": "https://signed-s3-url..."
+}
+
+4. Delete replaced garage logos
+When a garage logo is replaced:
+
+Save the new logo only after confirming it exists in S3.
+Delete the previous S3 object after the new reference is saved successfully.
+Do not delete anything if the new upload or database update fails.
+5. Delete removed job photos
+When the job photo list is updated:
+
+Compare the old and new object-key lists.
+Delete S3 objects that were removed from the job.
+Keep unchanged photos.
+Do not delete an object until the database update succeeds.
+6. Delete photos when a job is deleted
+When a job is permanently deleted, delete all of its S3 photo objects.
+
+If the application uses soft delete, either:
+
+Delete the photos during soft delete, or
+Add a cleanup process for soft-deleted jobs.
+7. Add abandoned-upload cleanup
+Add a safe cleanup mechanism for files uploaded to S3 but never attached to a garage or job.
+
+Options:
+
+Add POST /api/v1/images/cleanup for authenticated cleanup of the current garage’s unreferenced files.
+Or add an automated cleanup job that deletes unreferenced objects older than 24 hours.
+Never delete objects referenced by a garage logo or job record.
+
+8. Add an explicit upload-cancel endpoint
+Add:
+
+DELETE /api/v1/images/{object_key}
+
+It must:
+
+Require authentication.
+Verify that the key belongs to the current garage.
+Delete only that S3 object.
+Reject keys belonging to another garage.
+The mobile app will call this endpoint when an upload succeeds but saving the image reference fails.
+
+9. Add tests
+Add tests for:
+
+Valid S3 object key is accepted.
+Missing S3 object is rejected.
+Another garage’s object key is rejected.
+Replaced logo deletes the old object.
+Removed job photos are deleted.
+Job deletion removes its photos.
+Failed database updates do not delete existing photos.
+Abandoned uploads can be cleaned safely.
+Do not expose AWS credentials to the mobile app. Do not store image binaries or permanent signed URLs in PostgreSQL.
+

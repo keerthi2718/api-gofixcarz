@@ -10,16 +10,16 @@ Flow:
 """
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel, field_validator
+from fastapi import APIRouter, Depends, Path
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException
 from app.database.session import get_session
 from app.dependencies.garage import CurrentGarage
+from app.services.image_lifecycle_service import ImageLifecycleService
 from app.utils.s3 import (
     ALLOWED_CONTENT_TYPES,
-    MAX_FILE_SIZE_BYTES,
     generate_upload_url,
     make_object_key,
 )
@@ -48,6 +48,10 @@ class UploadUrlResponse(BaseModel):
     upload_url: str
     object_key: str
     expires_in: int  # seconds
+
+
+class OrphanCleanupRequest(BaseModel):
+    older_than_hours: int = Field(default=24, ge=1, le=168)
 
 
 @router.post("/upload-url", response_model=APIResponse[UploadUrlResponse])
@@ -87,4 +91,31 @@ async def get_upload_url(
             expires_in=expires,
         ).model_dump(),
         message="Pre-signed upload URL generated",
+    )
+
+
+@router.delete("/{object_key:path}", response_model=APIResponse)
+async def cancel_image_upload(
+    garage: CurrentGarage,
+    session: DBSession,
+    object_key: str = Path(..., description="URL-encoded S3 object key"),
+):
+    """Delete an uploaded image that was never attached to a garage or job."""
+    lifecycle = ImageLifecycleService(session)
+    await lifecycle.cancel_upload(garage, object_key)
+    return APIResponse.ok(message="Unattached image deleted")
+
+
+@router.post("/cleanup", response_model=APIResponse[dict])
+async def cleanup_orphaned_images(
+    data: OrphanCleanupRequest,
+    garage: CurrentGarage,
+    session: DBSession,
+):
+    """Remove unreferenced images for the current garage after a safety delay."""
+    lifecycle = ImageLifecycleService(session)
+    deleted = await lifecycle.cleanup_orphans(garage, data.older_than_hours)
+    return APIResponse.ok(
+        data={"deleted_count": deleted, "older_than_hours": data.older_than_hours},
+        message="Orphaned images cleaned up",
     )
