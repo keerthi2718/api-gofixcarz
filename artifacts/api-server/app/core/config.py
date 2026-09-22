@@ -49,7 +49,13 @@ class Settings(BaseSettings):
     S3_DOWNLOAD_EXPIRES: int = 3600  # seconds — pre-signed GET URL lifetime
 
     # CORS
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: List[str] = [
+        "http://localhost",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://partner.gofixcarz.com",
+    ]
 
 
 settings = Settings()
