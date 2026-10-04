@@ -34,6 +34,23 @@ def test_current_schema_is_read_only(gateway):
     engine.dispose.assert_called_once()
 
 
+@pytest.mark.parametrize("mode", ["require", "verify-ca", "verify-full"])
+def test_production_preflight_preserves_ssl_policy(gateway, mode):
+    engine, connection, context, upgrade = gateway
+    context.get_current_heads.return_value = (migrations.DELIVERY_HEAD,)
+    url = (
+        f"postgresql+asyncpg://dummy:dummy@db.example.invalid/dummy?"
+        f"sslmode={mode}&sslrootcert=%2Fdummy-ca.pem"
+    )
+    migrations.ensure_delivery_schema(url)
+    migrations.create_engine.assert_called_once_with(
+        url.replace("postgresql+asyncpg://", "postgresql://"),
+        poolclass=migrations.pool.NullPool,
+    )
+    connection.execute.assert_not_called()
+    upgrade.assert_not_called()
+
+
 @pytest.mark.parametrize("baseline", [migrations.BASELINE, migrations.DELIVERY_TABLE])
 def test_pending_migrations_require_approval(gateway, baseline):
     engine, connection, context, upgrade = gateway

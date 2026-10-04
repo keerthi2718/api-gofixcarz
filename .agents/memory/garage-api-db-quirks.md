@@ -5,15 +5,20 @@ description: Known incompatibilities between asyncpg, Alembic, and Replit's inte
 
 # Garage API — asyncpg & Alembic DB quirks
 
-## Rule 1: Strip `sslmode` from the URL for asyncpg
+## Rule 1: Preserve the requested remote SSL policy across drivers
 
-asyncpg does not accept `sslmode` as a query parameter in the connection URL. It raises `TypeError: connect() got an unexpected keyword argument 'sslmode'`.
+Do not treat `require`, `verify-ca`, and `verify-full` as interchangeable, or
+extend the internal non-SSL exception to localhost or arbitrary remote hosts.
+An omitted mode retains driver defaults; changing deployment SSL settings is
+not authorized by a URL-conversion fix.
 
-**Fix:** Parse the URL with `urlparse`, pop `sslmode` from the query params, then pass `ssl=<ctx>` via `connect_args` only when the host is remote (not `localhost` / `helium`).
+**Why:** The internal non-SSL workaround previously weakened remote certificate
+verification. `require` is an encryption policy, not a guarantee of hostname
+verification; callers requesting verification must receive it.
 
-**Why:** Replit's `DATABASE_URL` contains `?sslmode=require` but the internal Postgres host (`helium`) does not actually use SSL.
-
-**How to apply:** See `app/database/session.py::_build_async_url()`.
+**How to apply:** Keep runtime connections, migrations, and startup schema checks
+consistent when adapting database URLs. Use dummy URLs to check this without
+reading credentials or contacting production.
 
 ---
 
@@ -39,10 +44,16 @@ When you use `sa.Enum("A","B", name="my_type")` inside `op.create_table(...)`, S
 
 ---
 
-## Rule 4: Replit Postgres (helium) has no SSL
+## Rule 4: Internal helium does not support SSL
 
-The internal Replit Postgres host resolves to `helium` (172.24.0.3:5432) and does not support SSL. Passing `sslmode=require` (or `connect_args={"sslmode": "require"}`) causes a hard connection failure.
+Only the exact internal `helium` host has a standing non-SSL exception.
 
-**Fix:** Strip `sslmode` from the connection string. For psycopg2 (Alembic), don't pass `sslmode` in `connect_args` at all — psycopg2 defaults to `prefer` which gracefully falls back to no-SSL.
+**Why:** The injected internal database URL may request SSL even though this
+service does not support it. That mismatch must not prevent development startup.
 
-**How to apply:** `alembic/env.py::_build_sync_url()` strips `sslmode` from the URL before creating the engine.
+**How to apply:** Restrict the exception to the effective internal host, including
+all repeated or comma-separated host overrides. A `hostaddr` may determine the
+actual destination while `host` is only a verification name, and service files
+can supply addresses not established as internal. Preserve SSL for these
+ambiguous cases. Never infer that a remote database is non-SSL because its URL
+otherwise resembles the internal URL.

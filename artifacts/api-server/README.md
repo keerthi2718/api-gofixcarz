@@ -57,6 +57,22 @@ cp .env.example .env
 | `OTP_EXPIRY_SECONDS` | OTP validity window | `300` |
 | `CORS_ORIGINS` | Allowed CORS origins (JSON array) | `["*"]` |
 
+### Database TLS policy
+
+The API, Alembic migrations, and production schema preflight preserve the
+`DATABASE_URL` SSL policy. `verify-full` verifies both the certificate chain and
+database hostname; `verify-ca` verifies the chain only. `require` requires
+encryption but does not guarantee server identity verification. Use
+`verify-full` and your provider's `sslrootcert` for verified remote connections.
+Certificate/key options are forwarded to the database drivers; an unusable
+certificate configuration fails rather than being downgraded.
+
+Explicit `disable`, `allow`, and `prefer` modes retain their driver semantics.
+When no mode is supplied, driver defaults apply. Only the exact internal
+`helium` host overrides the requested mode to disable TLS because that service
+does not support it. Localhost and remote hosts do not receive that exception.
+This URL conversion does not change any deployment environment settings.
+
 Generate a strong secret key:
 
 ```bash
