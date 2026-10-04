@@ -408,6 +408,24 @@ artifacts/api-server/
 
 ### Replit
 
+- Publishing installs Python dependencies in the API artifact's
+  `services.production.build`, using
+  `python artifacts/api-server/scripts/production_build.py` from the repository
+  root. There is no root `.replit` pre-build installer, so dependencies are
+  installed once by the artifact that owns them.
+- The build runs `python -m pip install` against this API's `requirements.txt`
+  using the same interpreter that launches the build script. A failed install
+  blocks publishing; the build does not connect to the database or run migrations.
+- Build logs report the exit code and fixed troubleshooting hints for version
+  conflicts, unavailable packages, TLS/network access, and native build failures.
+  Raw pip output is deliberately withheld and its temporary log is deleted:
+  private index URLs and package build scripts can expose credentials even on
+  successful installs. For an unknown failure, reproduce installation in a safe
+  local environment without production secrets and inspect the pip output there;
+  do not paste raw output into shared logs.
+- Run the isolated publishing regression checks from the repository root:
+  `python -m unittest discover -s artifacts/api-server/tests/unit -p test_production_build.py -v`.
+  These use mocked pip success/failure paths, not real installation or publishing.
 - `DATABASE_URL` and `SESSION_SECRET` (aliased from `SESSION_SECRET`) are injected as Replit secrets — no `.env` file needed.
 - Development migrations: `alembic upgrade head` against the development database.
 - Production startup: `python scripts/production_start.py` checks the delivery

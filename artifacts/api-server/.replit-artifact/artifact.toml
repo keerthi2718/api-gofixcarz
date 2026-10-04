@@ -15,7 +15,7 @@ run = "cd /home/runner/workspace/artifacts/api-server && uvicorn app.main:app --
 [services.production]
 
 [services.production.build]
-args = ["echo", "no-build-step"]
+args = ["python", "artifacts/api-server/scripts/production_build.py"]
 
 [services.production.run]
 args = ["sh", "-c", "cd /home/runner/workspace/artifacts/api-server && python scripts/production_start.py"]
