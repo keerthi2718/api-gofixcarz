@@ -41,7 +41,7 @@ def _require_delivery_token(request: Request, *, diagnostics: bool = False) -> N
 
 @router.post("/msg91/delivery-report", response_model=APIResponse)
 async def msg91_delivery_report(request: Request, session: DBSession):
-    """Authenticated Webhook (New), configured for flat JSON report fields."""
+    """Authenticated OTP/SMS On Report Received, configured for flat JSON."""
     _require_delivery_token(request)
     if request.headers.get("content-type", "").split(";")[0].strip().lower() != "application/json":
         raise HTTPException(415, "JSON delivery report required")

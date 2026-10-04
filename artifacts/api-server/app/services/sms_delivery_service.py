@@ -33,7 +33,11 @@ SAFE_REASONS = {
 
 
 def normalize_report(payload: object) -> dict:
-    """Only support the configured, flat Webhook (New) JSON contract."""
+    """Parse the flat JSON contract shared by SendOTP and SMS Webhook (New).
+
+    OTP reports document requestId and status 1/2. Retain the existing SMS
+    status allowlist for compatibility; never infer failure from no callback.
+    """
     if not isinstance(payload, dict):
         raise HTTPException(400, "Invalid delivery report")
     request_id = payload.get("requestId")

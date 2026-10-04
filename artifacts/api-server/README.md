@@ -393,7 +393,11 @@ artifacts/api-server/
 ### Replit
 
 - `DATABASE_URL` and `SESSION_SECRET` (aliased from `SESSION_SECRET`) are injected as Replit secrets — no `.env` file needed.
-- Run migrations before starting: `alembic upgrade head`.
+- Development migrations: `alembic upgrade head` against the development database.
+- Production startup: `python scripts/production_start.py` checks the delivery
+  schema before serving. Missing delivery migrations require explicit approval
+  (`APPLY_DELIVERY_MIGRATIONS=1`); older or unknown baselines require separate
+  review. See [delivery publishing safety](docs/msg91-delivery-tracking.md#production-publishing-safety).
 - The workflow command is: `uvicorn app.main:app --host 0.0.0.0 --port $PORT --reload`.
 
 ### Production checklist
@@ -401,6 +405,7 @@ artifacts/api-server/
 - [ ] Set `ENVIRONMENT=production` and `DEBUG=false`
 - [ ] Generate a strong `SESSION_SECRET` (32+ bytes)
 - [ ] Set `CORS_ORIGINS` to your specific frontend domain(s)
-- [ ] Run `alembic upgrade head` before deploying
+- [ ] Confirm production database target/backup and review required migrations;
+  use the guarded production startup command (see delivery publishing safety)
 - [ ] Configure a cron job or scheduled task to run `scripts/backup_db.sh` daily
 - [ ] Set `MSG91_AUTH_KEY` for real OTP SMS delivery

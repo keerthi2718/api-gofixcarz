@@ -126,6 +126,63 @@ async def test_callback_correlates_and_discards_personal_data(api):
     assert "ON CONFLICT" in str(compiled)
 
 
+@pytest.mark.parametrize("status,expected", [("1", "delivered"), ("2", "failed"), (1, "delivered"), (2, "failed")])
+async def test_sendotp_documented_report_correlates_by_request_id(api, status, expected):
+    """Synthetic OTP fields based on the official SendOTP webhook example."""
+    client, session = api
+    otp_id = "3567736c53515771356c4878"
+    response = await client.post(CALLBACK, json={
+        "requestId": otp_id, "status": status, "failureReason": "Absent Subscriber",
+        "CRQID": OTHER_ID, "flowID": "fake-template", "verified": "1",
+        "telNum": "910000000000", "userIp": "192.0.2.1",
+        "otpRetry": "2", "voiceRetryCount": "0",
+    }, headers={"X-MSG91-Webhook-Token": TOKEN})
+    assert response.status_code == 200
+    params = session.execute.call_args.args[0].compile(dialect=postgresql.dialect()).params
+    assert params["request_id"] == otp_id
+    assert params["status"] == expected
+    assert params["failure_category"] == ("operator_failure" if expected == "failed" else None)
+    for discarded in [OTHER_ID, "fake-template", "910000000000", "192.0.2.1", "Absent Subscriber"]:
+        assert discarded not in str(params)
+
+
+async def test_sendotp_submission_and_callback_use_the_same_id(api, monkeypatch):
+    from app.utils import msg91
+    otp_id = "3567736c53515771356c4878"
+    client_class = httpx.AsyncClient
+    monkeypatch.setattr(msg91.httpx, "AsyncClient", lambda **kwargs: client_class(
+        transport=httpx.MockTransport(lambda request: httpx.Response(
+            200, json={"type": "success", "request_id": otp_id},
+        )), **kwargs,
+    ))
+    accepted_id = await msg91.submit_otp_sms("910000000000", "123456")
+    client, session = api
+    await SMSDeliveryService(session).register_submission(accepted_id)
+    submission = session.execute.call_args.args[0].compile(dialect=postgresql.dialect()).params
+    session.execute.reset_mock()
+    response = await client.post(CALLBACK, json={
+        "requestId": accepted_id, "status": "1", "failureReason": "",
+    }, headers={"X-MSG91-Webhook-Token": TOKEN})
+    assert response.status_code == 200
+    report = session.execute.call_args.args[0].compile(dialect=postgresql.dialect()).params
+    assert submission["request_id"] == report["request_id"] == otp_id
+    assert submission["status"] == "pending"
+    assert report["status"] == "delivered"
+
+
+async def test_missing_report_stays_pending_regardless_of_age(api):
+    client, session = api
+    session.execute.return_value = Mock(scalar_one_or_none=Mock(return_value=SimpleNamespace(
+        request_id=ID, status="pending", failure_category=None,
+        accepted_at=datetime(2020, 1, 1, tzinfo=timezone.utc), reported_at=None,
+    )))
+    response = await client.get(DIAGNOSTIC, headers={"X-SMS-Diagnostics-Token": DIAG_TOKEN})
+    assert response.status_code == 200
+    assert response.json()["data"]["status"] == "pending"
+    assert response.json()["data"]["failure_category"] is None
+    assert response.json()["data"]["reported_at"] is None
+
+
 def test_only_exact_safe_reasons_survive():
     assert normalize_report({
         "requestId": ID, "status": "16",

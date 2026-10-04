@@ -2,7 +2,6 @@
 import os
 import sys
 from logging.config import fileConfig
-from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
 
 from alembic import context
 from sqlalchemy import create_engine, pool
@@ -12,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app.core.config import settings  # noqa: E402
 from app.database.base import Base  # noqa: E402
+from app.database.migration_url import build_sync_url  # noqa: E402
 
 # Import all models so they register on Base.metadata
 from app.models import (  # noqa: F401, E402
@@ -26,24 +26,8 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
-def _build_sync_url(db_url: str) -> str:
-    """Convert the DATABASE_URL to a psycopg2-compatible sync URL."""
-    # Strip asyncpg scheme if present
-    if "+asyncpg" in db_url:
-        db_url = db_url.replace("+asyncpg", "")
-    # postgres:// → postgresql://
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    # Strip sslmode from URL query (psycopg2 accepts it via connect_args instead)
-    parsed = urlparse(db_url)
-    params = parse_qs(parsed.query)
-    params.pop("sslmode", None)
-    new_query = urlencode({k: v[0] for k, v in params.items()})
-    return urlunparse(parsed._replace(query=new_query))
-
-
-_sync_url = _build_sync_url(settings.DATABASE_URL)
-config.set_main_option("sqlalchemy.url", _sync_url)
+_sync_url = build_sync_url(settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", _sync_url.replace("%", "%%"))
 
 
 def run_migrations_offline() -> None:
@@ -60,6 +44,16 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    supplied_connection = config.attributes.get("connection")
+    if supplied_connection is not None:
+        context.configure(
+            connection=supplied_connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+        )
+        with context.begin_transaction():
+            context.run_migrations()
+        return
     engine = create_engine(
         _sync_url,
         poolclass=pool.NullPool,
