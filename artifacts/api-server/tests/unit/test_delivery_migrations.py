@@ -22,6 +22,23 @@ def gateway(monkeypatch):
     monkeypatch.setattr(migrations.MigrationContext, "configure", Mock(return_value=context))
     upgrade = Mock()
     monkeypatch.setattr(migrations.command, "upgrade", upgrade)
+    inspector = Mock()
+    inspector.has_table.return_value = True
+    inspector.get_columns.return_value = [
+        {"name": name, "type": migrations.String(length), "nullable": nullable}
+        for name, length, nullable in (
+            ("request_id", 128, False), ("status", 16, False),
+            ("failure_category", 32, True),
+        )
+    ] + [
+        {"name": name, "type": migrations.DateTime(timezone=True), "nullable": nullable}
+        for name, nullable in (
+            ("accepted_at", True), ("reported_at", True), ("created_at", False),
+        )
+    ]
+    inspector.get_pk_constraint.return_value = {"constrained_columns": ["request_id"]}
+    inspector.get_indexes.return_value = [{"name": "ix_sms_deliveries_retention_started_at"}]
+    monkeypatch.setattr(migrations, "inspect", Mock(return_value=inspector))
     return engine, connection, context, upgrade
 
 
@@ -55,11 +72,48 @@ def test_production_preflight_preserves_ssl_policy(gateway, mode):
 def test_pending_migrations_require_approval(gateway, baseline):
     engine, connection, context, upgrade = gateway
     context.get_current_heads.return_value = (baseline,)
-    with pytest.raises(RuntimeError, match="obtain approval"):
+    migrations.inspect.return_value.has_table.return_value = False
+    with pytest.raises(RuntimeError, match="review publishing schema changes"):
         migrations.ensure_delivery_schema("postgresql://test@localhost/test")
     connection.execute.assert_not_called()
     upgrade.assert_not_called()
     engine.dispose.assert_called_once()
+
+
+@pytest.mark.parametrize("heads", [
+    (), ("0002_add_refresh_tokens",), (migrations.BASELINE,), (migrations.DELIVERY_HEAD,),
+])
+def test_publish_synced_schema_does_not_require_alembic_revision(gateway, heads):
+    engine, connection, context, upgrade = gateway
+    context.get_current_heads.return_value = heads
+    migrations.ensure_delivery_schema("postgresql://test@localhost/test")
+    context.get_current_heads.assert_not_called()
+    connection.execute.assert_not_called()
+    upgrade.assert_not_called()
+    engine.dispose.assert_called_once()
+
+
+@pytest.mark.parametrize("damage", ["column", "type", "timezone", "nullable", "pk", "index"])
+def test_read_only_guard_rejects_incompatible_schema(gateway, damage):
+    _, connection, _, upgrade = gateway
+    inspector = migrations.inspect.return_value
+    columns = inspector.get_columns.return_value
+    if damage == "column":
+        columns.pop()
+    elif damage == "type":
+        columns[0]["type"] = migrations.String(8)
+    elif damage == "timezone":
+        columns[-1]["type"] = migrations.DateTime(timezone=False)
+    elif damage == "nullable":
+        columns[0]["nullable"] = True
+    elif damage == "pk":
+        inspector.get_pk_constraint.return_value = {"constrained_columns": []}
+    elif damage == "index":
+        inspector.get_indexes.return_value = []
+    with pytest.raises(RuntimeError):
+        migrations.ensure_delivery_schema("postgresql://test@localhost/test")
+    connection.execute.assert_not_called()
+    upgrade.assert_not_called()
 
 
 @pytest.mark.parametrize("baseline", [migrations.BASELINE, migrations.DELIVERY_TABLE])

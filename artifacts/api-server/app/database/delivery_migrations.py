@@ -5,7 +5,7 @@ from alembic import command
 from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
-from sqlalchemy import create_engine, pool, text
+from sqlalchemy import DateTime, String, create_engine, inspect, pool, text
 
 from app.database.migration_url import build_sync_url
 
@@ -17,16 +17,55 @@ DELIVERY_HEAD = "0009_sms_delivery_retention"
 MIGRATION_LOCK = 70991009
 
 
+def check_delivery_schema(connection) -> None:
+    """Inspect actual schema without DDL or changing Alembic's revision record.
+
+    Managed publishing syncs schema, not the contents of alembic_version.
+    A stale revision alone must not block a structurally ready database.
+    """
+    inspector = inspect(connection)
+    if not inspector.has_table("sms_deliveries"):
+        raise RuntimeError("Delivery schema is missing; review publishing schema changes")
+    columns = {column["name"]: column for column in inspector.get_columns("sms_deliveries")}
+    for name, length, nullable in (
+        ("request_id", 128, False), ("status", 16, False),
+        ("failure_category", 32, True),
+    ):
+        column = columns.get(name)
+        if (
+            column is None or not isinstance(column["type"], String)
+            or column["type"].length != length or column["nullable"] != nullable
+        ):
+            raise RuntimeError("Delivery schema is incompatible; review publishing schema changes")
+    for name, nullable in (
+        ("accepted_at", True), ("reported_at", True), ("created_at", False),
+    ):
+        column = columns.get(name)
+        if (
+            column is None or not isinstance(column["type"], DateTime)
+            or not column["type"].timezone or column["nullable"] != nullable
+        ):
+            raise RuntimeError("Delivery schema is incompatible; review publishing schema changes")
+    if inspector.get_pk_constraint("sms_deliveries").get("constrained_columns") != ["request_id"]:
+        raise RuntimeError("Delivery schema primary key is incompatible")
+    indexes = inspector.get_indexes("sms_deliveries")
+    if not any(index["name"] == "ix_sms_deliveries_retention_started_at" for index in indexes):
+        raise RuntimeError("Delivery retention index is missing; review publishing schema changes")
+
+
 def ensure_delivery_schema(database_url: str, *, allow_upgrade: bool = False) -> None:
     root = Path(__file__).resolve().parents[2]
     config = Config(str(root / "alembic.ini"))
     config.set_main_option("script_location", str(root / "alembic"))
     # Deliberately bounded: don't silently authorize future/unrelated migrations.
-    if ScriptDirectory.from_config(config).get_heads() != [DELIVERY_HEAD]:
+    if allow_upgrade and ScriptDirectory.from_config(config).get_heads() != [DELIVERY_HEAD]:
         raise RuntimeError("Migration head changed; review the production preflight")
     engine = create_engine(build_sync_url(database_url), poolclass=pool.NullPool)
     try:
         with engine.begin() as connection:
+            if not allow_upgrade:
+                check_delivery_schema(connection)
+                return
             if allow_upgrade:
                 connection.execute(text("SELECT pg_advisory_xact_lock(:key)"), {
                     "key": MIGRATION_LOCK,

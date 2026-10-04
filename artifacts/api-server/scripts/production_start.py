@@ -19,8 +19,8 @@ def main() -> int:
     except Exception:
         # No exception text: drivers can embed credentials/URLs in errors.
         print(
-            "Production schema check failed. Review delivery migration approval, "
-            "database connectivity and baseline; API was not started. "
+            "Production schema check failed. Review publishing schema changes "
+            "and database connectivity; API was not started. "
             "See docs/msg91-delivery-tracking.md.",
             file=sys.stderr,
         )

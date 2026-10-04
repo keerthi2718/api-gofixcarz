@@ -68,12 +68,16 @@ as described below.
 
 The API artifact's production run command invokes
 `python scripts/production_start.py` before Uvicorn. The script checks the
-database revision and **refuses to serve** if delivery migrations are missing.
+actual delivery table structure and **refuses to serve** if it is missing or incompatible.
 Build does not migrate a database. The development workflow remains unchanged.
 
-- Default: read-only revision check; no schema changes. A database already at
-  `0009_sms_delivery_retention` starts normally.
-- Only after approval to migrate the intended production database, set
+- Default: read-only schema inspection; no schema or revision changes. It checks
+  delivery columns, types, nullability, primary key, and retention index.
+  Managed publishing can sync the schema without changing `alembic_version`;
+  a stale revision does not block a database with the required structure.
+- For Replit-managed production databases, use Publish's schema flow. Do not
+  enable startup migrations or stamp a revision to work around this difference.
+- For an externally managed database only, after approval to migrate the intended database, set
   `APPLY_DELIVERY_MIGRATIONS=1` in the production environment for publishing.
   This explicitly authorizes just the delivery upgrades from revision 0007 or
   0008 to 0009. Confirm the database target and obtain a backup first.
@@ -81,8 +85,9 @@ Build does not migrate a database. The development workflow remains unchanged.
   a PostgreSQL advisory lock to serialize concurrently starting instances.
   Failure rolls back and prevents Uvicorn from starting. Subsequent starts at
   0009 are no-ops; remove the opt-in flag after successful publishing.
-- Empty, older, branched, or unknown database revisions fail closed, even with
-  approval set. A changed code migration head also requires review; this flag
+- In the explicit external-upgrade path, empty, older, branched, or unknown
+  database revisions fail closed, even with approval set.
+  A changed code migration head also requires review; this flag
   never authorizes unrelated or future migrations. Do not use `alembic stamp`
   to bypass missing schema.
 - If using a manually configured publishing command instead of the artifact,
