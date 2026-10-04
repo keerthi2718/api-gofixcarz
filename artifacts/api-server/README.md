@@ -181,6 +181,9 @@ The script is **idempotent** — re-running it skips records that already exist.
 # Unit tests only (fast, no DB)
 pytest tests/unit/ -v
 
+# Isolated database TLS handshakes (disposable local PostgreSQL, no live DB)
+python -m pytest tests/tls/ -v
+
 # Integration tests (requires running server + DB)
 pytest tests/integration/ -v
 
@@ -198,6 +201,25 @@ Unit tests cover:
 - Analytics date bucketing logic (`tests/unit/test_analytics.py`)
 
 Integration tests cover the full auth flow and job/customer/vehicle CRUD against the live database.
+
+The separate `tests/tls/` suite exercises real psycopg2 and asyncpg connections
+through the runtime/migration URL helpers and SQLAlchemy adapters. It covers
+trusted certificates with a matching hostname, untrusted CAs, expired leaves,
+hostname mismatch under `verify-full` versus `verify-ca`, and `require` refusing
+a non-TLS server. Successful connections also query PostgreSQL to confirm whether
+TLS is active; plaintext and valid-TLS controls rule out unrelated connection
+failures.
+
+Run it as a non-root user with `initdb`, `pg_ctl`, and `postgres` on `PATH`
+(the PostgreSQL system package already configured in Replit), plus the Python
+requirements. Certificate generation uses `cryptography`, included by the
+existing `python-jose[cryptography]` dependency. Missing prerequisites fail
+explicitly rather than silently skipping release checks. Each run creates fresh
+certificates and a temporary cluster bound only to `127.0.0.1` on an ephemeral
+port, clears inherited PostgreSQL connection settings, uses an empty temporary
+home, and removes the cluster and private keys after stopping the server.
+No application settings, `.env`, production endpoints, real credentials,
+Docker, virtual environments, or deployment changes are involved.
 
 ---
 
