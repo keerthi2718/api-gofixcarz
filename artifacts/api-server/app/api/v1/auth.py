@@ -1,6 +1,8 @@
 from typing import Annotated, Optional
+import hmac
+import json
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -18,9 +20,51 @@ from app.schemas.auth import (
 )
 from app.schemas.response import APIResponse
 from app.services.auth_service import AuthService
+from app.core.config import settings
+from app.services.sms_delivery_service import SMSDeliveryService, normalize_report
 
 router = APIRouter()
 DBSession = Annotated[AsyncSession, Depends(get_session)]
+
+
+def _require_delivery_token(request: Request, *, diagnostics: bool = False) -> None:
+    configured = (
+        settings.MSG91_DIAGNOSTICS_TOKEN if diagnostics else settings.MSG91_WEBHOOK_TOKEN
+    ).get_secret_value()
+    header = "X-SMS-Diagnostics-Token" if diagnostics else "X-MSG91-Webhook-Token"
+    if len(configured) < 32:
+        raise HTTPException(503, "Delivery tracking authentication is not configured")
+    supplied = request.headers.get(header, "")
+    if not hmac.compare_digest(supplied.encode(), configured.encode()):
+        raise HTTPException(401, "Invalid delivery tracking authentication")
+
+
+@router.post("/msg91/delivery-report", response_model=APIResponse)
+async def msg91_delivery_report(request: Request, session: DBSession):
+    """Authenticated Webhook (New), configured for flat JSON report fields."""
+    _require_delivery_token(request)
+    if request.headers.get("content-type", "").split(";")[0].strip().lower() != "application/json":
+        raise HTTPException(415, "JSON delivery report required")
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > 8192:
+            raise HTTPException(413, "Delivery report too large")
+    try:
+        payload = json.loads(body)
+    except (ValueError, UnicodeError):
+        raise HTTPException(400, "Invalid delivery report") from None
+    report = normalize_report(payload)
+    await SMSDeliveryService(session).record_report(report)
+    return APIResponse.ok(data={"received": True}, message="Delivery report received")
+
+
+@router.get("/msg91/delivery-status/{request_id}", response_model=APIResponse)
+async def msg91_delivery_status(request_id: str, request: Request, session: DBSession):
+    """Operations-only status; never expose phone, user, OTP or raw provider text."""
+    _require_delivery_token(request, diagnostics=True)
+    result = await SMSDeliveryService(session).diagnostic(request_id)
+    return APIResponse.ok(data=result, message="SMS delivery status")
 
 
 def _mobile_key(request: Request) -> str:

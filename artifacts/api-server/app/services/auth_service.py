@@ -25,7 +25,8 @@ from app.schemas.auth import (
     VerifyOTPRequest,
 )
 from app.schemas.garage import GarageCreate
-from app.utils.msg91 import send_otp_sms
+from app.utils.msg91 import submit_otp_sms
+from app.services.sms_delivery_service import SMSDeliveryService
 
 
 class AuthService:
@@ -34,6 +35,12 @@ class AuthService:
         self.user_repo = UserRepository(session)
         self.garage_repo = GarageRepository(session)
         self.refresh_token_repo = RefreshTokenRepository(session)
+
+    async def _submit_otp(self, mobile: str, otp: str) -> str | None:
+        request_id = await submit_otp_sms(mobile, otp)
+        if request_id:
+            await SMSDeliveryService(self.session).register_submission(request_id)
+        return request_id
 
     # ──────────────────────────────────────────────────────
     # Sign-up
@@ -92,7 +99,8 @@ class AuthService:
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
         full_mobile = f"{data.country_code}{data.mobile}"
-        if not await send_otp_sms(full_mobile, otp):
+        request_id = await self._submit_otp(full_mobile, otp)
+        if not request_id:
             raise AppException(
                 "Account created, but the SMS provider could not accept the OTP request. "
                 "Please sign in or resend the OTP later.",
@@ -100,7 +108,9 @@ class AuthService:
             )
 
         return {
-            "message": "Account created. OTP sent to your mobile number.",
+            "message": "Account created. OTP accepted by SMS provider; delivery pending.",
+            "sms_request_id": request_id,
+            "sms_delivery_status": "pending",
             "mobile": data.mobile,
             "country_code": data.country_code,
         }
@@ -124,14 +134,17 @@ class AuthService:
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        if not await send_otp_sms(full_mobile, otp):
+        request_id = await self._submit_otp(full_mobile, otp)
+        if not request_id:
             raise AppException(
                 "The SMS provider could not accept the OTP request. Please try again later.",
                 status_code=503,
             )
 
         return {
-            "message": "OTP sent to your registered mobile number.",
+            "message": "OTP accepted by SMS provider; delivery pending.",
+            "sms_request_id": request_id,
+            "sms_delivery_status": "pending",
             "mobile": user.mobile,
             "country_code": user.country_code,
         }
@@ -148,13 +161,16 @@ class AuthService:
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        if not await send_otp_sms(full_mobile, otp):
+        request_id = await self._submit_otp(full_mobile, otp)
+        if not request_id:
             raise AppException(
                 "The SMS provider could not accept the OTP request. Please try again later.",
                 status_code=503,
             )
         return {
-            "message": "OTP sent successfully.",
+            "message": "OTP accepted by SMS provider; delivery pending.",
+            "sms_request_id": request_id,
+            "sms_delivery_status": "pending",
             "mobile": user.mobile,
             "country_code": user.country_code,
         }

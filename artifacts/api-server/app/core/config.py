@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     MSG91_SENDER: str = "MYSKWT"
     MSG91_ROUTE: str = "4"
     MSG91_COUNTRY: str = "91"
+    MSG91_WEBHOOK_TOKEN: SecretStr = SecretStr("")
+    MSG91_DIAGNOSTICS_TOKEN: SecretStr = SecretStr("")
 
     # Database connection pool
     DB_POOL_SIZE: int = 10

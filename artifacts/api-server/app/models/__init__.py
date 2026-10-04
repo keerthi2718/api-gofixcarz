@@ -9,6 +9,7 @@ from app.models.job_timeline import JobTimeline
 from app.models.service_package import ServicePackage
 from app.models.notification import Notification
 from app.models.refresh_token import RefreshToken
+from app.models.sms_delivery import SMSDelivery
 
 __all__ = [
     "User",
@@ -21,4 +22,5 @@ __all__ = [
     "ServicePackage",
     "Notification",
     "RefreshToken",
+    "SMSDelivery",
 ]

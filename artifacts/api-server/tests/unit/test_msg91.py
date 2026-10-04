@@ -30,6 +30,9 @@ def mock_gateway(monkeypatch, handler):
 async def test_accepted_request(monkeypatch, body):
     def handler(request):
         assert request.url.params["response"] == "json"
+        assert request.url.params["sender"] == "MYSKWT"
+        assert request.url.params["DLT_TE_ID"] == "1307175464483723626"
+        assert request.url.params["route"] == "4"
         assert request.url.params["message"] == (
             "Your Skill Wallet platform account activation OTP is 123456"
         )
@@ -38,6 +41,20 @@ async def test_accepted_request(monkeypatch, body):
         return httpx.Response(200, text=body)
     mock_gateway(monkeypatch, handler)
     assert await msg91.send_otp_sms("910000000000", "123456") is True
+    assert await msg91.submit_otp_sms("910000000000", "123456") == REQUEST_ID
+
+
+async def test_httpx_url_logging_is_suppressed(monkeypatch, caplog):
+    import logging
+    mock_gateway(monkeypatch, lambda request: httpx.Response(
+        200, json={"type": "success", "message": REQUEST_ID},
+    ))
+    # Do not override the HTTPX logger level: assert the sender's safe default.
+    caplog.set_level(logging.INFO)
+    assert await msg91.submit_otp_sms("910000000000", "123456") == REQUEST_ID
+    assert "authkey=" not in caplog.text
+    assert "123456" not in caplog.text
+    assert "910000000000" not in caplog.text
 
 
 @pytest.mark.parametrize("body", [
@@ -87,16 +104,24 @@ async def test_auth_respects_sms_result(monkeypatch, method, schema, accepted):
     service.user_repo.get_by_mobile.return_value = SimpleNamespace(
         mobile="0000000000", country_code="91", is_active=True,
     )
-    sms = AsyncMock(return_value=accepted)
-    monkeypatch.setattr("app.services.auth_service.send_otp_sms", sms)
+    sms = AsyncMock(return_value=REQUEST_ID if accepted else None)
+    monkeypatch.setattr("app.services.auth_service.submit_otp_sms", sms)
+    register = AsyncMock()
+    monkeypatch.setattr(
+        "app.services.auth_service.SMSDeliveryService.register_submission", register,
+    )
     if accepted:
         result = await getattr(service, method)(schema(mobile="0000000000"))
-        assert "OTP sent" in result["message"]
+        assert "delivery pending" in result["message"]
+        assert result["sms_request_id"] == REQUEST_ID
+        assert result["sms_delivery_status"] == "pending"
+        register.assert_awaited_once_with(REQUEST_ID)
     else:
         with pytest.raises(AppException) as error:
             await getattr(service, method)(schema(mobile="0000000000"))
         assert error.value.status_code == 503
         assert "could not accept" in error.value.message
+        register.assert_not_awaited()
     sms.assert_awaited_once()
 
 
@@ -108,7 +133,7 @@ async def test_signup_failure_explains_account_already_created(monkeypatch):
     service.user_repo.get_by_email.return_value = None
     service.user_repo.create.return_value = SimpleNamespace(id="test-user")
     monkeypatch.setattr(
-        "app.services.auth_service.send_otp_sms", AsyncMock(return_value=False),
+        "app.services.auth_service.submit_otp_sms", AsyncMock(return_value=None),
     )
     with pytest.raises(AppException) as error:
         await service.sign_up(SignUpRequest(
@@ -118,3 +143,26 @@ async def test_signup_failure_explains_account_already_created(monkeypatch):
     assert error.value.status_code == 503
     assert "Account created" in error.value.message
     service.garage_repo.create.assert_awaited_once()
+
+
+async def test_signup_correlates_accepted_submission(monkeypatch):
+    service = AuthService(AsyncMock())
+    service.user_repo = AsyncMock()
+    service.garage_repo = AsyncMock()
+    service.user_repo.get_by_mobile.return_value = None
+    service.user_repo.get_by_email.return_value = None
+    service.user_repo.create.return_value = SimpleNamespace(id="test-user")
+    monkeypatch.setattr(
+        "app.services.auth_service.submit_otp_sms", AsyncMock(return_value=REQUEST_ID),
+    )
+    register = AsyncMock()
+    monkeypatch.setattr(
+        "app.services.auth_service.SMSDeliveryService.register_submission", register,
+    )
+    result = await service.sign_up(SignUpRequest(
+        first_name="Test", workshop_name="Test Garage",
+        email="test@example.com", mobile="0000000000", terms_accepted=True,
+    ))
+    assert result["sms_request_id"] == REQUEST_ID
+    assert result["sms_delivery_status"] == "pending"
+    register.assert_awaited_once_with(REQUEST_ID)
