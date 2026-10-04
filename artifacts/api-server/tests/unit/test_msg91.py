@@ -24,18 +24,23 @@ def mock_gateway(monkeypatch, handler):
 
 
 @pytest.mark.parametrize("body", [
-    {"type": "success", "message": REQUEST_ID},
-    REQUEST_ID,
+    {"type": "success", "request_id": REQUEST_ID},
 ])
 async def test_accepted_request(monkeypatch, body):
     def handler(request):
-        assert request.url.params["response"] == "json"
-        assert request.url.params["sender"] == "MYSKWT"
-        assert request.url.params["DLT_TE_ID"] == "1307175464483723626"
-        assert request.url.params["route"] == "4"
-        assert request.url.params["message"] == (
-            "Your Skill Wallet platform account activation OTP is 123456"
-        )
+        assert request.method == "POST"
+        assert str(request.url).startswith("https://control.msg91.com/api/v5/otp?")
+        assert request.url.params["template_id"] == "6aabb705139475b847069b62"
+        assert request.url.params["mobile"] == "910000000000"
+        assert request.url.params["otp"] == "123456"
+        assert request.url.params["otp_length"] == "6"
+        assert request.url.params["otp_expiry"] == "5"
+        assert "authkey" in request.headers
+        assert "authkey" not in request.url.params
+        assert "DLT_TE_ID" not in request.url.params
+        assert "message" not in request.url.params
+        assert "sender" not in request.url.params
+        assert request.content == b"{}"
         if isinstance(body, dict):
             return httpx.Response(200, json=body)
         return httpx.Response(200, text=body)
@@ -47,7 +52,7 @@ async def test_accepted_request(monkeypatch, body):
 async def test_httpx_url_logging_is_suppressed(monkeypatch, caplog):
     import logging
     mock_gateway(monkeypatch, lambda request: httpx.Response(
-        200, json={"type": "success", "message": REQUEST_ID},
+        200, json={"type": "success", "request_id": REQUEST_ID},
     ))
     # Do not override the HTTPX logger level: assert the sender's safe default.
     caplog.set_level(logging.INFO)
@@ -60,9 +65,13 @@ async def test_httpx_url_logging_is_suppressed(monkeypatch, caplog):
 @pytest.mark.parametrize("body", [
     {"type": "error", "message": "Invalid auth key", "code": "101"},
     {"type": "success", "message": ""},
+    {"type": "success", "message": REQUEST_ID},
+    {"type": "success", "request_id": ""},
+    {"type": "error", "request_id": REQUEST_ID},
     {"message": REQUEST_ID},
     ["success"],
     "101",
+    REQUEST_ID,
     "<html>upstream error</html>",
 ])
 async def test_http_200_is_not_enough(monkeypatch, body):

@@ -1,11 +1,21 @@
 # MSG91 OTP delivery diagnostics
 
-The sender, route, DLT ID and message text are unchanged. Submission acceptance
-is **not** handset delivery. Auth responses now include `sms_request_id` and
+OTP submission uses MSG91's v5 OTP API with the user's GoFixAuto template:
+`6aabb705139475b847069b62`. Its approved message is
+`Your GoFixAuto platform account activation OTP is ##OTP##`.
+MSG91 applies the template's configured sender; the backend does not override
+it with a legacy SMS sender or numeric DLT ID. The backend passes its generated
+OTP and expiry to MSG91 so local verification remains unchanged.
+Submission acceptance is **not** handset delivery. Auth responses include `sms_request_id` and
 `sms_delivery_status: "pending"` alongside the existing mobile/country fields.
 This initial status means submission accepted, not a fresh delivery report.
 
 ## Setup (no live SMS required)
+
+The following callback setup was designed for MSG91's SMS product. Verify that
+the account forwards OTP-product delivery reports with the documented fields
+before relying on it for v5 OTP requests. Until this is confirmed, use MSG91's
+OTP logs for delivery troubleshooting; missing callbacks are not proof of failure.
 
 1. Apply `alembic upgrade head` from `artifacts/api-server` to the intended
    database. Do not point development migrations at production unintentionally.
@@ -89,7 +99,8 @@ For older incidents, use MSG91's private console according to its own retention
 policy. Cleanup affects delivery diagnostics only, not OTP verification or users.
 
 Never log raw callback bodies, headers, provider error text or send URLs.
-The legacy sender uses GET parameters; HTTPX INFO URL logging is suppressed.
+The OTP sender uses POST with recipient/OTP query parameters and the API key
+in a header; HTTPX INFO URL logging is suppressed.
 Avoid enabling HTTP wire/debug logging or forwarding tokens into proxy logs.
 Callbacks have an 8 KiB body limit and validate IDs and documented numeric
 statuses with generic, non-echoing errors. DB failures are not acknowledged as

@@ -3,11 +3,11 @@ name: OTP template safety
 description: Constraints for diagnosing and changing MSG91 OTP messages.
 ---
 
-Do not replace the legacy SMS branding just because it differs from the app name without first confirming the approved DLT template.
+Do not change SMS branding speculatively; use the exact provider-approved template supplied by the user.
 
 **Why:** The user confirmed OTPs previously worked with the existing setup. Indian SMS template matching can reject modified message text, so a branding change is not a safe speculative fix.
 
-**How to apply:** Check the provider's delivery report and approved sender/template before changing SMS content. MSG91 request IDs confirm submission acceptance only, not handset delivery; describe these outcomes separately.
+**How to apply:** The user supplied an MSG91-approved GoFixAuto OTP template to replace the legacy Skill Wallet message. MSG91 OTP template IDs and numeric DLT template IDs are different identifiers and cannot be substituted into the same API parameter. Use the appropriate API for the template, with the application's generated OTP, to preserve local verification. MSG91 request IDs confirm submission acceptance only, not handset delivery; describe these outcomes separately.
 
 MSG91's Webhook (New) delivery-report documentation says pending messages do
 not trigger callbacks; only final operator reports do. Missing callbacks must
