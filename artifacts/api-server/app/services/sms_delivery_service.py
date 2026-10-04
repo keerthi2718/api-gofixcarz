@@ -1,9 +1,9 @@
 """MSG91 report normalization and atomic, replay-safe correlation."""
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import and_, select
+from sqlalchemy import and_, delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +11,8 @@ from app.models.sms_delivery import SMSDelivery
 
 
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9_-]{16,128}")
+# Operations troubleshooting window, independent of status/report retries.
+SMS_DELIVERY_RETENTION = timedelta(days=30)
 STATUS_MAP = {
     "0": ("pending", None),
     "1": ("delivered", None),
@@ -57,6 +59,16 @@ def normalize_report(payload: object) -> dict:
 class SMSDeliveryService:
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    async def delete_expired(self, *, now: datetime | None = None) -> int:
+        """Delete old accepted and callback-only rows; caller owns commit."""
+        cutoff = (now or datetime.now(timezone.utc)) - SMS_DELIVERY_RETENTION
+        result = await self.session.execute(
+            delete(SMSDelivery).where(
+                func.coalesce(SMSDelivery.accepted_at, SMSDelivery.created_at) < cutoff
+            )
+        )
+        return result.rowcount
 
     async def register_submission(self, request_id: str) -> None:
         # Preserve any report which raced ahead of this transaction.

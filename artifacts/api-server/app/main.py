@@ -62,6 +62,18 @@ async def _delete_expired_refresh_tokens() -> None:
         logger.exception("Expired refresh token cleanup failed")
 
 
+async def _delete_expired_sms_deliveries() -> None:
+    """Purge delivery diagnostics outside the operations retention window."""
+    try:
+        async with async_session() as session:
+            from app.services.sms_delivery_service import SMSDeliveryService  # noqa: PLC0415
+            deleted = await SMSDeliveryService(session).delete_expired()
+            await session.commit()
+        logger.info(f"SMS delivery cleanup: {deleted} row(s) deleted")
+    except Exception:
+        logger.exception("SMS delivery cleanup failed")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
@@ -77,9 +89,19 @@ async def lifespan(app: FastAPI):
         max_instances=1,
         misfire_grace_time=3600,
     )
+    scheduler.add_job(
+        _delete_expired_sms_deliveries,
+        trigger="interval",
+        hours=24,
+        id="delete_expired_sms_deliveries",
+        replace_existing=True,
+        max_instances=1,
+        misfire_grace_time=3600,
+    )
     scheduler.start()
     # Kick off an immediate first run so stale rows are cleared on restart too
     await _delete_expired_refresh_tokens()
+    await _delete_expired_sms_deliveries()
 
     yield
 

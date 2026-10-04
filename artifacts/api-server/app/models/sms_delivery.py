@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, String, func
+from sqlalchemy import CheckConstraint, DateTime, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database.base import Base
@@ -10,10 +10,6 @@ class SMSDelivery(Base):
     """Provider correlation only: no phone, OTP, user ID, or raw payload."""
 
     __tablename__ = "sms_deliveries"
-    __table_args__ = (
-        CheckConstraint("status IN ('pending', 'delivered', 'failed')"),
-    )
-
     request_id: Mapped[str] = mapped_column(String(128), primary_key=True)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
     failure_category: Mapped[str | None] = mapped_column(String(32))
@@ -22,4 +18,14 @@ class SMSDelivery(Base):
     reported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    # Reports must not extend retention; acceptance starts a fresh window for
+    # callbacks that arrived before the submission transaction committed.
+    __table_args__ = (
+        CheckConstraint("status IN ('pending', 'delivered', 'failed')"),
+        Index(
+            "ix_sms_deliveries_retention_started_at",
+            func.coalesce(accepted_at, created_at),
+        ),
     )

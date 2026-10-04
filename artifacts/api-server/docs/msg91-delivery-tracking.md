@@ -58,7 +58,35 @@ commit; diagnostics hide them until a matching submission is registered.
 Atomic PostgreSQL upserts make duplicate callbacks no-ops. Delivered takes
 precedence over failed, and pending cannot overwrite either terminal status.
 Timestamps record local acceptance/report receipt, not untrusted provider times.
-Records currently have no automatic retention policy.
+
+## Retention and cleanup
+
+The operations troubleshooting window is **30 days** for every status, including
+pending. This deliberately leaves ample time for delayed final reports without
+retaining diagnostics indefinitely; it is an application policy, not a claim
+about MSG91's maximum delivery-report delay.
+
+- Accepted submissions expire 30 days after local `accepted_at`.
+- Callback-only rows expire 30 days after local `created_at`, including IDs that
+  never match an accepted submission. A later matching acceptance starts its own
+  full 30-day window and preserves any early report.
+- Only timestamps strictly older than the cutoff are deleted. Reports and
+  duplicate retries never extend retention, even when a status advances.
+- Cleanup runs at API startup and every 24 hours using the existing scheduler.
+  While the API is running successfully, deletion can lag expiry by up to one
+  interval (about 31 days total). Downtime or cleanup failure postpones deletion;
+  startup catches up. Each run commits atomically and logs the deleted count;
+  failures are logged and the next scheduled run retries.
+- Apply `alembic upgrade head` before starting the updated API. The migration
+  adds an index on `coalesce(accepted_at, created_at)` for the cleanup predicate.
+  It does not delete rows itself. The first cleanup may remove historical rows.
+
+Expired accepted IDs return 404 from diagnostics after cleanup, not an inferred
+delivery failure. A callback arriving after its accepted row was deleted becomes
+a new callback-only row, hidden from diagnostics and subject to the same bounded
+retention. It cannot restore the old acceptance or its troubleshooting history.
+For older incidents, use MSG91's private console according to its own retention
+policy. Cleanup affects delivery diagnostics only, not OTP verification or users.
 
 Never log raw callback bodies, headers, provider error text or send URLs.
 The legacy sender uses GET parameters; HTTPX INFO URL logging is suppressed.
@@ -69,7 +97,7 @@ successful updates, allowing reports to be retried.
 
 ## Verification and remaining external checks
 
-Run `pytest tests/unit/test_msg91.py tests/unit/test_sms_delivery.py`.
+Run `pytest tests/unit/test_msg91.py tests/unit/test_sms_delivery.py tests/unit/test_sms_delivery_retention.py`.
 Submission and HTTP callback tests are mocked; the correlation test uses an
 isolated temporary PostgreSQL table. None sends SMS. Do not run the existing
 live integration sign-up fixtures to check delivery: they can send real SMS.
