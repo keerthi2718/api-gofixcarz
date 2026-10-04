@@ -4,7 +4,7 @@ from typing import Optional
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import BadRequestException, ConflictException, UnauthorizedException
+from app.core.exceptions import AppException, BadRequestException, ConflictException, UnauthorizedException
 from app.core.security import (
     create_access_token,
     generate_otp,
@@ -92,7 +92,12 @@ class AuthService:
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
         full_mobile = f"{data.country_code}{data.mobile}"
-        await send_otp_sms(full_mobile, otp)
+        if not await send_otp_sms(full_mobile, otp):
+            raise AppException(
+                "Account created, but the SMS provider could not accept the OTP request. "
+                "Please sign in or resend the OTP later.",
+                status_code=503,
+            )
 
         return {
             "message": "Account created. OTP sent to your mobile number.",
@@ -119,7 +124,11 @@ class AuthService:
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        await send_otp_sms(full_mobile, otp)
+        if not await send_otp_sms(full_mobile, otp):
+            raise AppException(
+                "The SMS provider could not accept the OTP request. Please try again later.",
+                status_code=503,
+            )
 
         return {
             "message": "OTP sent to your registered mobile number.",
@@ -139,7 +148,11 @@ class AuthService:
         otp = generate_otp()
         expires_at = get_otp_expiry()
         await self.user_repo.set_otp(user, otp, expires_at)
-        await send_otp_sms(full_mobile, otp)
+        if not await send_otp_sms(full_mobile, otp):
+            raise AppException(
+                "The SMS provider could not accept the OTP request. Please try again later.",
+                status_code=503,
+            )
         return {
             "message": "OTP sent successfully.",
             "mobile": user.mobile,

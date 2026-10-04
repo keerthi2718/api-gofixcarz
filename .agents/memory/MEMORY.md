@@ -1,1 +1,2 @@
 - [Garage API — asyncpg & Alembic quirks](garage-api-db-quirks.md) — asyncpg rejects sslmode in URL and $$ blocks; Alembic uses psycopg2 sync; Replit Postgres (helium) has no SSL.
+- [OTP template safety](otp-template-safety.md) — preserve the historically working SMS template until its DLT approval is checked; submission acceptance is not delivery.
