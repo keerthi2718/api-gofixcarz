@@ -21,7 +21,9 @@ PROBE = text(
 def _assert_sync_failure(error, failure):
     assert isinstance(error.orig, psycopg2.OperationalError)
     message = str(error.orig).lower()
-    if failure in {"ca", "expired"}:
+    if failure in {"ca", "expired", "revoked"}:
+        # libpq exposes the generic OpenSSL failure, not the verification code.
+        # The same leaf succeeds without a CRL in the control cases.
         assert "certificate verify failed" in message
     elif failure == "hostname":
         assert "does not match host name" in message
@@ -74,6 +76,9 @@ async def test_asyncpg_tls_policy(postgres_tls_case):
             message = caught.value.verify_message.lower()
             if case.failure == "expired":
                 assert "expired" in message
+            elif case.failure == "revoked":
+                assert caught.value.verify_code == 23  # X509_V_ERR_CERT_REVOKED
+                assert "revoked" in message
             elif case.failure == "hostname":
                 assert "mismatch" in message
             else:

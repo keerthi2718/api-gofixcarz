@@ -23,6 +23,7 @@ class TLSCase:
     mode: str
     root: str = "trusted"
     failure: str | None = None
+    crl: bool = False
 
 
 CASES = [
@@ -37,11 +38,20 @@ CASES = [
     TLSCase("valid", "require"),
     TLSCase("plaintext", "require", failure="no-tls"),
     TLSCase("plaintext", "disable"),
+    # Same CA, key, validity and hostname; only the revoked serial is in the CRL.
+    TLSCase("valid", "verify-full", crl=True),
+    TLSCase("valid", "verify-ca", crl=True),
+    TLSCase("revoked", "verify-full", failure="revoked", crl=True),
+    TLSCase("revoked", "verify-ca", failure="revoked", crl=True),
+    # Prove that the revoked leaf is otherwise valid without revocation checking.
+    TLSCase("revoked", "verify-full"),
+    TLSCase("revoked", "verify-ca"),
 ]
 
 
 def _case_id(case):
-    return f"{case.certificate}-{case.mode}-{case.root}"
+    suffix = "-crl" if case.crl else ""
+    return f"{case.certificate}-{case.mode}-{case.root}{suffix}"
 
 
 def _name(common_name):
@@ -49,7 +59,7 @@ def _name(common_name):
 
 
 def _certificate_files(directory):
-    """Fresh keys and certificates, including a deliberately expired leaf."""
+    """Fresh keys, certificates and a CA-signed CRL revoking only one valid leaf."""
     directory.mkdir(mode=0o700)
     now = datetime.now(timezone.utc)
     ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -78,8 +88,12 @@ def _certificate_files(directory):
     (directory / "untrusted.pem").write_bytes(
         other_ca.public_bytes(serialization.Encoding.PEM)
     )
-    for kind in ("valid", "expired", "mismatch"):
-        key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    matching_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    for kind in ("valid", "revoked", "expired", "mismatch"):
+        key = (
+            matching_key if kind in {"valid", "revoked"}
+            else rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        )
         matches = kind != "mismatch"
         san = (
             x509.IPAddress(ipaddress.ip_address("127.0.0.1"))
@@ -110,6 +124,23 @@ def _certificate_files(directory):
                 serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                 serialization.NoEncryption(),
             ))
+        if kind == "revoked":
+            revoked_serial = cert.serial_number
+    revoked = (
+        x509.RevokedCertificateBuilder()
+        .serial_number(revoked_serial)
+        .revocation_date(now - timedelta(hours=1))
+        .build()
+    )
+    crl = (
+        x509.CertificateRevocationListBuilder()
+        .issuer_name(ca_name)
+        .last_update(now - timedelta(hours=1))
+        .next_update(now + timedelta(days=1))
+        .add_revoked_certificate(revoked)
+        .sign(ca_key, hashes.SHA256())
+    )
+    (directory / "revocations.pem").write_bytes(crl.public_bytes(serialization.Encoding.PEM))
 
 
 @pytest.fixture(scope="module")
@@ -181,6 +212,8 @@ def postgres_tls_case(request, local_cluster):
         if started.returncode:
             pytest.fail(f"Disposable PostgreSQL failed to start:\n{log.read_text()}")
         query = {"sslmode": case.mode, "sslrootcert": str(certs / f"{case.root}.pem")}
+        if case.crl:
+            query["sslcrl"] = str(certs / "revocations.pem")
         # All destination/auth fields are hardcoded test values, never settings.
         url = f"postgresql://tls_test:disposable@127.0.0.1:{port}/postgres?{urlencode(query)}"
         yield case, url
