@@ -42,6 +42,7 @@ class ProductionBuildTests(unittest.TestCase):
         stdout, stderr = io.StringIO(), io.StringIO()
         with (
             patch.object(build.subprocess, "run", side_effect=fake_run) as runner,
+            patch.object(build.shutil, "which", return_value="/fake/bin/pip"),
             contextlib.redirect_stdout(stdout),
             contextlib.redirect_stderr(stderr),
         ):
@@ -54,7 +55,7 @@ class ProductionBuildTests(unittest.TestCase):
         self.assertIn("installed successfully", stdout)
         self.assertEqual(stderr, "")
         command = runner.call_args.args[0]
-        self.assertEqual(command[:4], [sys.executable, "-m", "pip", "install"])
+        self.assertEqual(command[:4], ["/fake/bin/pip", "--python", sys.executable, "install"])
         self.assertEqual(command[-2:], ["-r", str(API_ROOT / "requirements.txt")])
         self.assertIn("--no-input", command)
         self.assertEqual(runner.call_args.kwargs["cwd"], API_ROOT)
@@ -100,6 +101,17 @@ class ProductionBuildTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("exit code -15", stderr)
 
+    def test_missing_standalone_pip_fails_without_starting_install(self):
+        stderr = io.StringIO()
+        with (
+            patch.object(build.shutil, "which", return_value=None),
+            patch.object(build.subprocess, "run") as runner,
+            contextlib.redirect_stderr(stderr),
+        ):
+            self.assertEqual(build.main(), 1)
+        runner.assert_not_called()
+        self.assertIn("Publishing pip command is unavailable", stderr.getvalue())
+
     def test_unreadable_requirements_does_not_launch_pip(self):
         stdout, stderr = io.StringIO(), io.StringIO()
         with (
@@ -117,6 +129,7 @@ class ProductionBuildTests(unittest.TestCase):
         stderr = io.StringIO()
         with (
             patch.object(build.subprocess, "run", side_effect=OSError("dummy-secret")),
+            patch.object(build.shutil, "which", return_value="/fake/bin/pip"),
             contextlib.redirect_stdout(io.StringIO()),
             contextlib.redirect_stderr(stderr),
         ):
@@ -146,7 +159,9 @@ class ProductionBuildTests(unittest.TestCase):
         command[0] = sys.executable
         with tempfile.TemporaryDirectory() as directory:
             fake_root = Path(directory)
-            (fake_root / "pip.py").write_text(FAKE_PIP)
+            fake_pip = fake_root / "pip"
+            fake_pip.write_text(f"#!{sys.executable}\n" + FAKE_PIP)
+            fake_pip.chmod(0o700)
             marker = fake_root / "called.json"
             for exitcode in (0, 9):
                 with self.subTest(exitcode=exitcode):
@@ -155,7 +170,7 @@ class ProductionBuildTests(unittest.TestCase):
                         cwd=REPO_ROOT,
                         # Deliberately exclude app secrets and real index settings.
                         env={
-                            "PYTHONPATH": directory,
+                            "PATH": directory,
                             "MOCK_MARKER": str(marker),
                             "MOCK_EXIT": str(exitcode),
                             "MOCK_ERROR": "ERROR: No matching distribution found for dummy-secret",
@@ -167,6 +182,7 @@ class ProductionBuildTests(unittest.TestCase):
                     self.assertEqual(result.returncode, exitcode)
                     invocation = json.loads(marker.read_text())
                     self.assertEqual(invocation["args"][-2:], ["-r", str(API_ROOT / "requirements.txt")])
+                    self.assertEqual(invocation["args"][:3], ["--python", sys.executable, "install"])
                     self.assertEqual(invocation["cwd"], str(API_ROOT))
                     self.assertEqual(invocation["python"], sys.executable)
                     if exitcode:

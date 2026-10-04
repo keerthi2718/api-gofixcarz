@@ -1,3 +1,4 @@
+- [Python publishing tools](python-publishing-tools.md) — standalone Nix pip may exist without an importable pip module; target the API interpreter explicitly.
 - [Garage API — asyncpg & Alembic quirks](garage-api-db-quirks.md) — asyncpg rejects sslmode in URL and $$ blocks; Alembic uses psycopg2 sync; Replit Postgres (helium) has no SSL.
 - [OTP template safety](otp-template-safety.md) — preserve the historically working SMS template until its DLT approval is checked; submission acceptance is not delivery.
 - [Production migration approval](production-migration-approval.md) — publishing checks schema by default; delivery-only upgrades need explicit approval, not blanket permission.

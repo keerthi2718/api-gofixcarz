@@ -1,5 +1,6 @@
 """Install publishing dependencies, failing closed without leaking pip output."""
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -66,12 +67,23 @@ def main() -> int:
         # or touch a database as part of dependency installation.
         with REQUIREMENTS.open("rb"):
             pass
+        # Replit's base interpreter may not contain the pip module even when
+        # the Nix toolchain provides a standalone pip command. --python ensures
+        # installation still targets the interpreter used to run the API.
+        pip = shutil.which("pip")
+        if pip is None:
+            print(
+                "Publishing pip command is unavailable; build stopped. "
+                "Restore the pip tool in the publishing toolchain.",
+                file=sys.stderr,
+            )
+            return 1
         print("Installing API Python dependencies from requirements.txt.", flush=True)
         # TemporaryFile is private and deleted on close; no raw log is retained.
         with tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace") as log:
             result = subprocess.run(
                 [
-                    sys.executable, "-m", "pip", "install",
+                    pip, "--python", sys.executable, "install",
                     "--disable-pip-version-check", "--no-input",
                     "-r", str(REQUIREMENTS),
                 ],
