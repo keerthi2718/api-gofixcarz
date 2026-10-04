@@ -23,7 +23,7 @@ class TLSCase:
     mode: str
     root: str = "trusted"
     failure: str | None = None
-    crl: bool = False
+    crl: str | None = None
 
 
 CASES = [
@@ -39,10 +39,15 @@ CASES = [
     TLSCase("plaintext", "require", failure="no-tls"),
     TLSCase("plaintext", "disable"),
     # Same CA, key, validity and hostname; only the revoked serial is in the CRL.
-    TLSCase("valid", "verify-full", crl=True),
-    TLSCase("valid", "verify-ca", crl=True),
-    TLSCase("revoked", "verify-full", failure="revoked", crl=True),
-    TLSCase("revoked", "verify-ca", failure="revoked", crl=True),
+    TLSCase("valid", "verify-full", crl="valid"),
+    TLSCase("valid", "verify-ca", crl="valid"),
+    TLSCase("revoked", "verify-full", failure="revoked", crl="valid"),
+    TLSCase("revoked", "verify-ca", failure="revoked", crl="valid"),
+    # Otherwise valid, non-revoked leaf: failures must come from the CRL itself.
+    TLSCase("valid", "verify-full", failure="crl-expired", crl="expired"),
+    TLSCase("valid", "verify-ca", failure="crl-expired", crl="expired"),
+    TLSCase("valid", "verify-full", failure="crl-signature", crl="bad-signature"),
+    TLSCase("valid", "verify-ca", failure="crl-signature", crl="bad-signature"),
     # Prove that the revoked leaf is otherwise valid without revocation checking.
     TLSCase("revoked", "verify-full"),
     TLSCase("revoked", "verify-ca"),
@@ -50,7 +55,7 @@ CASES = [
 
 
 def _case_id(case):
-    suffix = "-crl" if case.crl else ""
+    suffix = f"-{case.crl}-crl" if case.crl else ""
     return f"{case.certificate}-{case.mode}-{case.root}{suffix}"
 
 
@@ -59,7 +64,7 @@ def _name(common_name):
 
 
 def _certificate_files(directory):
-    """Fresh keys, certificates and a CA-signed CRL revoking only one valid leaf."""
+    """Fresh certificates and CRLs differing only in validity or signing key."""
     directory.mkdir(mode=0o700)
     now = datetime.now(timezone.utc)
     ca_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -132,15 +137,23 @@ def _certificate_files(directory):
         .revocation_date(now - timedelta(hours=1))
         .build()
     )
-    crl = (
-        x509.CertificateRevocationListBuilder()
-        .issuer_name(ca_name)
-        .last_update(now - timedelta(hours=1))
-        .next_update(now + timedelta(days=1))
-        .add_revoked_certificate(revoked)
-        .sign(ca_key, hashes.SHA256())
-    )
-    (directory / "revocations.pem").write_bytes(crl.public_bytes(serialization.Encoding.PEM))
+    for kind in ("valid", "expired", "bad-signature"):
+        expired = kind == "expired"
+        crl = (
+            x509.CertificateRevocationListBuilder()
+            # Keep the trusted issuer name even when signed with an unrelated key.
+            # Otherwise this tests missing issuer coverage, not a bad signature.
+            .issuer_name(ca_name)
+            .last_update(now - timedelta(days=1) if expired
+                         else now - timedelta(hours=1))
+            .next_update(now - timedelta(hours=1) if expired
+                         else now + timedelta(days=1))
+            .add_revoked_certificate(revoked)
+            .sign(other_key if kind == "bad-signature" else ca_key, hashes.SHA256())
+        )
+        (directory / f"revocations-{kind}.pem").write_bytes(
+            crl.public_bytes(serialization.Encoding.PEM)
+        )
 
 
 @pytest.fixture(scope="module")
@@ -213,7 +226,7 @@ def postgres_tls_case(request, local_cluster):
             pytest.fail(f"Disposable PostgreSQL failed to start:\n{log.read_text()}")
         query = {"sslmode": case.mode, "sslrootcert": str(certs / f"{case.root}.pem")}
         if case.crl:
-            query["sslcrl"] = str(certs / "revocations.pem")
+            query["sslcrl"] = str(certs / f"revocations-{case.crl}.pem")
         # All destination/auth fields are hardcoded test values, never settings.
         url = f"postgresql://tls_test:disposable@127.0.0.1:{port}/postgres?{urlencode(query)}"
         yield case, url

@@ -2,3 +2,4 @@
 - [OTP template safety](otp-template-safety.md) — preserve the historically working SMS template until its DLT approval is checked; submission acceptance is not delivery.
 - [Production migration approval](production-migration-approval.md) — publishing checks schema by default; delivery-only upgrades need explicit approval, not blanket permission.
 - [Publishing diagnostic privacy](publishing-diagnostic-privacy.md) — prefer fixed installer failure hints over raw output or regex redaction in shared build logs.
+- [TLS driver diagnostics](tls-driver-diagnostics.md) — libpq and Python may use different OpenSSL builds; identical handshake failures need driver-specific assertions.

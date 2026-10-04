@@ -1,7 +1,9 @@
 """Real handshakes through the URL helpers and SQLAlchemy driver adapters."""
 import ssl
+from datetime import datetime, timezone
 
 import asyncpg
+from cryptography import x509
 import psycopg2
 import pytest
 from sqlalchemy import create_engine, pool, text
@@ -21,7 +23,16 @@ PROBE = text(
 def _assert_sync_failure(error, failure):
     assert isinstance(error.orig, psycopg2.OperationalError)
     message = str(error.orig).lower()
-    if failure in {"ca", "expired", "revoked"}:
+    if failure == "crl-signature":
+        # libpq may surface the first RSA error from OpenSSL's error queue
+        # instead of the final certificate verification error. Fresh unrelated
+        # keys can fail at either the modulus or PKCS#1 padding check.
+        assert "ssl error:" in message
+        assert any(reason in message for reason in (
+            "certificate verify failed", "crl signature failure",
+            "invalid padding", "padding check failed", "data too large for modulus",
+        ))
+    elif failure in {"ca", "expired", "revoked", "crl-expired"}:
         # libpq exposes the generic OpenSSL failure, not the verification code.
         # The same leaf succeeds without a CRL in the control cases.
         assert "certificate verify failed" in message
@@ -29,6 +40,25 @@ def _assert_sync_failure(error, failure):
         assert "does not match host name" in message
     else:
         assert "server does not support ssl, but ssl was required" in message
+
+
+def test_crl_material_isolated_failures(local_cluster):
+    """Check the fixtures cannot pass by accidentally testing a different defect."""
+    _, _, certs, _, _ = local_cluster
+    ca = x509.load_pem_x509_certificate((certs / "trusted.pem").read_bytes())
+    valid_leaf = x509.load_pem_x509_certificate((certs / "valid.pem").read_bytes())
+    revoked_leaf = x509.load_pem_x509_certificate((certs / "revoked.pem").read_bytes())
+    now = datetime.now(timezone.utc)
+    for kind in ("valid", "expired", "bad-signature"):
+        crl = x509.load_pem_x509_crl(
+            (certs / f"revocations-{kind}.pem").read_bytes()
+        )
+        assert crl.issuer == ca.subject
+        assert crl.last_update_utc < now
+        assert (crl.next_update_utc < now) is (kind == "expired")
+        assert crl.is_signature_valid(ca.public_key()) is (kind != "bad-signature")
+        assert crl.get_revoked_certificate_by_serial_number(valid_leaf.serial_number) is None
+        assert crl.get_revoked_certificate_by_serial_number(revoked_leaf.serial_number) is not None
 
 
 def test_psycopg2_tls_policy(postgres_tls_case):
@@ -79,6 +109,12 @@ async def test_asyncpg_tls_policy(postgres_tls_case):
             elif case.failure == "revoked":
                 assert caught.value.verify_code == 23  # X509_V_ERR_CERT_REVOKED
                 assert "revoked" in message
+            elif case.failure == "crl-expired":
+                assert caught.value.verify_code == 12  # X509_V_ERR_CRL_HAS_EXPIRED
+                assert "crl has expired" in message
+            elif case.failure == "crl-signature":
+                assert caught.value.verify_code == 8  # X509_V_ERR_CRL_SIGNATURE_FAILURE
+                assert "crl signature failure" in message
             elif case.failure == "hostname":
                 assert "mismatch" in message
             else:
