@@ -4,10 +4,10 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from app.core.exceptions import UnauthorizedException
+from app.core.exceptions import ForbiddenException, UnauthorizedException
 from app.core.security import decode_access_token
 from app.database.session import get_session
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.repositories.user_repository import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -39,3 +39,13 @@ async def get_current_user(
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 DBSession = Annotated[AsyncSession, Depends(get_session)]
+
+
+async def get_current_admin(current_user: CurrentUser) -> User:
+    """Database role is authoritative, never the client's cached JWT role."""
+    if current_user.role != UserRole.ADMIN.value:
+        raise ForbiddenException("Admin access required.")
+    return current_user
+
+
+CurrentAdmin = Annotated[User, Depends(get_current_admin)]

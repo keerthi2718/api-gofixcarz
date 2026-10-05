@@ -157,6 +157,8 @@ class AuthService:
         user = await self.user_repo.get_by_mobile(data.mobile)
         if not user:
             raise BadRequestException("Mobile number not registered.")
+        if not user.is_active:
+            raise UnauthorizedException("Account is inactive.")
         full_mobile = f"{user.country_code}{user.mobile}"
         otp = generate_otp()
         expires_at = get_otp_expiry()
@@ -183,6 +185,8 @@ class AuthService:
         user = await self.user_repo.get_by_mobile(data.mobile)
         if not user:
             raise BadRequestException("Mobile number not registered.")
+        if not user.is_active:
+            raise UnauthorizedException("Account is inactive.")
         if not user.otp or not user.otp_expires_at:
             raise BadRequestException("No OTP found. Please request a new OTP.")
         now = datetime.now(timezone.utc)
@@ -195,7 +199,7 @@ class AuthService:
             raise UnauthorizedException("Invalid OTP.")
         await self.user_repo.clear_otp(user)
 
-        access_token = create_access_token(subject=str(user.id))
+        access_token = create_access_token(subject=str(user.id), role=user.role)
         raw_refresh = generate_refresh_token()
         refresh_hash = hash_refresh_token(raw_refresh)
         refresh_expires = get_refresh_token_expiry()
@@ -238,7 +242,7 @@ class AuthService:
         # No rotation: the refresh token stays valid until it expires naturally.
         # Rotating on every use causes "revoked" errors on mobile when a network
         # hiccup or app backgrounding prevents the new token from being saved.
-        access_token = create_access_token(subject=str(user.id))
+        access_token = create_access_token(subject=str(user.id), role=user.role)
 
         return TokenResponse(
             access_token=access_token,

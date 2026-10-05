@@ -264,6 +264,7 @@ from app.api.v1.service_packages import router as service_packages_router  # noq
 from app.api.v1.notifications import router as notifications_router  # noqa: E402
 from app.api.v1.static import router as static_router  # noqa: E402
 from app.api.v1.images import router as images_router  # noqa: E402
+from app.api.v1.admin import router as admin_router  # noqa: E402
 
 v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -279,5 +280,6 @@ v1_router.include_router(service_packages_router, prefix="/service-packages", ta
 v1_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 v1_router.include_router(static_router, prefix="/static", tags=["Static"])
 v1_router.include_router(images_router, prefix="/images", tags=["Images"])
+v1_router.include_router(admin_router, prefix="/admin", tags=["Admin"])
 
 app.include_router(v1_router)

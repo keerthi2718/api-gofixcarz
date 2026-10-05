@@ -13,7 +13,10 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-def create_access_token(subject: Any, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    subject: Any, expires_delta: Optional[timedelta] = None, *,
+    role: str = "garage_owner",
+) -> str:
     """Create a JWT access token."""
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -21,7 +24,7 @@ def create_access_token(subject: Any, expires_delta: Optional[timedelta] = None)
         expire = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    to_encode = {"exp": expire, "sub": str(subject), "type": "access"}
+    to_encode = {"exp": expire, "sub": str(subject), "type": "access", "role": role}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
@@ -30,8 +33,10 @@ def decode_access_token(token: str) -> Optional[str]:
     """Decode a JWT access token and return the subject (user_id)."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        if payload.get("type") != "access" or not payload.get("exp"):
+            return None
         subject: Optional[str] = payload.get("sub")
-        return subject
+        return subject if isinstance(subject, str) and subject else None
     except JWTError:
         return None
 

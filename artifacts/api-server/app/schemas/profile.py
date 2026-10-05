@@ -2,7 +2,8 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
+from app.models.user import UserRole
 
 
 class ProfileResponse(BaseModel):
@@ -11,6 +12,7 @@ class ProfileResponse(BaseModel):
     mobile: str
     email: Optional[str]
     is_active: bool
+    role: UserRole = UserRole.GARAGE_OWNER
     created_at: datetime
     updated_at: datetime
 
@@ -18,6 +20,13 @@ class ProfileResponse(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def reject_role_assignment(cls, data):
+        if isinstance(data, dict) and ("role" in data or "is_active" in data):
+            raise ValueError("Account role and activation cannot be changed through profile")
+        return data
+
     name: Optional[str] = None
     email: Optional[str] = None
     mobile: Optional[str] = None

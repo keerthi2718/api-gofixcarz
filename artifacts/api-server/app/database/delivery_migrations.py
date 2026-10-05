@@ -13,6 +13,9 @@ from app.database.migration_url import build_sync_url
 BASELINE = "0007_garage_logo_url"
 DELIVERY_TABLE = "0008_sms_delivery"
 DELIVERY_HEAD = "0009_sms_delivery_retention"
+# The admin-role migration follows the approved delivery target. Recognizing
+# this known head does not authorize applying it during delivery-only startup.
+REVIEWED_CODE_HEAD = "0010_admin_role"
 # Transaction-level lock serializes concurrently starting production instances.
 MIGRATION_LOCK = 70991009
 
@@ -58,7 +61,9 @@ def ensure_delivery_schema(database_url: str, *, allow_upgrade: bool = False) ->
     config = Config(str(root / "alembic.ini"))
     config.set_main_option("script_location", str(root / "alembic"))
     # Deliberately bounded: don't silently authorize future/unrelated migrations.
-    if allow_upgrade and ScriptDirectory.from_config(config).get_heads() != [DELIVERY_HEAD]:
+    if allow_upgrade and ScriptDirectory.from_config(config).get_heads() not in (
+        [DELIVERY_HEAD], [REVIEWED_CODE_HEAD],
+    ):
         raise RuntimeError("Migration head changed; review the production preflight")
     engine = create_engine(build_sync_url(database_url), poolclass=pool.NullPool)
     try:

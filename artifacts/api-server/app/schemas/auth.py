@@ -6,6 +6,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 from app.core.constants import DEFAULT_COUNTRY_CODE, VALID_COUNTRY_CODES
+from app.models.user import UserRole
 
 _VALID_WHEELERS = {"2W", "3W", "4W", "6W"}
 
@@ -41,6 +42,13 @@ def _validate_mobile_10(v: str) -> str:
 # ──────────────────────────────────────────────────────────
 
 class SignUpRequest(BaseModel):
+    @model_validator(mode="before")
+    @classmethod
+    def reject_role_assignment(cls, data):
+        if isinstance(data, dict) and ("role" in data or "is_active" in data):
+            raise ValueError("Account role and activation cannot be set during signup")
+        return data
+
     first_name: str
     last_name: Optional[str] = None
     workshop_name: str
@@ -232,6 +240,7 @@ class UserResponse(BaseModel):
     country_code_2: Optional[str] = None
     email: Optional[str]
     is_active: bool
+    role: UserRole = UserRole.GARAGE_OWNER
     created_at: datetime
 
     model_config = {"from_attributes": True}

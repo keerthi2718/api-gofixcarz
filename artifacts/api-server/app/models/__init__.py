@@ -10,6 +10,7 @@ from app.models.service_package import ServicePackage
 from app.models.notification import Notification
 from app.models.refresh_token import RefreshToken
 from app.models.sms_delivery import SMSDelivery
+from app.models.admin_audit_log import AdminAuditLog
 
 __all__ = [
     "User",
@@ -23,4 +24,5 @@ __all__ = [
     "Notification",
     "RefreshToken",
     "SMSDelivery",
+    "AdminAuditLog",
 ]

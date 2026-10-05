@@ -1,17 +1,24 @@
 import uuid
+import enum
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, Index, String
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Index, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.base import Base, SoftDeleteMixin
 
 
+class UserRole(str, enum.Enum):
+    GARAGE_OWNER = "garage_owner"
+    ADMIN = "admin"
+
+
 class User(Base, SoftDeleteMixin):
     __tablename__ = "users"
     __table_args__ = (
+        CheckConstraint("role IN ('garage_owner', 'admin')", name="ck_users_role"),
         Index("ix_users_mobile", "mobile"),
         Index("ix_users_email", "email"),
         Index("ix_users_deleted_at", "deleted_at"),
@@ -36,6 +43,10 @@ class User(Base, SoftDeleteMixin):
         DateTime(timezone=True), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    role: Mapped[str] = mapped_column(
+        String(20), default=UserRole.GARAGE_OWNER.value,
+        server_default=UserRole.GARAGE_OWNER.value, nullable=False,
+    )
 
     # Relationships
     garages: Mapped[list["Garage"]] = relationship("Garage", back_populates="user")

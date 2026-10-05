@@ -167,6 +167,18 @@ def test_future_code_head_requires_separate_review(gateway, monkeypatch):
     upgrade.assert_not_called()
 
 
+def test_known_admin_head_does_not_expand_delivery_upgrade(gateway):
+    _, connection, context, upgrade = gateway
+    assert migrations.ScriptDirectory.from_config(
+        migrations.Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+    ).get_heads() == [migrations.REVIEWED_CODE_HEAD]
+    context.get_current_heads.side_effect = [
+        (migrations.BASELINE,), (migrations.DELIVERY_HEAD,),
+    ]
+    migrations.ensure_delivery_schema("postgresql://test@localhost/test", allow_upgrade=True)
+    assert upgrade.call_args.args[1] == migrations.DELIVERY_HEAD
+
+
 def load_startup():
     script = Path(__file__).resolve().parents[2] / "scripts" / "production_start.py"
     spec = importlib.util.spec_from_file_location("production_start", script)
