@@ -183,6 +183,9 @@ async def change_job_status(
 ):
     """Transition job to a new status. Each transition appends a timeline entry.
 
+    Transitioning to COMPLETED calculates and stores final billing and the
+    completion timestamp, using the same calculation as the complete endpoint.
+
     Valid transitions:
     - OPEN → IN_PROGRESS, CANCELLED
     - IN_PROGRESS → WAITING_FOR_PARTS, QUALITY_CHECK, READY, COMPLETED, CANCELLED

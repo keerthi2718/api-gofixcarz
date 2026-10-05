@@ -185,6 +185,11 @@ class JobRepository:
     async def change_status(
         self, job: Job, new_status: JobStatus, notes: Optional[str] = None
     ) -> Job:
+        # Completion must always write billing and the completion timestamp,
+        # including when requested through the regular status endpoint.
+        if new_status == JobStatus.COMPLETED:
+            return await self.complete(job, notes)
+
         job.status = new_status
         job.updated_at = datetime.now(timezone.utc)
         await self.session.flush()
