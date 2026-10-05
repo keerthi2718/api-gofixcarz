@@ -20,3 +20,9 @@ cannot reach the server, so it cannot identify the SMS failure by itself.
 
 **How to apply:** Verify the appropriate report webhook configuration and inspect an actual
 request-ID-matched provider report before claiming a delivery root cause.
+
+Use one identical MSG91 auth key for direct testing and the published login sender.
+
+**Why:** The user explicitly required using only the same key in both environments.
+
+**How to apply:** Store it through Secrets, never in code or memory. Verify the production secret setup separately; secret existence alone does not prove equal values or that a running deployment loaded the latest value.
