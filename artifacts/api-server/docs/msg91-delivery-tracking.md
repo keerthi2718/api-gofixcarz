@@ -1,22 +1,24 @@
 # MSG91 OTP delivery diagnostics
 
-OTP submission uses MSG91's v5 OTP API with the user's GoFixAuto template:
-`6aabb705139475b847069b62`. Its approved message is
-`Your GoFixAuto platform account activation OTP is ##OTP##`.
-MSG91 applies the template's configured sender; the backend does not override
-it with a legacy SMS sender or numeric DLT ID. The backend passes its generated
-OTP and expiry to MSG91 so local verification remains unchanged.
+OTP submission uses the user-requested legacy SMS endpoint:
+`https://api.msg91.com/api/sendhttp.php` (GET). It sends
+`Your Skill Wallet platform account activation OTP is {otp}` with sender `MYSKWT`,
+DLT template ID `1307175464483723626`, country `91`, and route `4`.
+The auth key comes only from `MSG91_AUTH_KEY` in Secrets. HTTPX encodes the query
+parameters; do not store a complete credential-bearing URL. Local OTP generation,
+verification, and five-minute expiry remain unchanged.
+The legacy endpoint returns a plain 24-character hexadecimal request ID by
+default; JSON success responses with the ID in `message` are also supported.
 Submission acceptance is **not** handset delivery. Auth responses include `sms_request_id` and
 `sms_delivery_status: "pending"` alongside the existing mobile/country fields.
 This initial status means submission accepted, not a fresh delivery report.
 
 ## Setup (no live SMS required)
 
-MSG91 documents a dedicated **SendOTP API** report webhook. It uses the same
-flat `requestId`, numeric `status`, and `failureReason` fields as the existing
-parser and supports custom authentication headers. No payload-parser or auth
-scheme change is required. An SMS-product webhook alone is not evidence that
-OTP reports are configured.
+Configure reports for the **SMS product**, because this endpoint sends SMS rather
+than using SendOTP. Use MSG91's SMS Webhook (New) guide for the flat `requestId`,
+`status`, and `failureReason` fields and custom authentication headers. An OTP
+product webhook does not establish coverage for these legacy SMS requests.
 
 1. Ensure the delivery migrations are applied to the intended database; see
    **Production publishing safety** below. Do not point development migrations
@@ -24,7 +26,7 @@ OTP reports are configured.
 2. In Replit Secrets set two independent random values, each at least 32
    characters: `MSG91_WEBHOOK_TOKEN` and `MSG91_DIAGNOSTICS_TOKEN`.
    Never reuse the MSG91 API auth key or session/JWT secret.
-3. In MSG91 → **OTP → Webhook → Create Webhook**, select **OTP** and
+3. In MSG91's **SMS → Webhook → Create Webhook**, select **SMS** and
    **On Report Received**. Configure a publicly reachable HTTPS URL ending
    in `/api/v1/auth/msg91/delivery-report`, using the actual API mount path.
 4. Configure the custom header `X-MSG91-Webhook-Token` with the webhook secret.
@@ -39,9 +41,9 @@ OTP reports are configured.
    ```
 
    Do not include mobile, OTP, message text, sender credentials or user details.
-   MSG91's OTP documentation specifies `status: "1"` (delivered) or `"2"`
-   (failed); integer 1/2 are accepted too. The sender persists the SendOTP
-   response's `request_id`, and the callback's `requestId` is matched to that
+    The parser accepts `status: "1"` (delivered) or `"2"` (failed), integer 1/2,
+    and supported SMS statuses. The sender persists the SMS submission ID,
+    and the callback's `requestId` is matched to that
    exact ID. Do not substitute `CRQID`, `flowID` (template ID), `verified`, or
    a mobile number. The documented example's 22-character ID is supported.
    Arbitrary extra fields are discarded, but omit them at the provider too.
@@ -100,8 +102,7 @@ no migrations were run against production, and nothing was published.
 
 ## Interpreting results
 
-- **pending:** accepted; no final report has been observed. The OTP report guide
-  documents only final statuses 1/2; the SMS guide explicitly excludes pending
+- **pending:** accepted; no final report has been observed. The SMS guide excludes pending
   callbacks. Missing/misconfigured callbacks also leave pending, so elapsed
   time alone does not establish a carrier failure or delivery.
 - **delivered:** MSG91/operator reported delivery. This does not prove that the
@@ -111,9 +112,8 @@ no migrations were run against production, and nothing was published.
   This category is not a confirmed carrier root cause: the provider may report
   other failure reasons. Arbitrary failure prose is discarded to prevent
   personal data and OTP exposure. Additional existing SMS statuses (NDNC,
-  rejected, blocked number, country blocked) remain accepted for backward
-  compatibility, but are not promised by the OTP report guide. Check the
-  matching request ID in MSG91's private OTP logs for full details.
+  rejected, blocked number, country blocked) remain accepted. Check the
+  matching request ID in MSG91's private SMS logs for full details.
 
 Accepted submission IDs are persisted. Callback-only IDs are temporarily stored
 without phone/user information to handle callbacks racing ahead of submission
@@ -152,8 +152,8 @@ For older incidents, use MSG91's private console according to its own retention
 policy. Cleanup affects delivery diagnostics only, not OTP verification or users.
 
 Never log raw callback bodies, headers, provider error text or send URLs.
-The OTP sender uses POST with recipient/OTP query parameters and the API key
-in a header; HTTPX INFO URL logging is suppressed.
+The OTP sender uses GET with recipient, message, and API key query parameters;
+HTTPX INFO URL logging is suppressed.
 Avoid enabling HTTP wire/debug logging or forwarding tokens into proxy logs.
 Callbacks have an 8 KiB body limit and validate IDs and documented numeric
 statuses with generic, non-echoing errors. DB failures are not acknowledged as
@@ -176,9 +176,9 @@ live integration sign-up fixtures to check delivery: they can send real SMS.
 
 No MSG91 dashboard changes or live SMS were performed. Documentation and mocks
 verify compatibility, not the account's current webhook settings. After setup,
-use an explicitly confirmed test target and compare the SendOTP response
-`request_id` with the actual callback `requestId`. Inspect MSG91's **Webhook
-Logs** to confirm the OTP service, callback response and request/response
+use an explicitly confirmed test target and compare the SMS submission ID
+with the actual callback `requestId`. Inspect MSG91's **Webhook
+Logs** to confirm the SMS service, callback response and request/response
 snapshot if reports are missing; handle those private logs securely. A webhook
 delivery error is not an SMS delivery error. Do not claim a root cause or
 alter the approved DLT sender/template without the matching provider evidence.
@@ -188,7 +188,7 @@ alter the approved DLT sender/template without the matching provider evidence.
 - [MSG91: How to Receive SendOTP API Delivery Reports via Webhook](https://msg91.com/help/webhook-new/how-to-receive-otp-delivery-reports-via-webhook)
   — OTP setup, requestId, statuses 1/2, failureReason and custom headers.
 - [MSG91: SendOTP API](https://docs.msg91.com/otp/sendotp)
-  — v5 OTP endpoint and authkey header. Dynamic sample-response content is not
+  — previous v5 OTP endpoint and authkey header; no longer used by this sender. Dynamic sample-response content is not
   available in the text documentation; real account correlation remains an
   explicit external check, not an assumption that mocks prove delivery.
 - [MSG91: SMS Delivery Reports via Webhook (New)](https://msg91.com/help/webhook-new/how-to-receive-sms-delivery-reports-via-webhook-new)
@@ -196,5 +196,7 @@ alter the approved DLT sender/template without the matching provider evidence.
 - [MSG91: What are Webhooks?](https://msg91.com/help/webhooks/what-are-webhooks-how-does-it-work)
 - [MSG91: Custom Metadata Parameters](https://msg91.com/help/text-sms/custom-metadata-parameters-for-tracking-api-requests)
 
-Documentation consulted on 2026-10-04. No speculative changes to approved SMS
-content or switches to a different MSG91 sending API were made.
+SMS API response documentation was consulted on 2026-10-05:
+[MSG91 SMS parameters and responses](https://api.msg91.com/apidoc/textsms/send-sms-v1.php).
+The endpoint and Skill Wallet message were changed at the user's explicit request.
+Mocked checks do not prove live delivery or the provider account's DLT approval.

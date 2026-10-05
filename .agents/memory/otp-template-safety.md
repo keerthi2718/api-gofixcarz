@@ -7,16 +7,16 @@ Do not change SMS branding speculatively; use the exact provider-approved templa
 
 **Why:** The user confirmed OTPs previously worked with the existing setup. Indian SMS template matching can reject modified message text, so a branding change is not a safe speculative fix.
 
-**How to apply:** The user supplied an MSG91-approved GoFixAuto OTP template to replace the legacy Skill Wallet message. MSG91 OTP template IDs and numeric DLT template IDs are different identifiers and cannot be substituted into the same API parameter. Use the appropriate API for the template, with the application's generated OTP, to preserve local verification. MSG91 request IDs confirm submission acceptance only, not handset delivery; describe these outcomes separately.
+**How to apply:** On 2026-10-05, the user explicitly requested switching back to the legacy SMS endpoint and Skill Wallet template instead of GoFixAuto SendOTP. Do not reverse that choice speculatively. MSG91 OTP template IDs and numeric DLT template IDs are different identifiers and cannot be substituted into the same API parameter. Preserve the application's generated OTP and local verification. MSG91 request IDs confirm submission acceptance only, not handset delivery; describe these outcomes separately.
 
 MSG91 has a dedicated OTP → Webhook → On Report Received setup for SendOTP.
 Its official report guide documents the same flat requestId, status 1/2, and
-custom-header support as SMS Webhook (New). Configure OTP reports rather than
-assuming an existing SMS-product webhook covers OTP. Missing callbacks must
+custom-header support as SMS Webhook (New). Match the report product to the
+current sending API: SMS for legacy sendhttp, OTP for SendOTP. Missing callbacks must
 not be treated as proof of carrier failure.
 
 **Why:** A pending diagnostic can also mean the webhook is not configured or
 cannot reach the server, so it cannot identify the SMS failure by itself.
 
-**How to apply:** Verify the OTP report webhook configuration and inspect an actual
+**How to apply:** Verify the appropriate report webhook configuration and inspect an actual
 request-ID-matched provider report before claiming a delivery root cause.

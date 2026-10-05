@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     MSG91_AUTH_KEY: str = ""
     MSG91_TEMPLATE_ID: str = "6aabb705139475b847069b62"
     MSG91_DLT_TE_ID: str = "1307175464483723626"
-    MSG91_SENDER: str = "GoFixAuto"
+    MSG91_SENDER: str = "MYSKWT"
     MSG91_ROUTE: str = "4"
     MSG91_COUNTRY: str = "91"
     MSG91_WEBHOOK_TOKEN: SecretStr = SecretStr("")

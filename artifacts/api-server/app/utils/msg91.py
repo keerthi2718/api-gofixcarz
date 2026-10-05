@@ -5,7 +5,7 @@ from loguru import logger
 from app.core.config import settings
 
 
-MSG91_URL = "https://control.msg91.com/api/v5/otp"
+MSG91_URL = "https://api.msg91.com/api/sendhttp.php"
 # HTTPX logs request URLs at INFO, including the recipient and OTP parameters.
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
@@ -20,25 +20,30 @@ async def submit_otp_sms(mobile: str, otp: str) -> str | None:
     Send an OTP SMS via MSG91.
     Return the provider request ID on acceptance, otherwise None.
     """
-    # The approved template owns the text and sender:
-    # Your GoFixAuto platform account activation OTP is ##OTP##
-    # Supply our existing OTP so local verification and expiry remain consistent.
+    # Preserve the exact legacy template requested by the user.
+    # HTTPX encodes parameters once; never interpolate credentials into a URL.
     params = {
-        "template_id": settings.MSG91_TEMPLATE_ID,
-        "mobile": mobile,
-        "otp": otp,
-        "otp_length": len(otp),
-        "otp_expiry": max(1, (settings.OTP_EXPIRY_SECONDS + 59) // 60),
+        "authkey": settings.MSG91_AUTH_KEY,
+        "mobiles": mobile,
+        "country": settings.MSG91_COUNTRY,
+        "DLT_TE_ID": settings.MSG91_DLT_TE_ID,
+        "message": f"Your Skill Wallet platform account activation OTP is {otp}",
+        "sender": settings.MSG91_SENDER,
+        "route": settings.MSG91_ROUTE,
     }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.post(
+            response = await client.get(
                 MSG91_URL,
                 params=params,
-                headers={"authkey": settings.MSG91_AUTH_KEY},
-                json={},
             )
             response.raise_for_status()
+            # The legacy endpoint defaults to a plain 24-character hex SMS ID.
+            # Numeric error codes and arbitrary HTTP-200 bodies are not success.
+            text = response.text.strip()
+            if re.fullmatch(r"[A-Fa-f0-9]{24}", text):
+                logger.info("MSG91 accepted OTP request; request_id={}", text)
+                return text
             try:
                 result = response.json()
             except ValueError:
@@ -48,11 +53,11 @@ async def submit_otp_sms(mobile: str, otp: str) -> str | None:
             if not isinstance(result, dict):
                 logger.warning("MSG91 returned an invalid OTP submission response")
                 return None
-            request_id = result.get("request_id")
+            request_id = result.get("message")
             if (
                 str(result.get("type", "")).lower() == "success"
                 and isinstance(request_id, str)
-                and re.fullmatch(r"[A-Za-z0-9_-]{16,128}", request_id)
+                and re.fullmatch(r"[A-Fa-f0-9]{24}", request_id)
             ):
                 logger.info("MSG91 accepted OTP request; request_id={}", request_id)
                 return request_id

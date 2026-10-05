@@ -146,13 +146,13 @@ async def test_sendotp_documented_report_correlates_by_request_id(api, status, e
         assert discarded not in str(params)
 
 
-async def test_sendotp_submission_and_callback_use_the_same_id(api, monkeypatch):
+async def test_legacy_sms_submission_and_callback_use_the_same_id(api, monkeypatch):
     from app.utils import msg91
-    otp_id = "3567736c53515771356c4878"
+    otp_id = "5762846b4f8d285d378b4567"
     client_class = httpx.AsyncClient
     monkeypatch.setattr(msg91.httpx, "AsyncClient", lambda **kwargs: client_class(
         transport=httpx.MockTransport(lambda request: httpx.Response(
-            200, json={"type": "success", "request_id": otp_id},
+            200, text=otp_id,
         )), **kwargs,
     ))
     accepted_id = await msg91.submit_otp_sms("910000000000", "123456")
