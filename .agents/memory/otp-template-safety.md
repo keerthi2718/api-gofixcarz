@@ -5,7 +5,7 @@ description: Constraints for diagnosing and changing MSG91 OTP messages.
 
 Do not change SMS branding speculatively; use the exact provider-approved template supplied by the user.
 
-**Why:** The user confirmed OTPs previously worked with the existing setup. Indian SMS template matching can reject modified message text, so a branding change is not a safe speculative fix.
+**Why:** The user confirmed OTPs previously worked with the existing setup and, on 2026-10-05, confirmed receipt of a direct test SMS after restoring the requested legacy SMS endpoint and Skill Wallet message. That confirms this sender/template combination delivered in the test, not that the published sign-in journey was verified. Indian SMS template matching can reject modified message text, so a branding change is not a safe speculative fix.
 
 **How to apply:** On 2026-10-05, the user explicitly requested switching back to the legacy SMS endpoint and Skill Wallet template instead of GoFixAuto SendOTP. Do not reverse that choice speculatively. MSG91 OTP template IDs and numeric DLT template IDs are different identifiers and cannot be substituted into the same API parameter. Preserve the application's generated OTP and local verification. MSG91 request IDs confirm submission acceptance only, not handset delivery; describe these outcomes separately.
 
