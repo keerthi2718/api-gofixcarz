@@ -23,7 +23,7 @@ from app.models.user import User
 
 
 ADMIN_PATHS = [
-    "/me", "/dashboard", "/users", f"/users/{uuid4()}",
+    "/me", "/menus", "/dashboard", "/users", f"/users/{uuid4()}",
     "/garages", f"/garages/{uuid4()}", "/jobs", f"/jobs/{uuid4()}",
     "/bookings", "/analytics", "/billing/issues", "/audit-logs",
 ]
@@ -126,7 +126,7 @@ async def test_every_admin_route_is_guarded(setup_admin_api):
 async def test_admin_without_garage_can_read_all_dashboard_apis(setup_admin_api):
     d = setup_admin_api
     paths = [
-        "/me", "/dashboard", "/users", f"/users/{d['owner'].id}",
+        "/me", "/menus", "/dashboard", "/users", f"/users/{d['owner'].id}",
         "/garages", f"/garages/{d['garage'].id}", "/jobs", f"/jobs/{d['completed'].id}",
         "/bookings", "/analytics", "/billing/issues", "/audit-logs",
     ]

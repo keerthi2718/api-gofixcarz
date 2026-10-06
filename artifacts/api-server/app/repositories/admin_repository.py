@@ -112,7 +112,7 @@ class AdminRepository:
     def audit_query(self, actor_id=None, action=None, date_from=None, date_to=None):
         query = select(AdminAuditLog)
         if actor_id is not None:
-            query = query.where(AdminAuditLog.actor_id == actor_id)
+            query = query.where(or_(AdminAuditLog.actor_id == actor_id, AdminAuditLog.admin_account_id == actor_id))
         if action:
             query = query.where(AdminAuditLog.action == action)
         if date_from:

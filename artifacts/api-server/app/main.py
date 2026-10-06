@@ -56,6 +56,12 @@ async def _delete_expired_refresh_tokens() -> None:
             from app.repositories.refresh_token_repository import RefreshTokenRepository  # noqa: PLC0415
             repo = RefreshTokenRepository(session)
             deleted = await repo.delete_expired()
+            from sqlalchemy import delete
+            from datetime import datetime, timezone
+            from app.models.admin_account import AdminSession
+            await session.execute(delete(AdminSession).where(
+                AdminSession.expires_at <= datetime.now(timezone.utc),
+            ))
             await session.commit()
         logger.info(f"Expired refresh token cleanup: {deleted} row(s) deleted")
     except Exception:
@@ -252,6 +258,7 @@ app.include_router(health_router)
 
 # ── API v1 ───────────────────────────────────────────────────────────────────
 from app.api.v1.auth import router as auth_router  # noqa: E402
+from app.api.v1.admin_auth import router as admin_auth_router  # noqa: E402
 from app.api.v1.customers import router as customers_router  # noqa: E402
 from app.api.v1.vehicles import router as vehicles_router  # noqa: E402
 from app.api.v1.jobs import router as jobs_router  # noqa: E402
@@ -281,5 +288,6 @@ v1_router.include_router(notifications_router, prefix="/notifications", tags=["N
 v1_router.include_router(static_router, prefix="/static", tags=["Static"])
 v1_router.include_router(images_router, prefix="/images", tags=["Images"])
 v1_router.include_router(admin_router, prefix="/admin", tags=["Admin"])
+v1_router.include_router(admin_auth_router, prefix="/admin-auth", include_in_schema=False)
 
 app.include_router(v1_router)

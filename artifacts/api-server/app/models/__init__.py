@@ -1,4 +1,5 @@
 # Import all models to register them on Base.metadata
+from app.models.admin_account import AdminAccount, AdminSession
 from app.models.user import User
 from app.models.garage import Garage
 from app.models.customer import Customer

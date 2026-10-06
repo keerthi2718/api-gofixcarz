@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "fMk2oi2UEwlzsLiw2COqL"
+uri = "file://artifacts/api-server/docs/gofixcarz-api-catalogue.html"
+type = "html"
+title = "GoFixCarz API catalogue"
+description = "All 67 documented operations, grouped by feature. Private admin authentication URLs and credentials are excluded."
+logical_id = "91837bab-0585-4208-8d9d-63af97521050"
+content_hash = "sha256:600b698c4dff825eaa9edfa9d1661c02ef73b6bbd280e818d754ebbae7754c48"
+size = 12495
+mtime_ms = 1791284721478
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/91837bab-0585-4208-8d9d-63af97521050/96e26d61-0e9d-4b93-b4bb-dd9f6a14d1f2"
+storage_version_token = "1791284866773965"
+content_type = "text/html"

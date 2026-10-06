@@ -15,6 +15,9 @@ from app.schemas.admin import (
     AdminGarageDetail, AdminUserDetail, AdminUserStatusUpdate,
 )
 from app.schemas.auth import UserResponse
+from app.schemas.admin_auth import AdminIdentity
+from app.models.admin_account import AdminAccount
+from app.services.admin_auth_service import MENUS
 from app.schemas.booking import BookingResponse
 from app.schemas.garage import GarageResponse
 from app.schemas.job import JobDetailResponse, JobResponse
@@ -31,11 +34,18 @@ PageSize = Annotated[int, Query(ge=1, le=100)]
 Search = Annotated[str | None, Query(max_length=200)]
 
 
-@router.get("/me", response_model=APIResponse[UserResponse])
+@router.get("/menus", response_model=APIResponse)
+async def admin_menus(admin: CurrentAdmin, session: DBSession):
+    await AdminService(session).audit(admin.id, "menus.read")
+    return APIResponse.ok(data={"menus": [menu.model_dump() for menu in MENUS]})
+
+
+@router.get("/me", response_model=APIResponse[UserResponse | AdminIdentity])
 async def admin_me(admin: CurrentAdmin, session: DBSession):
     """Admin identity; no owned garage is required."""
     await AdminService(session).audit(admin.id, "me.read")
-    return APIResponse.ok(data=UserResponse.model_validate(admin))
+    schema = AdminIdentity if isinstance(admin, AdminAccount) else UserResponse
+    return APIResponse.ok(data=schema.model_validate(admin))
 
 
 @router.get("/dashboard", response_model=APIResponse[AdminDashboardResponse])

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, NotFoundException
 from app.models.admin_audit_log import AdminAuditLog
+from app.models.admin_account import AdminAccount
 from app.models.user import User, UserRole
 from app.repositories.admin_repository import AdminRepository
 from app.repositories.refresh_token_repository import RefreshTokenRepository
@@ -34,8 +35,11 @@ class AdminService:
         self.repo = AdminRepository(session)
 
     async def audit(self, actor_id, action, resource_id=None, details=None):
+        dedicated = await self.session.get(AdminAccount, actor_id)
         self.session.add(AdminAuditLog(
-            actor_id=actor_id, action=action, resource_id=resource_id, details=details or {},
+            actor_id=None if dedicated else actor_id,
+            admin_account_id=actor_id if dedicated else None,
+            action=action, resource_id=resource_id, details=details or {},
         ))
         # A failed audit write fails the request; status and audit commit atomically.
         await self.session.flush()

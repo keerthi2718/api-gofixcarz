@@ -61,7 +61,8 @@ class AdminAnalyticsResponse(BaseModel):
 class AdminAuditResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
-    actor_id: uuid.UUID
+    actor_id: uuid.UUID | None
+    admin_account_id: uuid.UUID | None = None
     action: str
     resource_id: uuid.UUID | None
     details: dict
