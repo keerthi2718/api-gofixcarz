@@ -42,3 +42,31 @@ mtime_ms = 1791368502169
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/8cc1b5eb-4154-4771-a59f-f9bd0648e976/88ee748c-a535-4dd6-a74e-25d0ab6231f9"
 storage_version_token = "1791368522593895"
 content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "8FpohWnj_fbBSOPOBSEYt"
+uri = "file://documents/GoFixCarz_Customer_Only_APIs_Client_Approval.pdf"
+type = "pdf"
+title = "Customer-Only APIs — Revised PDF"
+description = "Client approval draft containing 62 customer-account and customer-owned operations, with payloads and sample responses. Public browsing/content, garage-only and gateway callback URLs removed."
+logical_id = "d5c6acc5-782b-4616-ace2-1e9c59b93d3c"
+content_hash = "sha256:cf4c6964535ff3079377eb5f8331d7eb51be952c3152cd36269e604b145ad535"
+size = 85066
+mtime_ms = 1791370203413
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/d5c6acc5-782b-4616-ace2-1e9c59b93d3c/f7cf4029-9922-4988-bdee-ed376da6b3e2"
+storage_version_token = "1791370223192938"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "jk2e71MOQyz1Dzgq6ekZv"
+uri = "file://documents/GoFixCarz_Customer_Only_APIs_Client_Approval.docx"
+type = "word_document"
+title = "Customer-Only APIs — Revised Word Document"
+description = "Editable customer-only approval document, including clearly identified pre-login authentication and conditional password APIs."
+logical_id = "93209135-3c5d-4197-858e-99f3a2f3fea8"
+content_hash = "sha256:84ab13c439a8048600e826f8e661d85f85e06a0caeae1bd9d63e380c0cebade4"
+size = 57466
+mtime_ms = 1791370203281
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/93209135-3c5d-4197-858e-99f3a2f3fea8/a811a4ad-92d5-45d3-8863-8ec63c792daf"
+storage_version_token = "1791370224446797"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

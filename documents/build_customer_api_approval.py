@@ -461,6 +461,21 @@ def workbook_rows():
 
 
 def make_documents():
+    customer_sections = []
+    for original in sections:
+        retained = [dict(e) for e in original["endpoints"]
+                    if e["access"] != "Public" or e["path"].startswith("/auth/")]
+        if not retained:
+            continue
+        group = dict(original, endpoints=retained)
+        for endpoint in retained:
+            if endpoint["access"] == "Public":
+                endpoint["access"] = "Customer pre-login"
+        if group["title"] == "Help, policies and support":
+            group["title"] = "Customer support tickets and replies"
+            group["stories"] = [38]
+            group["rules"] = group["rules"][1:]
+        customer_sections.append(group)
     OUT.mkdir(exist_ok=True)
     doc = Document()
     sec = doc.sections[0]
@@ -549,26 +564,27 @@ def make_documents():
         flow.extend([pdf_t, Spacer(1,10)])
 
     doc.add_heading("GoFixCarz", 0)
-    doc.add_heading("Customer API Requirements", 0)
+    doc.add_heading("Customer-Only API Requirements", 0)
     flow.extend([Spacer(1,65), Paragraph("GoFixCarz", styles["Title"]),
-                 Paragraph("Customer API Requirements", styles["Title"]), Spacer(1,18)])
+                 Paragraph("Customer-Only API Requirements", styles["Title"]), Spacer(1,18)])
     p("DRAFT FOR CLIENT APPROVAL")
-    p("Version 1.0 | Prepared 7 October 2026")
+    p("Version 1.1 | Customer-only scope | Prepared 7 October 2026")
     p("Request payloads, sample responses, business rules and approval decisions")
     p("Source: GoFixCarz Customer App UI and User Stories workbook - 38 user stories across 15 epics and 21 UI screens.")
+    p("This revision includes customer authentication and customer-owned operations only. Public discovery/content URLs, garage-only operations and provider callback URLs are intentionally excluded. It supersedes the broader approval draft for this review.")
     p("This document proposes the customer-app API contract. It does not certify existing implementation or authorize development, data changes, payment configuration or publishing.")
     p("All example people, contacts, identifiers, amounts and records are synthetic. Credential fields contain placeholders only.")
     p("Prepared for client review. Please approve the scope and resolve the decision register before implementation.")
     br()
     h("Contents")
     for text in ["1. Scope and conventions", "2. Endpoint index", "3. Detailed API contracts",
-                 "4. Supporting garage and gateway contracts", "5. Existing-versus-proposed gap summary",
-                 "6. Story and screen traceability", "7. Approval decision register", "8. Client sign-off"]:
+                 "4. Customer-only scope boundary",
+                 "5. Story and screen traceability", "6. Approval decision register", "7. Client sign-off"]:
         p(text)
     p("The detailed sections follow the index order. Word headings provide navigation; PDF bookmarks provide section navigation.")
     h("1. Scope and conventions")
     p(f"Proposed base path: {BASE}. Endpoint paths in the detailed sections are relative to this base unless explicitly stated otherwise.")
-    p("Access: Public = no customer login; Customer = Authorization: Bearer <access_token>; Refresh/Recovery credential = the purpose-specific proof shown in the request. Every private record is scoped to the authenticated customer.")
+    p("Access: Customer = Authorization: Bearer <access_token>; Customer pre-login = registration/login/OTP/recovery operations that cannot require an existing session; Refresh/Recovery credential = the purpose-specific proof shown in the request. Every private record is scoped to the authenticated customer. No public browsing or content URL is included.")
     p("GET requests have no body. Path placeholders are required opaque IDs (UUIDs are recommended in implementation); example short IDs improve readability. Reject invalid IDs and unknown fields. Do not accept client ownership, role, status or monetary authority fields.")
     p("Default pagination: page=1, page_size=20; proposed bounds page >= 1 and page_size 1..100. Cursor-based message endpoints use opaque next_cursor. Lists show items and total; [] is a valid empty result.")
     p("Times are ISO 8601 with UTC Z or explicit offsets. Garage appointment rules use its IANA timezone. Monetary amounts are integer paise; currency is INR in these examples. Monetary precision and tax calculations are server-controlled.")
@@ -580,12 +596,12 @@ def make_documents():
               error=dict(code="SLOT_UNAVAILABLE", details=dict(slot_id="slot_001"))))
     p("Every endpoint-specific error code below uses this envelope, with a clear safe message and relevant field details. Common errors: 401 AUTH_REQUIRED/SESSION_EXPIRED; 403 FORBIDDEN; 404 RESOURCE_NOT_FOUND; 422 VALIDATION_ERROR; 429 RATE_LIMITED. Return Retry-After for rate limits. Another customer's private record should appear as 404 to avoid existence leaks.")
     p("Examples are snapshots across a journey, not simultaneous records: booking_001 progresses from PENDING to ACCEPTED to CONVERTED; job_001 progresses to COMPLETED; invoice_001 moves from UNPAID to PAID after payment_002 succeeds. booking_002 illustrates an independent cancelled booking.")
-    p("Priority: source stories remain Must Have or Should Have as recorded in the traceability appendix. UI-only items remain required for approval review rather than silently excluded. Password operations are explicitly conditional.")
+    p("Priority: source stories remain Must Have or Should Have as recorded in the traceability appendix. Excluded public requirements are explicitly identified rather than claimed as covered. Password operations are conditional.")
     br()
     h("2. Endpoint index")
     index_rows = []
     num = 0
-    for s in sections:
+    for s in customer_sections:
         for e in s["endpoints"]:
             num += 1
             e["id"] = f"API-{num:02d}"
@@ -593,7 +609,7 @@ def make_documents():
     table(["ID", "Endpoint (relative to base path)", "Access"], index_rows, [46,340,109])
     br()
     h("3. Detailed API contracts")
-    for s in sections:
+    for s in customer_sections:
         h(s["title"], 2)
         refs = ", ".join(f"US-{i}" for i in s["stories"]) or "UI-only requirement"
         p("Traceability: "+refs+" | "+", ".join(f"UI-{i:02d}" for i in s["screens"]), small=True)
@@ -616,60 +632,37 @@ def make_documents():
             code(response if isinstance(response,str) else dict(success=True, message=e["title"]+" successful", data=response))
             p("Representative failures: "+e["errors"]+". Common authentication/validation rules also apply where relevant.", small=True)
         br()
-    h("4. Supporting garage and gateway contracts")
-    p("These operations support the customer journey but are NOT customer mutation permissions.")
-    h("Garage booking decisions and job creation", 2)
-    p("The existing garage-scoped router contains the operations below. These are abbreviated illustrative examples, not exact reproductions of every current response field.")
-    table(["Method / full path", "Request", "Illustrative response data"], [
-        ["PATCH /api/v1/bookings/{booking_id}/accept", "No body", '{"id":"booking_001","status":"ACCEPTED"}'],
-        ["PATCH /api/v1/bookings/{booking_id}/reject", "Currently no body", '{"id":"booking_001","status":"REJECTED"}'],
-        ["POST /api/v1/bookings/{booking_id}/create-job", "No body", '{"id":"job_001","booking_id":"booking_001","status":"OPEN"}'],
-    ], [230,95,170])
-    p("Gap: rejection-reason support requires a reviewed garage contract extension, e.g. {\"reason\":\"Requested appointment unavailable\"}. Garage job status changes, invoice publication and replies require corresponding customer-visible read/events, not customer write access.")
-    h("Payment provider callback", 2)
-    p("Proposed full path: POST /api/v1/payment-webhooks/{provider}. Access: verified provider signature, not customer bearer authentication. The actual body and signature headers depend on the approved gateway.")
-    p("Illustrative normalized event after provider-specific verification:")
-    code(dict(event_id="gateway_event_001", event_type="payment.succeeded", provider_order_id="<provider_order_id>",
-              provider_payment_id="<provider_payment_id>", amount=177000, currency="INR"))
-    p("Sample acknowledgement: HTTP 200")
-    code(dict(received=True))
-    p("Failures: 400 INVALID_EVENT; 401 INVALID_SIGNATURE; 409 PAYMENT_MAPPING_MISMATCH. Deduplicate event_id, enforce permitted attempt transitions, verify amount/currency/order and update settlement transactionally. A repeated valid event returns the same acknowledgement without duplicating a charge.")
-    h("Customer activity events", 2)
-    p("Supporting events: BOOKING_ACCEPTED, BOOKING_REJECTED, JOB_CREATED, JOB_STATUS_CHANGED, INVOICE_PUBLISHED, PAYMENT_SUCCEEDED, PAYMENT_FAILED, MESSAGE_RECEIVED, REVIEW_MODERATED, SUPPORT_UPDATED. Events carry only authorized linked context and drive in-app records plus best-effort push. Event names are proposed, not existing implementation claims.")
+    h("4. Customer-only scope boundary")
+    p("Included: customer registration/login/session flows, personal profile/contact verification/photos, owned vehicles/history, authenticated booking availability and quote submission, owned bookings, read-only published jobs, owned invoices/payments, devices/activity, contextual messages, own reviews and support tickets.")
+    p("Excluded: public garage search/profile/service catalogue/reviews, popular service discovery, public FAQs/help/privacy/terms URLs, garage-side decision or job mutation URLs, administrative URLs and payment-provider callback URLs.")
+    p("The authenticated garage availability operation remains because it is used to schedule the customer's booking. It is not a public garage listing or owner operation.")
+    p("Customer authentication is the only pre-login exception. Requiring a customer access token for registration or initial login would prevent those flows from working. No general public browsing endpoint is included.")
+    p("External dependencies may still exist without appearing in this customer-only catalogue: clients must obtain approved service/garage selections elsewhere, and settlement must still be verified server-side. This scope restriction does not grant customers any garage/admin privileges.")
+    p("This is a proposed requirements baseline, not an implementation audit. Existing garage-owned customer records must not be mistaken for verified customer login identities.")
     br()
-    h("5. Existing-versus-proposed gap summary")
-    table(["Area", "Observed baseline", "Required customer-app gap"], [
-        ["Identity", "Existing garage-owned customer records are tenant-scoped management records.", "Separate verified customer identity and customer-scoped sessions; safe linking to garage records without granting garage/admin privileges."],
-        ["Garage booking operations", "Garage list/detail/accept/reject/create-job routes exist.", "Customer request/quote/cancellation/discovery; verified ownership mapping; rejection reason and activity delivery."],
-        ["Jobs and billing", "Owner-side modules cover jobs, vehicles and billing concepts.", "Read-only published customer projections and secure final invoice/PDF access; reuse suitable logic only after access review."],
-        ["Other customer surfaces", "Not certified as customer contracts by this review.", "Customer discovery, payments, notifications, messaging, reviews and support need contract/implementation verification."],
-    ], [95,185,215])
-    p("This is a requirements review, not a complete implementation audit. No proposed route above is labelled implemented. Existing code may be reusable but its caller permissions and ownership model must be adapted and verified.")
-    br()
-    h("6. Story and screen traceability")
+    h("5. Story and screen traceability")
     story_rows, screen_rows = workbook_rows()
     assert len(story_rows)==38 and len(screen_rows)==21
-    h("All 38 user stories", 2)
+    h("Source stories: included and intentionally excluded", 2)
     rows = []
     for row in story_rows:
         sid = int(row[2].split("-")[1])
-        matches = [s for s in sections if sid in s["stories"]]
-        assert matches, row[2]
+        matches = [s for s in customer_sections if sid in s["stories"]]
         endpoint_ids = [e["id"] for s in matches for e in s["endpoints"]]
-        rows.append([row[2], row[1], row[5], ", ".join(endpoint_ids)])
+        rows.append([row[2], row[1], row[5], ", ".join(endpoint_ids) or "Excluded: public discovery/content scope"])
     table(["Story", "Source epic", "Priority", "Covering API IDs"], rows, [43,115,65,272])
-    p("Each story maps to the related feature group; the detailed group rules identify lifecycle, ownership and validation behavior. US-23 also depends on garage-only accept/reject operations and generated activity events.")
-    h("All 21 UI screens", 2)
+    p("US-10 through US-14 and US-37 are intentionally excluded as public discovery/content requirements. US-15 covers selected services in the booking quote, not the excluded public catalogue. US-23 retains customer-visible notifications; garage decision URLs are excluded.")
+    h("Source screens: customer-only coverage", 2)
     rows = []
     for row in screen_rows:
         uid = int(row[0].split("-")[1])
-        matches = [s for s in sections if uid in s["screens"]]
-        assert matches, row[0]
-        rows.append([row[0], row[2], ", ".join(e["id"] for s in matches for e in s["endpoints"])])
+        matches = [s for s in customer_sections if uid in s["screens"]]
+        rows.append([row[0], row[2], ", ".join(e["id"] for s in matches for e in s["endpoints"]) or "Excluded: public discovery scope"])
     table(["Screen", "Source screen", "Covering API IDs"], rows, [48,135,312])
     p("Explicit UI additions covered: profile photo; default vehicle; garage communication; review editing; activity filters. Booking Completed is derived from linked job completion.")
+    p("UI-05, UI-06 and UI-07 public discovery/catalogue operations are excluded. UI-04 covers notification/customer shortcuts only; public home discovery is excluded. UI-20 covers owned support tickets/replies only, not public content.")
     br()
-    h("7. Approval decision register")
+    h("6. Approval decision register")
     decisions = [
         ("D-01", "Registration contact", "Approve mobile OR email registration, or revise stories to mobile-required registration."),
         ("D-02", "Password option", "Include conditional password login/setup/recovery APIs or remove the password UI option."),
@@ -680,14 +673,14 @@ def make_documents():
         ("D-07", "Payments", "Choose provider; approve retry/reconciliation, receipts, full/partial payment scope and refund display rules."),
         ("D-08", "Reviews", "Approve moderation-before-publication, re-moderation after edits, edit window and public reviewer display policy."),
         ("D-09", "Messaging", "Approve eligible contexts, post-completion/cancellation permissions, continuity on job conversion and retention."),
-        ("D-10", "Support/content", "Approve categories/statuses, reply/closure policy, policy versions and content ownership."),
+        ("D-10", "Customer support", "Approve ticket categories/statuses and reply/closure policy. Public content endpoints are outside this revision."),
         ("D-11", "Vehicle ownership", "Approve linking verified customer identities to pre-existing garage vehicle/customer records; define duplicate and dispute handling."),
         ("D-12", "Billing publication", "Approve final invoice visibility, taxes/discounts and legal invoice fields. No historical bill repair is authorized."),
     ]
     table(["ID", "Decision", "Client confirmation required"], [list(x) for x in decisions], [44,112,339])
     p("All proposed defaults remain unapproved until confirmed. Open decisions may change request fields, endpoint behavior or delivery scope.")
-    h("8. Client sign-off")
-    p("Approval requested: customer API scope, story/UI coverage, payload/response direction, role boundaries and the decisions above.")
+    h("7. Client sign-off")
+    p("Approval requested: customer-only API scope, explicitly excluded public requirements, payload/response direction, role boundaries and the decisions above.")
     p("Approval is for this requirements baseline only. Implementation effort, delivery schedule, provider costs and production changes require separate agreement.")
     for text in ["Client / organization: ____________________________________",
                  "Reviewer name / role: ___________________________________",
@@ -697,7 +690,7 @@ def make_documents():
                  "Signature / written approval reference: __________________",
                  "Approval date: __________________________________________"]:
         p(text)
-    doc.save(OUT/"GoFixCarz_Customer_API_Requirements_Client_Approval.docx")
+    doc.save(OUT/"GoFixCarz_Customer_Only_APIs_Client_Approval.docx")
 
     def footer_pdf(canvas, document):
         canvas.saveState()
@@ -717,13 +710,13 @@ def make_documents():
                 level = 0 if item.style.name=="Heading1" else 1
                 self.canv.addOutlineEntry(item.getPlainText(), key, level, False)
 
-    pdf = PDF(str(OUT/"GoFixCarz_Customer_API_Requirements_Client_Approval.pdf"), pagesize=A4,
+    pdf = PDF(str(OUT/"GoFixCarz_Customer_Only_APIs_Client_Approval.pdf"), pagesize=A4,
               rightMargin=50,leftMargin=50,topMargin=48,bottomMargin=55,
-              title="GoFixCarz Customer API Requirements - Client Approval",author="GoFixCarz")
+              title="GoFixCarz Customer-Only APIs - Client Approval",author="GoFixCarz")
     pdf.build(flow, onFirstPage=footer_pdf, onLaterPages=footer_pdf)
     # Machine-readable source helps verify examples, without exposing credentials.
-    (OUT/"customer-api-specification-source.json").write_text(json.dumps(sections, indent=2))
-    print(f"Generated {num} proposed customer operations; 38 stories and 21 screens mapped.")
+    (OUT/"customer-only-api-specification-source.json").write_text(json.dumps(customer_sections, indent=2))
+    print(f"Generated {num} customer-only operations; public discovery/content and non-customer URLs excluded.")
 
 
 if __name__ == "__main__":
