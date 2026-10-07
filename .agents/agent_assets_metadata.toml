@@ -14,3 +14,31 @@ mtime_ms = 1791284721478
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/91837bab-0585-4208-8d9d-63af97521050/96e26d61-0e9d-4b93-b4bb-dd9f6a14d1f2"
 storage_version_token = "1791284866773965"
 content_type = "text/html"
+
+[[outputs]]
+id = "N52HEbu3uSTV5-4sBhWV0"
+uri = "file://documents/GoFixCarz_Customer_API_Requirements_Client_Approval.pdf"
+type = "pdf"
+title = "GoFixCarz Customer API Requirements — PDF"
+description = "Client approval draft with 70 proposed operations, request payloads, sample responses, story/screen coverage, open decisions and a sign-off section."
+logical_id = "00b1579a-fab0-41b6-8517-9ad365b5a12f"
+content_hash = "sha256:dd971b4212b1f2e6260cf8080f727ab7bea39083f6e55ce4eebeb39c2c23a741"
+size = 94802
+mtime_ms = 1791368502321
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/00b1579a-fab0-41b6-8517-9ad365b5a12f/67060d81-5c96-42b8-9d23-06203a622fa4"
+storage_version_token = "1791368521333810"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "0IHHo9OmW5VnS6lyWxZgd"
+uri = "file://documents/GoFixCarz_Customer_API_Requirements_Client_Approval.docx"
+type = "word_document"
+title = "GoFixCarz Customer API Requirements — Editable Word"
+description = "Editable version of the same specification for client comments, requested changes and approval."
+logical_id = "8cc1b5eb-4154-4771-a59f-f9bd0648e976"
+content_hash = "sha256:3c3ee4caf9bff45322b1d660cef821187369d3d91746e473232026be9fec8665"
+size = 59986
+mtime_ms = 1791368502169
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/8cc1b5eb-4154-4771-a59f-f9bd0648e976/88ee748c-a535-4dd6-a74e-25d0ab6231f9"
+storage_version_token = "1791368522593895"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
