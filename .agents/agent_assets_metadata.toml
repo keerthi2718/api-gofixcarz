@@ -70,3 +70,31 @@ mtime_ms = 1791370203281
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/93209135-3c5d-4197-858e-99f3a2f3fea8/a811a4ad-92d5-45d3-8863-8ec63c792daf"
 storage_version_token = "1791370224446797"
 content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "XOyd1a1_N7XJ9s87rvFOE"
+uri = "file://documents/GoFixCarz_Admin_Only_APIs_Client_Approval.pdf"
+type = "pdf"
+title = "GoFixCarz Admin APIs — Client Approval PDF"
+description = "Admin-only requirements covering all 29 stories, with 62 proposed business endpoints, four private authentication operation descriptions, payloads, sample responses, reporting formulas, permission rules and client sign-off."
+logical_id = "df0be686-b3af-4205-b7fb-8a3f675d28a8"
+content_hash = "sha256:5ef88f03155b4d0e57cb4cd0e18d6cdbddab5f942fb42cfe037385b88fefea7f"
+size = 102525
+mtime_ms = 1791437416962
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/df0be686-b3af-4205-b7fb-8a3f675d28a8/24d076a4-3bb4-4444-b53d-ab164a7b432f"
+storage_version_token = "1791437449108365"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "2B3oxoXxHTe7BieaCcGW5"
+uri = "file://documents/GoFixCarz_Admin_Only_APIs_Client_Approval.docx"
+type = "word_document"
+title = "GoFixCarz Admin APIs — Editable Word Document"
+description = "Editable copy for client comments and approval. Public and other-role API catalogues, private authentication URL locations and real credentials are excluded."
+logical_id = "88fc9533-276c-4251-bee0-792065481997"
+content_hash = "sha256:a8882241723bd05feadb2245ec98cfb25019d26db627aba6a14625fff3269c82"
+size = 61430
+mtime_ms = 1791437416806
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/88fc9533-276c-4251-bee0-792065481997/55ba5b85-e035-46e7-a261-6a86f3dd9d07"
+storage_version_token = "1791437450480568"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

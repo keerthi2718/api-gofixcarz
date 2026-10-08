@@ -1,0 +1,2444 @@
+[
+  {
+    "title": "Secure admin access - private route locations withheld",
+    "stories": [
+      1
+    ],
+    "rules": [
+      "The CSV requires secure login with MFA/OTP support and secure expiry. Shared documents must not reveal the private admin sign-in location. Logical operations below intentionally have no URL; location and security configuration are distributed privately.",
+      "Admin accounts are separate from garage-owner/customer identities. No public registration or self-promotion is permitted. Passwords and codes are placeholders; never include real credentials in client documents.",
+      "Proposed baseline: password plus mandatory MFA for administrative access. TOTP is recommended; an approved verified OTP factor may be used instead. Challenge and proof must be purpose-bound, short-lived, single-use and rate-limited.",
+      "Invalid credentials use generic errors. Token rotation/reuse detection, secure device storage, session revocation, recent MFA for privileged actions and administrative session timeout need final approval. Existing password/session support does not imply MFA is implemented."
+    ],
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "[private URL withheld]",
+        "title": "Private operation: begin admin sign-in",
+        "request": {
+          "identifier": "admin@example.test",
+          "password": "<password>",
+          "device_name": "Admin workstation"
+        },
+        "response": {
+          "challenge_id": "admin_challenge_001",
+          "mfa_required": true,
+          "mfa_method": "TOTP",
+          "expires_in_seconds": 300
+        },
+        "permission": "Pre-session admin verification",
+        "status": 200,
+        "query": "",
+        "rules": "identifier and password required; device_name optional. Do not issue a business-data access token before the required factor passes.",
+        "errors": "401 INVALID_CREDENTIALS; 429 RATE_LIMITED",
+        "private": true,
+        "headers": "",
+        "id": "ADM-01"
+      },
+      {
+        "method": "POST",
+        "path": "[private URL withheld]",
+        "title": "Private operation: complete admin MFA",
+        "request": {
+          "challenge_id": "admin_challenge_001",
+          "code": "123456"
+        },
+        "response": {
+          "admin": {
+            "id": "admin_001",
+            "display_name": "Example Administrator",
+            "role_ids": [
+              "role_ceo"
+            ]
+          },
+          "access_token": "<admin_access_token>",
+          "refresh_token": "<admin_refresh_token>",
+          "expires_in_seconds": 900,
+          "session_id": "admin_session_001"
+        },
+        "permission": "MFA challenge",
+        "status": 200,
+        "query": "",
+        "rules": "Both fields required. code is a string. This is a proposed private MFA contract, not an exposed route.",
+        "errors": "400 MFA_INVALID; 400 MFA_EXPIRED; 429 RATE_LIMITED",
+        "private": true,
+        "headers": "",
+        "id": "ADM-02"
+      },
+      {
+        "method": "POST",
+        "path": "[private URL withheld]",
+        "title": "Private operation: refresh admin session",
+        "request": {
+          "refresh_token": "<admin_refresh_token>"
+        },
+        "response": {
+          "access_token": "<new_admin_access_token>",
+          "refresh_token": "<rotated_admin_refresh_token>",
+          "expires_in_seconds": 900
+        },
+        "permission": "Refresh credential",
+        "status": 200,
+        "query": "",
+        "rules": "refresh_token required; reject revoked/expired/reused credentials.",
+        "errors": "401 SESSION_EXPIRED; 401 REFRESH_REUSE_DETECTED",
+        "private": true,
+        "headers": "",
+        "id": "ADM-03"
+      },
+      {
+        "method": "POST",
+        "path": "[private URL withheld]",
+        "title": "Private operation: revoke current session",
+        "request": null,
+        "response": {
+          "logged_out": true
+        },
+        "permission": "Authenticated admin session",
+        "status": 200,
+        "query": "",
+        "rules": "Revoke current session and refresh credentials; protected access must honor revocation.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": true,
+        "headers": "",
+        "id": "ADM-04"
+      }
+    ]
+  },
+  {
+    "title": "Identity, roles and permission-aware navigation",
+    "stories": [
+      20
+    ],
+    "rules": [
+      "RBAC is enforced server-side for every read, export and mutation, not only by hiding screens. Cross-garage access is limited to the admin's permitted data scope.",
+      "Proposed functional permissions are shown per operation. CEO may receive approved full access; operations, finance and support roles receive least privilege. Role names do not bypass permission checks.",
+      "Role assignment requires security.manage and recent MFA. Prevent self-escalation and removing the last active security administrator. Log before/after permission changes and revoke/re-evaluate affected sessions.",
+      "Staff/role reads and role assignment are required to support AUS-20. Creating/deleting staff accounts or dynamic role creation is outside these stories; provisioning stays deliberate and private."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/me",
+        "title": "Read admin identity and effective permissions",
+        "request": null,
+        "response": {
+          "id": "admin_001",
+          "display_name": "Example Administrator",
+          "role_ids": [
+            "role_ceo"
+          ],
+          "permissions": [
+            "dashboard.read",
+            "garages.read",
+            "finance.read",
+            "reports.export"
+          ],
+          "data_scope": {
+            "type": "PLATFORM"
+          }
+        },
+        "permission": "Authenticated admin",
+        "status": 200,
+        "query": "",
+        "rules": "Return effective permissions, permitted garage scope and current identity; never return credential hashes.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-05"
+      },
+      {
+        "method": "GET",
+        "path": "/menus",
+        "title": "Read authorized admin menus",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "key": "dashboard",
+              "label": "Dashboard",
+              "permission": "dashboard.read"
+            },
+            {
+              "key": "finance",
+              "label": "Finance",
+              "permission": "finance.read"
+            }
+          ]
+        },
+        "permission": "Authenticated admin",
+        "status": 200,
+        "query": "",
+        "rules": "Return only authorized menu keys; private sign-in routes are never included.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-06"
+      },
+      {
+        "method": "GET",
+        "path": "/permissions",
+        "title": "Read permission catalogue",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "code": "garages.status.write",
+              "description": "Activate or suspend a garage"
+            },
+            {
+              "code": "security.manage",
+              "description": "Assign admin staff roles"
+            }
+          ]
+        },
+        "permission": "security.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-07"
+      },
+      {
+        "method": "GET",
+        "path": "/roles",
+        "title": "Read approved admin roles",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "role_operations",
+              "name": "Operations",
+              "permissions": [
+                "garages.read",
+                "bookings.read",
+                "jobs.read"
+              ]
+            },
+            {
+              "id": "role_finance",
+              "name": "Finance",
+              "permissions": [
+                "finance.read",
+                "reports.export"
+              ]
+            }
+          ]
+        },
+        "permission": "security.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-08"
+      },
+      {
+        "method": "GET",
+        "path": "/staff",
+        "title": "List admin staff and assigned roles",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "admin_002",
+              "display_name": "Example Operations Staff",
+              "is_active": true,
+              "role_ids": [
+                "role_operations"
+              ]
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "security.read",
+        "status": 200,
+        "query": "search=Operations&is_active=true&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-09"
+      },
+      {
+        "method": "PUT",
+        "path": "/staff/{admin_id}/roles",
+        "title": "Assign approved roles/data scope",
+        "request": {
+          "role_ids": [
+            "role_operations"
+          ],
+          "data_scope": {
+            "type": "GARAGES",
+            "garage_ids": [
+              "garage_001"
+            ]
+          },
+          "reason": "Regional operations assignment"
+        },
+        "response": {
+          "admin_id": "admin_002",
+          "role_ids": [
+            "role_operations"
+          ],
+          "data_scope": {
+            "type": "GARAGES",
+            "garage_ids": [
+              "garage_001"
+            ]
+          },
+          "audit_id": "audit_001"
+        },
+        "permission": "security.manage",
+        "status": 200,
+        "query": "",
+        "rules": "All fields required. role_ids must be valid approved roles; type is PLATFORM or GARAGES. GARAGES requires nonempty unique garage_ids. Reject escalation outside grantor authority.",
+        "errors": "403 PRIVILEGE_ESCALATION_DENIED; 409 LAST_SECURITY_ADMIN; 422 ROLE_INVALID",
+        "private": false,
+        "headers": "",
+        "id": "ADM-10"
+      }
+    ]
+  },
+  {
+    "title": "Executive dashboard and consistent analytics",
+    "stories": [
+      2,
+      3
+    ],
+    "rules": [
+      "Common filters: date_from, date_to, timezone, city, garage_id, service_id. Apply the same normalized filters, permission scope and snapshot to all cards/charts.",
+      "Server generates snapshot_id/as_of on initial read. Clients may pass snapshot_id on subsequent related dashboard/statistics/export reads. Expired snapshots produce 409 and require reload.",
+      "Dashboard customer/garage counts are distinct participants in the selected segment/time range; lifetime totals require a separate explicitly-labelled view. Active job statuses are OPEN, IN_PROGRESS, WAITING_FOR_PARTS, QUALITY_CHECK and READY.",
+      "Financial net_collected_amount means confirmed gross captured payments minus settled refunds, including tax; it is not profit or statutory revenue. Return taxes/discounts separately and approve the accounting definition."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/dashboard",
+        "title": "Read executive KPI dashboard",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "kpis": {
+            "garages": 2,
+            "customers": 40,
+            "bookings": 60,
+            "active_jobs": 17,
+            "completed_jobs": 30,
+            "cancelled_jobs": 3,
+            "cancelled_bookings": 4,
+            "payment_failures": 3,
+            "gross_collected_amount": 3540000,
+            "refunded_amount": 118000,
+            "net_collected_amount": 3422000,
+            "currency": "INR"
+          }
+        },
+        "permission": "dashboard.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad",
+        "rules": "Filters are optional; default date window must be returned explicitly. Proposed metrics extend the existing dashboard contract.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-11"
+      },
+      {
+        "method": "GET",
+        "path": "/analytics",
+        "title": "Read filtered time-series charts",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "period": "daily",
+          "series": [
+            {
+              "date": "2026-10-08",
+              "bookings": 8,
+              "jobs_created": 5,
+              "jobs_completed": 3,
+              "captured_amount": 354000,
+              "refunded_amount": 0,
+              "net_collected_amount": 354000
+            }
+          ],
+          "currency": "INR"
+        },
+        "permission": "dashboard.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&period=daily",
+        "rules": "period supports daily, weekly, monthly or custom. Chart time buckets and metric definitions must match the dashboard.",
+        "errors": "422 DATE_RANGE_INVALID; 409 SNAPSHOT_EXPIRED",
+        "private": false,
+        "headers": "",
+        "id": "ADM-12"
+      }
+    ]
+  },
+  {
+    "title": "Garage owners, profiles and operational controls",
+    "stories": [
+      4,
+      5,
+      6
+    ],
+    "rules": [
+      "Owner identity and garage identity are distinct; one owner can manage several garages. Lists include ratings, booking/job/revenue aggregates and selected filters.",
+      "Operational status (ACTIVE, SUSPENDED) and verification status (UNVERIFIED, VERIFIED) are separate controls. Verification does not silently activate a suspended garage.",
+      "Suspension blocks discovery/new bookings according to approved policy, while preserving historical records and handling existing work explicitly. Status changes are audited with reason, actor and timestamp.",
+      "Support/complaint counts link to support tickets; garage profile includes active services, hours, invoices, reviews and recent activity without exposing credential or bank secrets."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/garage-owners",
+        "title": "List garage owners and activity",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "owner_001",
+              "display_name": "Example Garage Owner",
+              "garage_ids": [
+                "garage_001"
+              ],
+              "city": "Hyderabad",
+              "account_status": "ACTIVE",
+              "average_rating": 4.6,
+              "bookings": 20,
+              "jobs_created": 30,
+              "net_collected_amount": 2242000,
+              "currency": "INR"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "garages.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&search=Example&status=ACTIVE&min_rating=4&page=1&page_size=20",
+        "rules": "Optional search, owner status, city, min_rating, garage_id and reporting filters. Account status is not garage operational status.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-13"
+      },
+      {
+        "method": "GET",
+        "path": "/garage-owners/{owner_id}",
+        "title": "View owner and managed garages",
+        "request": null,
+        "response": {
+          "id": "owner_001",
+          "display_name": "Example Garage Owner",
+          "account_status": "ACTIVE",
+          "garages": [
+            {
+              "id": "garage_001",
+              "name": "Example Garage",
+              "operational_status": "ACTIVE",
+              "verification_status": "VERIFIED"
+            }
+          ]
+        },
+        "permission": "garages.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-14"
+      },
+      {
+        "method": "GET",
+        "path": "/garages",
+        "title": "List admin-visible garages",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "garage_001",
+              "owner_id": "owner_001",
+              "name": "Example Garage",
+              "city": "Hyderabad",
+              "operational_status": "ACTIVE",
+              "verification_status": "VERIFIED",
+              "average_rating": 4.6
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "garages.read",
+        "status": 200,
+        "query": "city=Hyderabad&operational_status=ACTIVE&verification_status=VERIFIED&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-15"
+      },
+      {
+        "method": "GET",
+        "path": "/garages/{garage_id}",
+        "title": "Inspect garage profile and operations",
+        "request": null,
+        "response": {
+          "id": "garage_001",
+          "owner_id": "owner_001",
+          "name": "Example Garage",
+          "city": "Hyderabad",
+          "timezone": "Asia/Kolkata",
+          "operational_status": "ACTIVE",
+          "verification_status": "VERIFIED",
+          "services": [
+            {
+              "id": "service_001",
+              "name": "Basic Service",
+              "price_amount": 100000,
+              "currency": "INR"
+            }
+          ],
+          "working_hours": [
+            {
+              "day": "THURSDAY",
+              "opens": "09:00",
+              "closes": "18:00"
+            }
+          ],
+          "summary": {
+            "bookings": 20,
+            "jobs": 30,
+            "invoices": 20,
+            "average_rating": 4.6,
+            "complaints": 2
+          },
+          "recent_activity": [
+            {
+              "type": "JOB_CREATED",
+              "job_id": "job_001",
+              "timestamp": "2026-10-08T10:00:00+05:30"
+            }
+          ]
+        },
+        "permission": "garages.read",
+        "status": 200,
+        "query": "",
+        "rules": "Collections in this summary are bounded previews. Related bookings/jobs/invoices/support APIs allow garage_id filtering and pagination.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-16"
+      },
+      {
+        "method": "PATCH",
+        "path": "/garages/{garage_id}/status",
+        "title": "Activate or suspend garage",
+        "request": {
+          "operational_status": "SUSPENDED",
+          "reason": "Partner quality review",
+          "expected_version": 3
+        },
+        "response": {
+          "id": "garage_002",
+          "operational_status": "SUSPENDED",
+          "version": 4,
+          "audit_id": "audit_002"
+        },
+        "permission": "garages.status.write",
+        "status": 200,
+        "query": "",
+        "rules": "All fields required. Use expected_version for concurrency; sample change targets garage_002, separate from active garage_001.",
+        "errors": "409 VERSION_CONFLICT; 422 INVALID_STATUS_TRANSITION",
+        "private": false,
+        "headers": "",
+        "id": "ADM-17"
+      },
+      {
+        "method": "PATCH",
+        "path": "/garages/{garage_id}/verification",
+        "title": "Verify garage",
+        "request": {
+          "verification_status": "VERIFIED",
+          "reason": "Required documents reviewed",
+          "expected_version": 4
+        },
+        "response": {
+          "id": "garage_002",
+          "operational_status": "SUSPENDED",
+          "verification_status": "VERIFIED",
+          "version": 5,
+          "audit_id": "audit_003"
+        },
+        "permission": "garages.verify",
+        "status": 200,
+        "query": "",
+        "rules": "All fields required. Verification/reversal transitions need policy; changing verification does not override operational suspension.",
+        "errors": "409 VERSION_CONFLICT; 422 VERIFICATION_REQUIREMENTS_NOT_MET",
+        "private": false,
+        "headers": "",
+        "id": "ADM-18"
+      },
+      {
+        "method": "GET",
+        "path": "/garages/{garage_id}/reviews",
+        "title": "Inspect garage ratings/reviews",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "review_001",
+              "customer_id": "customer_001",
+              "job_id": "job_001",
+              "rating": 4,
+              "comment": "Good service",
+              "moderation_status": "PUBLISHED"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "garages.read",
+        "status": 200,
+        "query": "moderation_status=PUBLISHED&page=1&page_size=20",
+        "rules": "Inspection only; review moderation writes are not requested in this source.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-19"
+      }
+    ]
+  },
+  {
+    "title": "Customer account and risk monitoring",
+    "stories": [
+      7,
+      8
+    ],
+    "rules": [
+      "Customer login identities must be distinguished from garage-owned contact records. Cross-platform customer reads require customers.read; do not mistake owner accounts for customer identities.",
+      "Customer list filters include search, account_status, inactive_since, last activity, failed-payment count and support flags. Define the inactivity threshold in configuration.",
+      "Profile shows paginated linked vehicles, bookings, jobs, invoices, payment attempts, reviews and support tickets. Return permission-filtered summaries and use related list endpoints for drill-down.",
+      "The source requests identifying inactive/blocked accounts, not authority to block/delete customers. No customer-blocking, impersonation or credential reset operation is added."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/customers",
+        "title": "List customers and risk flags",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "customer_001",
+              "display_name": "Example Customer",
+              "account_status": "ACTIVE",
+              "last_activity_at": "2026-10-08T12:00:00+05:30",
+              "failed_payments": 1,
+              "support_flags": [
+                "OPEN_PAYMENT_TICKET"
+              ]
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "customers.read",
+        "status": 200,
+        "query": "account_status=ACTIVE&has_failed_payments=true&has_support_flags=true&page=1&page_size=20",
+        "rules": "All filters optional and combined with AND. Optional inactive_since uses last_activity_at before the supplied cutoff, with never-active handling defined in policy.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-20"
+      },
+      {
+        "method": "GET",
+        "path": "/customers/{customer_id}",
+        "title": "Inspect customer and linked records",
+        "request": null,
+        "response": {
+          "id": "customer_001",
+          "display_name": "Example Customer",
+          "account_status": "ACTIVE",
+          "vehicles": [
+            {
+              "id": "vehicle_001",
+              "registration_number": "TS00AA0001",
+              "model": "Swift"
+            }
+          ],
+          "bookings": [
+            {
+              "id": "booking_001",
+              "status": "CONVERTED"
+            }
+          ],
+          "jobs": [
+            {
+              "id": "job_001",
+              "status": "COMPLETED"
+            }
+          ],
+          "invoices": [
+            {
+              "id": "invoice_001",
+              "total_amount": 118000,
+              "payment_status": "PAID"
+            }
+          ],
+          "payments": [
+            {
+              "id": "payment_001",
+              "status": "PAID"
+            }
+          ],
+          "reviews": [
+            {
+              "id": "review_001",
+              "rating": 4
+            }
+          ],
+          "support_tickets": [
+            {
+              "id": "ticket_001",
+              "status": "OPEN"
+            }
+          ],
+          "related_preview_limit": 5
+        },
+        "permission": "customers.read",
+        "status": 200,
+        "query": "",
+        "rules": "Linked finance details additionally require finance.read. Paginate full related data via the dedicated lists; vehicle and review list operations below complete the profile drill-down.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-21"
+      },
+      {
+        "method": "GET",
+        "path": "/customers/{customer_id}/vehicles",
+        "title": "Inspect all customer vehicles",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "vehicle_001",
+              "registration_number": "TS00AA0001",
+              "brand": "Maruti Suzuki",
+              "model": "Swift",
+              "fuel_type": "PETROL"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "customers.read",
+        "status": 200,
+        "query": "page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-22"
+      },
+      {
+        "method": "GET",
+        "path": "/customers/{customer_id}/reviews",
+        "title": "Inspect customer review history",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "review_001",
+              "garage_id": "garage_001",
+              "job_id": "job_001",
+              "rating": 4,
+              "moderation_status": "PUBLISHED"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "customers.read",
+        "status": 200,
+        "query": "page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-23"
+      }
+    ]
+  },
+  {
+    "title": "Booking monitoring and exception trends",
+    "stories": [
+      9,
+      10
+    ],
+    "rules": [
+      "Read-only monitoring; admin does not accept/reject or convert bookings on behalf of a garage in this requirements baseline.",
+      "Booking states: PENDING, ACCEPTED, REJECTED, CANCELLED, CONVERTED, EXPIRED. Include actor, timestamps, rejection/cancellation/expiry reasons and linked job where available.",
+      "Exception charts break down rejected/cancelled/expired bookings by reason, owner, city and time using the same filter/snapshot convention. Missing reasons are explicitly categorized as UNSPECIFIED."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/bookings",
+        "title": "Monitor bookings across permitted garages",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "booking_001",
+              "customer_id": "customer_001",
+              "garage_id": "garage_001",
+              "owner_id": "owner_001",
+              "vehicle_id": "vehicle_001",
+              "service_ids": [
+                "service_001"
+              ],
+              "starts_at": "2026-10-08T10:00:00+05:30",
+              "status": "CONVERTED",
+              "created_at": "2026-10-07T15:00:00+05:30",
+              "accepted_at": "2026-10-07T16:00:00+05:30",
+              "job_id": "job_001"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "bookings.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&status=CONVERTED&customer_id=customer_001&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-24"
+      },
+      {
+        "method": "GET",
+        "path": "/bookings/{booking_id}",
+        "title": "Inspect booking history/decision reasons",
+        "request": null,
+        "response": {
+          "id": "booking_002",
+          "status": "REJECTED",
+          "customer_id": "customer_002",
+          "garage_id": "garage_002",
+          "owner_id": "owner_002",
+          "reason": "Requested slot unavailable",
+          "decision_actor": {
+            "role": "GARAGE_OWNER",
+            "id": "owner_002"
+          },
+          "decided_at": "2026-10-08T11:00:00+05:30",
+          "timeline": [
+            {
+              "status": "PENDING",
+              "timestamp": "2026-10-08T10:50:00+05:30"
+            },
+            {
+              "status": "REJECTED",
+              "timestamp": "2026-10-08T11:00:00+05:30"
+            }
+          ]
+        },
+        "permission": "bookings.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-25"
+      },
+      {
+        "method": "GET",
+        "path": "/bookings/exception-statistics",
+        "title": "Read booking exception breakdowns",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "totals": {
+            "REJECTED": 6,
+            "CANCELLED": 4,
+            "EXPIRED": 2
+          },
+          "by_reason": [
+            {
+              "reason": "UNSPECIFIED",
+              "count": 2
+            },
+            {
+              "reason": "Requested slot unavailable",
+              "count": 10
+            }
+          ],
+          "by_owner": [
+            {
+              "owner_id": "owner_001",
+              "count": 7
+            },
+            {
+              "owner_id": "owner_002",
+              "count": 5
+            }
+          ]
+        },
+        "permission": "bookings.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&group_by=owner,reason,day",
+        "rules": "group_by supports owner, garage, reason, city, day. Date basis is the exception transition timestamp.",
+        "errors": "422 INVALID_GROUPING; 409 SNAPSHOT_EXPIRED",
+        "private": false,
+        "headers": "",
+        "id": "ADM-26"
+      }
+    ]
+  },
+  {
+    "title": "Job monitoring, timeline and delay alerts",
+    "stories": [
+      11,
+      12
+    ],
+    "rules": [
+      "Job states: OPEN, IN_PROGRESS, WAITING_FOR_PARTS, QUALITY_CHECK, READY, COMPLETED, CANCELLED. Return complete authorized detail without granting job-edit/status-change powers.",
+      "Delay detection uses configured thresholds per service/state and recorded timestamps. State duration starts at entry into the current state; overall overdue compares an approved due_at against as_of.",
+      "Jobs waiting for parts are filterable independently of being overdue. Alerts show measured duration, threshold and the current delay reason. Configuration ownership must be approved."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/jobs",
+        "title": "Monitor job cards",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "job_001",
+              "job_number": "GFC-J-000001",
+              "garage_id": "garage_001",
+              "customer_id": "customer_001",
+              "vehicle_id": "vehicle_001",
+              "status": "COMPLETED",
+              "created_at": "2026-10-08T10:00:00+05:30",
+              "completed_at": "2026-10-08T12:00:00+05:30"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "jobs.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&status=COMPLETED&customer_id=customer_001&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-27"
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}",
+        "title": "Inspect job findings and charges",
+        "request": null,
+        "response": {
+          "id": "job_001",
+          "garage_id": "garage_001",
+          "customer_id": "customer_001",
+          "vehicle_id": "vehicle_001",
+          "status": "COMPLETED",
+          "services": [
+            {
+              "id": "service_001",
+              "name": "Basic Service"
+            }
+          ],
+          "parts": [
+            {
+              "name": "Engine oil",
+              "quantity": 1
+            }
+          ],
+          "labour": [
+            {
+              "description": "Oil change"
+            }
+          ],
+          "inspection_findings": [
+            "Routine maintenance completed"
+          ],
+          "created_at": "2026-10-08T10:00:00+05:30",
+          "completed_at": "2026-10-08T12:00:00+05:30"
+        },
+        "permission": "jobs.read",
+        "status": 200,
+        "query": "",
+        "rules": "Mask restricted notes/financial fields where the admin lacks their permissions.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-28"
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/{job_id}/timeline",
+        "title": "Inspect chronological job events",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "status": "OPEN",
+              "timestamp": "2026-10-08T10:00:00+05:30",
+              "actor_id": "owner_001"
+            },
+            {
+              "status": "COMPLETED",
+              "timestamp": "2026-10-08T12:00:00+05:30",
+              "actor_id": "owner_001"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 2
+        },
+        "permission": "jobs.read",
+        "status": 200,
+        "query": "page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-29"
+      },
+      {
+        "method": "GET",
+        "path": "/jobs/delays",
+        "title": "Identify delayed/waiting jobs",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "job_003",
+              "garage_id": "garage_001",
+              "status": "WAITING_FOR_PARTS",
+              "state_entered_at": "2026-10-06T10:00:00+05:30",
+              "measured_state_hours": 53,
+              "threshold_hours": 24,
+              "is_overdue": true,
+              "reason": "Part not received"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "jobs.read",
+        "status": 200,
+        "query": "status=WAITING_FOR_PARTS&overdue=true&garage_id=garage_001&page=1&page_size=20",
+        "rules": "Return as_of in list metadata; sample durations measured at 2026-10-08T15:00:00+05:30.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-30"
+      },
+      {
+        "method": "GET",
+        "path": "/alerts",
+        "title": "Read operational delay alerts",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "alert_001",
+              "type": "JOB_DELAY",
+              "severity": "HIGH",
+              "job_id": "job_003",
+              "garage_id": "garage_001",
+              "threshold_hours": 24,
+              "measured_hours": 53,
+              "detected_at": "2026-10-08T15:00:00+05:30"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "jobs.read",
+        "status": 200,
+        "query": "type=JOB_DELAY&severity=HIGH&page=1&page_size=20",
+        "rules": "Alert generation/deduplication must be defined; this read API does not imply a customer notification or intervention mutation.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-31"
+      }
+    ]
+  },
+  {
+    "title": "Finance, invoices, payments, refunds and disputes",
+    "stories": [
+      13,
+      14
+    ],
+    "rules": [
+      "Finance is read-only investigation/reporting in the source. No payment-status override, refund initiation, charge, invoice-edit or missing-bill repair endpoint is proposed.",
+      "Amounts are integer paise, INR. Full/partial refunds are separate settled financial events, not failed payment attempts. Reconcile capture/refund amounts before reporting.",
+      "Sanitize gateway responses: expose approved response codes, timestamps and transaction references only. Exclude secrets, signatures, card/bank details and raw unrestricted gateway payloads.",
+      "Financial reports include totals/trends, status, garage breakdown, tax and discount totals. Different event date bases must be explicit: invoice issued_at; payment captured_at; refund settled_at; dispute opened_at."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/finance/summary",
+        "title": "Read financial totals and breakdown",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "gross_collected_amount": 3540000,
+          "refunded_amount": 118000,
+          "net_collected_amount": 3422000,
+          "issued_invoice_total_amount": 3540000,
+          "tax_amount": 540000,
+          "discount_amount": 0,
+          "failed_attempts": 3,
+          "currency": "INR",
+          "by_garage": [
+            {
+              "garage_id": "garage_001",
+              "net_collected_amount": 2242000
+            },
+            {
+              "garage_id": "garage_002",
+              "net_collected_amount": 1180000
+            }
+          ]
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad",
+        "rules": "Return event-date bases and matching filter metadata; payment trends available through finance analytics.",
+        "errors": "422 DATE_RANGE_INVALID; 409 SNAPSHOT_EXPIRED",
+        "private": false,
+        "headers": "",
+        "id": "ADM-32"
+      },
+      {
+        "method": "GET",
+        "path": "/finance/trends",
+        "title": "Read finance trends",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "currency": "INR",
+          "series": [
+            {
+              "date": "2026-10-08",
+              "captured_amount": 354000,
+              "refunded_amount": 0,
+              "net_collected_amount": 354000,
+              "tax_amount": 54000,
+              "discount_amount": 0,
+              "failed_attempts": 1
+            }
+          ]
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&period=daily",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-33"
+      },
+      {
+        "method": "GET",
+        "path": "/invoices",
+        "title": "List invoices with billing totals",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "invoice_001",
+              "job_id": "job_001",
+              "customer_id": "customer_001",
+              "garage_id": "garage_001",
+              "subtotal_amount": 100000,
+              "tax_amount": 18000,
+              "discount_amount": 0,
+              "total_amount": 118000,
+              "payment_status": "PAID",
+              "currency": "INR"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&customer_id=customer_001&payment_status=PAID&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-34"
+      },
+      {
+        "method": "GET",
+        "path": "/invoices/{invoice_id}",
+        "title": "Inspect invoice and payment links",
+        "request": null,
+        "response": {
+          "id": "invoice_001",
+          "job_id": "job_001",
+          "customer_id": "customer_001",
+          "garage_id": "garage_001",
+          "line_items": [
+            {
+              "type": "SERVICE",
+              "description": "Basic Service",
+              "quantity": 1,
+              "unit_amount": 100000,
+              "line_total": 100000
+            }
+          ],
+          "subtotal_amount": 100000,
+          "taxes": [
+            {
+              "name": "GST",
+              "rate_percent": 18,
+              "amount": 18000
+            }
+          ],
+          "discount_amount": 0,
+          "total_amount": 118000,
+          "currency": "INR",
+          "payment_status": "PAID",
+          "payment_ids": [
+            "payment_001"
+          ]
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-35"
+      },
+      {
+        "method": "GET",
+        "path": "/payments",
+        "title": "Find failed/disputed or settled payments",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "payment_001",
+              "invoice_id": "invoice_001",
+              "customer_id": "customer_001",
+              "garage_id": "garage_001",
+              "status": "PAID",
+              "amount": 118000,
+              "currency": "INR",
+              "dispute_status": "NONE"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&status=PAID&disputed=false&page=1&page_size=20",
+        "rules": "Optional customer_id, invoice_id, garage_id, status and disputed filters. Failure and dispute are different dimensions.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-36"
+      },
+      {
+        "method": "GET",
+        "path": "/payments/{payment_id}",
+        "title": "Inspect payment attempt and safe gateway result",
+        "request": null,
+        "response": {
+          "id": "payment_failed_001",
+          "invoice_id": "invoice_002",
+          "customer_id": "customer_002",
+          "garage_id": "garage_002",
+          "status": "FAILED",
+          "amount": 118000,
+          "currency": "INR",
+          "gateway": {
+            "provider": "<configured_provider>",
+            "order_reference": "<synthetic_order_reference>",
+            "response_code": "PAYMENT_DECLINED",
+            "responded_at": "2026-10-08T12:00:00+05:30"
+          },
+          "dispute_ids": [],
+          "related_attempt_ids": [
+            "payment_failed_001"
+          ]
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-37"
+      },
+      {
+        "method": "GET",
+        "path": "/invoices/{invoice_id}/payment-attempts",
+        "title": "Inspect every attempt for invoice",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "payment_001",
+              "status": "PAID",
+              "amount": 118000,
+              "created_at": "2026-10-08T12:15:00+05:30"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-38"
+      },
+      {
+        "method": "GET",
+        "path": "/refunds",
+        "title": "Inspect refund records",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "refund_001",
+              "payment_id": "payment_001",
+              "invoice_id": "invoice_001",
+              "garage_id": "garage_001",
+              "amount": 11800,
+              "currency": "INR",
+              "status": "SETTLED",
+              "settled_at": "2026-10-08T13:00:00+05:30"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&status=SETTLED&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-39"
+      },
+      {
+        "method": "GET",
+        "path": "/disputes",
+        "title": "Find disputed payments",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "dispute_001",
+              "payment_id": "payment_003",
+              "invoice_id": "invoice_003",
+              "customer_id": "customer_003",
+              "garage_id": "garage_001",
+              "status": "OPEN",
+              "reason": "Customer reports duplicate payment"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&status=OPEN&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-40"
+      },
+      {
+        "method": "GET",
+        "path": "/disputes/{dispute_id}",
+        "title": "Inspect dispute context and evidence",
+        "request": null,
+        "response": {
+          "id": "dispute_001",
+          "payment_id": "payment_003",
+          "invoice_id": "invoice_003",
+          "customer_id": "customer_003",
+          "garage_id": "garage_001",
+          "status": "OPEN",
+          "reason": "Customer reports duplicate payment",
+          "support_ticket_id": "ticket_002",
+          "timeline": [
+            {
+              "event": "DISPUTE_OPENED",
+              "timestamp": "2026-10-08T14:00:00+05:30"
+            }
+          ]
+        },
+        "permission": "finance.read",
+        "status": 200,
+        "query": "",
+        "rules": "Read-only evidence; resolving/closing a gateway dispute needs separate scope.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-41"
+      }
+    ]
+  },
+  {
+    "title": "Notification monitoring and operational announcements",
+    "stories": [
+      15,
+      16
+    ],
+    "rules": [
+      "Notifications are searchable by recipient role/ID, event type, booking/job/invoice, delivery status and timestamp. In-app read status and push delivery status are distinct.",
+      "Announcements select a permitted customer/garage audience, store message, audience snapshot, actor, delivery outcomes and audit record. Preview before send, use idempotency and bound recipient counts.",
+      "Sending operational announcements does not authorize marketing campaigns. Permissions, channel consent, text limits, delivery provider, recipient scope and suppression policies need approval."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/notifications",
+        "title": "Inspect platform notification delivery",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "notification_001",
+              "recipient": {
+                "role": "CUSTOMER",
+                "id": "customer_001"
+              },
+              "event_type": "INVOICE_PUBLISHED",
+              "invoice_id": "invoice_001",
+              "delivery_status": "DELIVERED",
+              "read_at": null,
+              "created_at": "2026-10-08T12:10:00+05:30"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "notifications.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&recipient_role=CUSTOMER&event_type=INVOICE_PUBLISHED&status=DELIVERED&page=1&page_size=20",
+        "rules": "Optional recipient_id, booking_id, job_id and invoice_id filters.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-42"
+      },
+      {
+        "method": "GET",
+        "path": "/notifications/{notification_id}",
+        "title": "Inspect safe delivery attempts",
+        "request": null,
+        "response": {
+          "id": "notification_001",
+          "recipient": {
+            "role": "CUSTOMER",
+            "id": "customer_001"
+          },
+          "title": "Invoice available",
+          "body": "Your final invoice is ready.",
+          "attempts": [
+            {
+              "channel": "PUSH",
+              "status": "DELIVERED",
+              "attempted_at": "2026-10-08T12:10:00+05:30",
+              "provider_code": "ACCEPTED"
+            }
+          ]
+        },
+        "permission": "notifications.read",
+        "status": 200,
+        "query": "",
+        "rules": "Do not expose recipient device tokens, provider credentials or raw provider responses.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-43"
+      },
+      {
+        "method": "POST",
+        "path": "/announcements/preview",
+        "title": "Preview announcement audience",
+        "request": {
+          "audience": {
+            "recipient_roles": [
+              "GARAGE_OWNER"
+            ],
+            "city": "Hyderabad",
+            "garage_ids": [
+              "garage_001"
+            ]
+          },
+          "channels": [
+            "IN_APP",
+            "PUSH"
+          ],
+          "title": "Operational update",
+          "body": "Please review appointment availability."
+        },
+        "response": {
+          "preview_id": "preview_001",
+          "recipient_count": 1,
+          "expires_at": "2026-10-08T15:10:00+05:30"
+        },
+        "permission": "announcements.send",
+        "status": 200,
+        "query": "",
+        "rules": "All fields required. Resolve recipients within caller scope; proposed title limit 120, body limit 2,000.",
+        "errors": "422 AUDIENCE_INVALID; 413 AUDIENCE_TOO_LARGE",
+        "private": false,
+        "headers": "",
+        "id": "ADM-44"
+      },
+      {
+        "method": "POST",
+        "path": "/announcements",
+        "title": "Queue approved operational announcement",
+        "request": {
+          "preview_id": "preview_001",
+          "reason": "Appointment capacity review"
+        },
+        "response": {
+          "id": "announcement_001",
+          "status": "QUEUED",
+          "recipient_count": 1,
+          "audit_id": "audit_004"
+        },
+        "permission": "announcements.send",
+        "status": 202,
+        "query": "",
+        "rules": "Both fields required; recent MFA recommended. Persist audience/message snapshot from preview; do not accept changed content with an old preview.",
+        "errors": "409 PREVIEW_EXPIRED; 409 IDEMPOTENCY_CONFLICT",
+        "private": false,
+        "headers": "Idempotency-Key: <unique_key>",
+        "id": "ADM-45"
+      },
+      {
+        "method": "GET",
+        "path": "/announcements",
+        "title": "List sent/queued announcements",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "announcement_001",
+              "title": "Operational update",
+              "status": "COMPLETED",
+              "recipient_count": 1,
+              "delivered_count": 1,
+              "failed_count": 0
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "notifications.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&status=COMPLETED&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-46"
+      },
+      {
+        "method": "GET",
+        "path": "/announcements/{announcement_id}",
+        "title": "Inspect audience and delivery totals",
+        "request": null,
+        "response": {
+          "id": "announcement_001",
+          "status": "COMPLETED",
+          "audience": {
+            "recipient_roles": [
+              "GARAGE_OWNER"
+            ],
+            "garage_ids": [
+              "garage_001"
+            ]
+          },
+          "channels": [
+            "IN_APP",
+            "PUSH"
+          ],
+          "recipient_count": 1,
+          "delivered_count": 1,
+          "failed_count": 0,
+          "actor_id": "admin_001",
+          "audit_id": "audit_004"
+        },
+        "permission": "notifications.read",
+        "status": 200,
+        "query": "",
+        "rules": "Recipient totals are distinct recipients; per-channel delivery attempts are separately listed.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-47"
+      },
+      {
+        "method": "GET",
+        "path": "/announcements/{announcement_id}/deliveries",
+        "title": "Inspect announcement delivery outcomes",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "recipient_id": "owner_001",
+              "recipient_role": "GARAGE_OWNER",
+              "channel": "PUSH",
+              "status": "DELIVERED"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "notifications.read",
+        "status": 200,
+        "query": "status=DELIVERED&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-48"
+      }
+    ]
+  },
+  {
+    "title": "Support ticket assignment, priority, replies and closure",
+    "stories": [
+      17
+    ],
+    "rules": [
+      "Support permissions independently control reading, assigning, setting priority, replying and changing status. Assignment targets active authorized support staff.",
+      "Proposed statuses: OPEN, IN_PROGRESS, WAITING_FOR_CUSTOMER, RESOLVED, CLOSED. Priorities: LOW, NORMAL, HIGH, URGENT. Approve permitted transitions and reopening policy.",
+      "Ticket links may include customer, garage, booking, job, invoice and payment. Access to linked financial detail still requires finance.read. Every mutation is audited.",
+      "Replies are customer/garage-visible according to the ticket participant context. Internal notes must never leak into external replies; this baseline provides external reply operations only."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/support/tickets",
+        "title": "Find support tickets",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "ticket_001",
+              "subject": "Invoice question",
+              "customer_id": "customer_001",
+              "garage_id": "garage_001",
+              "status": "OPEN",
+              "priority": "NORMAL",
+              "assignee_id": null
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "support.read",
+        "status": 200,
+        "query": "status=OPEN&priority=NORMAL&customer_id=customer_001&garage_id=garage_001&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-49"
+      },
+      {
+        "method": "GET",
+        "path": "/support/tickets/{ticket_id}",
+        "title": "Inspect support ticket and record links",
+        "request": null,
+        "response": {
+          "id": "ticket_001",
+          "subject": "Invoice question",
+          "description": "Please clarify the charges.",
+          "customer_id": "customer_001",
+          "garage_id": "garage_001",
+          "booking_id": "booking_001",
+          "job_id": "job_001",
+          "invoice_id": "invoice_001",
+          "status": "OPEN",
+          "priority": "NORMAL",
+          "assignee_id": null,
+          "version": 1
+        },
+        "permission": "support.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-50"
+      },
+      {
+        "method": "PATCH",
+        "path": "/support/tickets/{ticket_id}/assignment",
+        "title": "Assign/unassign support staff",
+        "request": {
+          "assignee_id": "admin_support_001",
+          "reason": "Finance support queue",
+          "expected_version": 1
+        },
+        "response": {
+          "id": "ticket_001",
+          "assignee_id": "admin_support_001",
+          "version": 2,
+          "audit_id": "audit_005"
+        },
+        "permission": "support.assign",
+        "status": 200,
+        "query": "",
+        "rules": "All fields required; assignee_id may be null to unassign. Validate scope and staff eligibility.",
+        "errors": "422 ASSIGNEE_INVALID; 409 VERSION_CONFLICT",
+        "private": false,
+        "headers": "",
+        "id": "ADM-51"
+      },
+      {
+        "method": "PATCH",
+        "path": "/support/tickets/{ticket_id}/priority",
+        "title": "Change ticket priority",
+        "request": {
+          "priority": "HIGH",
+          "reason": "Customer service blocked",
+          "expected_version": 2
+        },
+        "response": {
+          "id": "ticket_001",
+          "priority": "HIGH",
+          "version": 3,
+          "audit_id": "audit_006"
+        },
+        "permission": "support.manage",
+        "status": 200,
+        "query": "",
+        "rules": "All fields required.",
+        "errors": "422 PRIORITY_INVALID; 409 VERSION_CONFLICT",
+        "private": false,
+        "headers": "",
+        "id": "ADM-52"
+      },
+      {
+        "method": "GET",
+        "path": "/support/tickets/{ticket_id}/messages",
+        "title": "Read ticket messages",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "support_message_001",
+              "sender_role": "CUSTOMER",
+              "text": "Please clarify the charges.",
+              "created_at": "2026-10-08T12:30:00+05:30"
+            }
+          ],
+          "next_cursor": null
+        },
+        "permission": "support.read",
+        "status": 200,
+        "query": "limit=30",
+        "rules": "cursor optional; limit 1..100.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-53"
+      },
+      {
+        "method": "POST",
+        "path": "/support/tickets/{ticket_id}/messages",
+        "title": "Reply to customer/garage",
+        "request": {
+          "client_message_id": "admin_reply_001",
+          "text": "We are reviewing your invoice."
+        },
+        "response": {
+          "id": "support_message_002",
+          "sender_role": "ADMIN",
+          "text": "We are reviewing your invoice.",
+          "created_at": "2026-10-08T15:00:00+05:30",
+          "audit_id": "audit_007"
+        },
+        "permission": "support.reply",
+        "status": 201,
+        "query": "",
+        "rules": "Both fields required; text nonblank, proposed maximum 2,000 characters. Deduplicate client_message_id.",
+        "errors": "409 TICKET_CLOSED; 409 MESSAGE_ID_CONFLICT; 422 MESSAGE_INVALID",
+        "private": false,
+        "headers": "",
+        "id": "ADM-54"
+      },
+      {
+        "method": "PATCH",
+        "path": "/support/tickets/{ticket_id}/status",
+        "title": "Resolve or close ticket",
+        "request": {
+          "status": "CLOSED",
+          "resolution": "Charges explained and confirmed by the customer.",
+          "expected_version": 3
+        },
+        "response": {
+          "id": "ticket_001",
+          "status": "CLOSED",
+          "closed_at": "2026-10-08T16:00:00+05:30",
+          "version": 4,
+          "audit_id": "audit_008"
+        },
+        "permission": "support.manage",
+        "status": 200,
+        "query": "",
+        "rules": "status and expected_version required; resolution required for RESOLVED/CLOSED. Enforce approved transitions.",
+        "errors": "409 STATUS_TRANSITION_INVALID; 409 VERSION_CONFLICT",
+        "private": false,
+        "headers": "",
+        "id": "ADM-55"
+      }
+    ]
+  },
+  {
+    "title": "Garage-owner performance statistics and formulas",
+    "stories": [
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28
+    ],
+    "rules": [
+      "All statistics use the same normalized date/city/garage/service filters, permission scope and snapshot; exports include filters, generated timestamp and source totals.",
+      "Jobs-created/status-cohort basis: jobs created in the selected period; status counts are their current status as_of. Status totals must reconcile to that filtered cohort job list. Do not mix created-in-period and completed-in-period counts without labels.",
+      "Average jobs per garage = total cohort jobs / eligible garage count. Eligible garages include zero-job garages in the permitted segment; exclude inactive only when exclude_inactive=true. Return null, not zero, when denominator is zero.",
+      "Conversion = converted_by_as_of / eligible_accepted_bookings * 100. Eligible cohort: accepted_at in the selected window, including bookings later CONVERTED; exclude invalid/deleted records under an approved policy. Numerator is the converted subset, not all converted bookings across unrelated dates.",
+      "Average completion duration = sum(completed_at - created_at) / completed valid jobs in the created-in-period cohort, measured in hours. Exclude unfinished/cancelled/invalid-timestamp records and return exclusions/sample size; no samples means null.",
+      "Average invoice amount = sum(final nonvoid invoice total_amount issued in period) / invoice count. Keep this separate from net collections and paid-invoice count. Collections use captured_at and refunds settled_at.",
+      "Owner rankings use a deterministic tie-breaker (owner ID) and an explicit sort metric. Multi-garage owners are one aggregate row with garage_ids. Drill-down rows preserve owner identity and filter scope."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/garage-owner-statistics",
+        "title": "Compare owners, rankings and operational/finance metrics",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "items": [
+            {
+              "owner_id": "owner_001",
+              "owner_name": "Example Owner A",
+              "garage_ids": [
+                "garage_001"
+              ],
+              "rank": 1,
+              "jobs_created": 30,
+              "status_counts": {
+                "OPEN": 2,
+                "IN_PROGRESS": 4,
+                "WAITING_FOR_PARTS": 2,
+                "QUALITY_CHECK": 1,
+                "READY": 0,
+                "COMPLETED": 20,
+                "CANCELLED": 1
+              },
+              "eligible_accepted_bookings": 10,
+              "converted_bookings": 8,
+              "conversion_percent": 80,
+              "completion_sample_size": 20,
+              "average_completion_hours": 4.5,
+              "overdue_jobs": 2,
+              "gross_collected_amount": 2360000,
+              "refunded_amount": 118000,
+              "net_collected_amount": 2242000,
+              "paid_invoice_count": 20,
+              "issued_invoice_count": 20,
+              "issued_invoice_total_amount": 2360000,
+              "average_invoice_amount": 118000,
+              "failed_attempts": 2,
+              "currency": "INR"
+            },
+            {
+              "owner_id": "owner_002",
+              "owner_name": "Example Owner B",
+              "garage_ids": [
+                "garage_002"
+              ],
+              "rank": 2,
+              "jobs_created": 20,
+              "status_counts": {
+                "OPEN": 1,
+                "IN_PROGRESS": 3,
+                "WAITING_FOR_PARTS": 2,
+                "QUALITY_CHECK": 1,
+                "READY": 1,
+                "COMPLETED": 10,
+                "CANCELLED": 2
+              },
+              "eligible_accepted_bookings": 10,
+              "converted_bookings": 7,
+              "conversion_percent": 70,
+              "completion_sample_size": 10,
+              "average_completion_hours": 6,
+              "overdue_jobs": 3,
+              "gross_collected_amount": 1180000,
+              "refunded_amount": 0,
+              "net_collected_amount": 1180000,
+              "paid_invoice_count": 10,
+              "issued_invoice_count": 10,
+              "issued_invoice_total_amount": 1180000,
+              "average_invoice_amount": 118000,
+              "failed_attempts": 1,
+              "currency": "INR"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 2,
+          "source_totals": {
+            "jobs_created": 50,
+            "status_counts": {
+              "OPEN": 3,
+              "IN_PROGRESS": 7,
+              "WAITING_FOR_PARTS": 4,
+              "QUALITY_CHECK": 2,
+              "READY": 1,
+              "COMPLETED": 30,
+              "CANCELLED": 3
+            },
+            "eligible_accepted_bookings": 20,
+            "converted_bookings": 15,
+            "net_collected_amount": 3422000,
+            "paid_invoice_count": 30
+          }
+        },
+        "permission": "owner_statistics.read + finance.read for monetary fields",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&sort=jobs_created_desc&exclude_inactive=true&page=1&page_size=20",
+        "rules": "Optional owner_id and snapshot_id. Without finance.read omit monetary fields with restricted_fields metadata; do not return misleading zeroes.",
+        "errors": "422 DATE_RANGE_INVALID; 409 SNAPSHOT_EXPIRED",
+        "private": false,
+        "headers": "",
+        "id": "ADM-56"
+      },
+      {
+        "method": "GET",
+        "path": "/garage-owner-statistics/summary",
+        "title": "Read reconcilable owner-performance totals/averages",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "total_jobs_created": 50,
+          "eligible_garages": 2,
+          "average_jobs_per_garage": 25,
+          "exclude_inactive": true,
+          "status_counts": {
+            "OPEN": 3,
+            "IN_PROGRESS": 7,
+            "WAITING_FOR_PARTS": 4,
+            "QUALITY_CHECK": 2,
+            "READY": 1,
+            "COMPLETED": 30,
+            "CANCELLED": 3
+          },
+          "eligible_accepted_bookings": 20,
+          "converted_bookings": 15,
+          "conversion_percent": 75,
+          "completion_sample_size": 30,
+          "completion_total_hours": 150,
+          "average_completion_hours": 5,
+          "net_collected_amount": 3422000,
+          "paid_invoice_count": 30,
+          "average_invoice_amount": 118000,
+          "currency": "INR"
+        },
+        "permission": "owner_statistics.read + finance.read for monetary fields",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&exclude_inactive=true",
+        "rules": "Return formulas/numerator/denominator and exclusions in metric metadata. Weighted completion mean: (20*4.5+10*6)/30=5 hours.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-57"
+      },
+      {
+        "method": "GET",
+        "path": "/garage-owner-statistics/{owner_id}",
+        "title": "Inspect one owner's performance and garage breakdown",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "owner_id": "owner_001",
+          "jobs_created": 30,
+          "completed_jobs": 20,
+          "eligible_accepted_bookings": 10,
+          "converted_bookings": 8,
+          "conversion_percent": 80,
+          "average_completion_hours": 4.5,
+          "completion_sample_size": 20,
+          "garage_breakdown": [
+            {
+              "garage_id": "garage_001",
+              "jobs_created": 30,
+              "overdue_jobs": 2
+            }
+          ]
+        },
+        "permission": "owner_statistics.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad",
+        "rules": "Financial metrics may be included only with finance.read. Garage/job drill-down uses matching owner_id/garage_id filters.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-58"
+      },
+      {
+        "method": "GET",
+        "path": "/garage-owner-statistics/{owner_id}/trends",
+        "title": "Read owner job/conversion/collection trends",
+        "request": null,
+        "response": {
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:00:00+05:30",
+          "owner_id": "owner_001",
+          "period": "daily",
+          "series": [
+            {
+              "date": "2026-10-08",
+              "jobs_created": 3,
+              "jobs_completed": 2,
+              "eligible_accepted_bookings": 2,
+              "converted_bookings": 1,
+              "conversion_percent": 50
+            }
+          ]
+        },
+        "permission": "owner_statistics.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&period=daily",
+        "rules": "Provide explicitly labelled bucket date bases and numerators/denominators. Optional finance series requires finance.read.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-59"
+      }
+    ]
+  },
+  {
+    "title": "Operational, financial and owner-performance exports",
+    "stories": [
+      18,
+      28
+    ],
+    "rules": [
+      "Exports are protected asynchronous resources, not public URLs. Require reports.export plus every data permission needed by the selected report; recheck at download.",
+      "Supported proposed types: OPERATIONS, FINANCE, GARAGE_OWNER_PERFORMANCE. CSV and XLSX formats; sanitize spreadsheet-formula injection, redact restricted PII and define retention/size limits.",
+      "Every export includes normalized filters, snapshot/as_of, generated timestamp, row count, metric definitions and source totals. GARAGE_OWNER_PERFORMANCE is one row per owner; multiple garage IDs are explicit.",
+      "Status: QUEUED, PROCESSING, READY, FAILED, EXPIRED. Failed exports expose a safe error; never silently deliver partial results as complete. Capture format/requester/scope in audit."
+    ],
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/reports/exports",
+        "title": "Request authorized filtered report",
+        "request": {
+          "report_type": "GARAGE_OWNER_PERFORMANCE",
+          "format": "CSV",
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "exclude_inactive": true
+        },
+        "response": {
+          "id": "export_001",
+          "status": "QUEUED",
+          "report_type": "GARAGE_OWNER_PERFORMANCE",
+          "format": "CSV",
+          "audit_id": "audit_009"
+        },
+        "permission": "reports.export + selected report read permissions",
+        "status": 202,
+        "query": "",
+        "rules": "report_type, format and filters required. snapshot_id optional; generate a fresh snapshot if omitted. exclude_inactive applies only to owner performance.",
+        "errors": "403 REPORT_SCOPE_DENIED; 409 SNAPSHOT_EXPIRED; 413 EXPORT_TOO_LARGE; 429 EXPORT_LIMIT_REACHED",
+        "private": false,
+        "headers": "Idempotency-Key: <unique_key>",
+        "id": "ADM-60"
+      },
+      {
+        "method": "GET",
+        "path": "/reports/exports/{export_id}",
+        "title": "Poll report generation and reconcile totals",
+        "request": null,
+        "response": {
+          "id": "export_001",
+          "status": "READY",
+          "report_type": "GARAGE_OWNER_PERFORMANCE",
+          "format": "CSV",
+          "filters": {
+            "date_from": "2026-10-01",
+            "date_to": "2026-10-08",
+            "timezone": "Asia/Kolkata",
+            "city": "Hyderabad",
+            "garage_id": null,
+            "service_id": null
+          },
+          "snapshot_id": "snapshot_001",
+          "generated_at": "2026-10-08T15:05:00+05:30",
+          "row_count": 2,
+          "source_totals": {
+            "jobs_created": 50,
+            "net_collected_amount": 3422000
+          },
+          "download_path": "/api/v1/admin/reports/exports/export_001/download",
+          "expires_at": "2026-10-09T15:05:00+05:30"
+        },
+        "permission": "reports.export + selected report read permissions",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-61"
+      },
+      {
+        "method": "GET",
+        "path": "/reports/exports/{export_id}/download",
+        "title": "Download protected report",
+        "request": null,
+        "response": "Binary response: Content-Type: text/csv; Content-Disposition: attachment; filename=\"garage-owner-performance.csv\"",
+        "permission": "reports.export + selected report read permissions",
+        "status": 200,
+        "query": "",
+        "rules": "Requester or approved supervisory scope only; verify current permission, READY status and expiry. XLSX uses its correct MIME type.",
+        "errors": "409 EXPORT_NOT_READY; 410 EXPORT_EXPIRED",
+        "private": false,
+        "headers": "",
+        "id": "ADM-62"
+      }
+    ]
+  },
+  {
+    "title": "Audit trail and unified customer/garage activity",
+    "stories": [
+      19,
+      29
+    ],
+    "rules": [
+      "Audit records cover successful/failed login, status/account/role changes, financial actions, announcements and exports; actor, time, IP/device, result, correlation ID and approved before/after details are retained.",
+      "Audit is append-only; no admin update/delete audit operation. Protect logs from secret/OTP/token/raw gateway payload leakage. IP/device data is privileged, masked or policy-limited.",
+      "Unified activity links customer booking, garage acceptance, job creation/status, invoice, payment and review events using stable IDs/correlation. Missing events are shown explicitly, not invented.",
+      "Financial activity fields require finance.read. Audit log read requires audit.read and is itself auditable."
+    ],
+    "endpoints": [
+      {
+        "method": "GET",
+        "path": "/audit-logs",
+        "title": "Search audited administrative/security actions",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "audit_002",
+              "actor_id": "admin_001",
+              "action": "GARAGE_SUSPENDED",
+              "resource": {
+                "type": "GARAGE",
+                "id": "garage_002"
+              },
+              "timestamp": "2026-10-08T14:00:00+05:30",
+              "ip_address": "192.0.2.10",
+              "device": "Example workstation",
+              "result": "SUCCESS",
+              "reason": "Partner quality review",
+              "correlation_id": "correlation_001"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 1
+        },
+        "permission": "audit.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&actor_id=admin_001&action=GARAGE_SUSPENDED&result=SUCCESS&page=1&page_size=20",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-63"
+      },
+      {
+        "method": "GET",
+        "path": "/audit-logs/{audit_id}",
+        "title": "Inspect safe audit details",
+        "request": null,
+        "response": {
+          "id": "audit_002",
+          "actor_id": "admin_001",
+          "action": "GARAGE_SUSPENDED",
+          "resource": {
+            "type": "GARAGE",
+            "id": "garage_002"
+          },
+          "before": {
+            "operational_status": "ACTIVE"
+          },
+          "after": {
+            "operational_status": "SUSPENDED"
+          },
+          "result": "SUCCESS",
+          "reason": "Partner quality review",
+          "timestamp": "2026-10-08T14:00:00+05:30"
+        },
+        "permission": "audit.read",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-64"
+      },
+      {
+        "method": "GET",
+        "path": "/activity",
+        "title": "Monitor linked customer and garage service activity",
+        "request": null,
+        "response": {
+          "items": [
+            {
+              "id": "activity_001",
+              "event_type": "BOOKING_CREATED",
+              "customer_id": "customer_001",
+              "owner_id": "owner_001",
+              "garage_id": "garage_001",
+              "booking_id": "booking_001",
+              "timestamp": "2026-10-07T15:00:00+05:30"
+            },
+            {
+              "id": "activity_002",
+              "event_type": "JOB_CREATED",
+              "customer_id": "customer_001",
+              "owner_id": "owner_001",
+              "garage_id": "garage_001",
+              "booking_id": "booking_001",
+              "job_id": "job_001",
+              "timestamp": "2026-10-08T10:00:00+05:30"
+            }
+          ],
+          "page": 1,
+          "page_size": 20,
+          "total": 2
+        },
+        "permission": "activity.read",
+        "status": 200,
+        "query": "date_from=2026-10-01&date_to=2026-10-08&timezone=Asia%2FKolkata&city=Hyderabad&customer_id=customer_001&garage_id=garage_001&page=1&page_size=20",
+        "rules": "Optional owner_id, event_type, booking_id, job_id, invoice_id filters; apply linked-domain permissions.",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-65"
+      },
+      {
+        "method": "GET",
+        "path": "/activity/service-funnels/{booking_id}",
+        "title": "Inspect complete linked service funnel",
+        "request": null,
+        "response": {
+          "booking_id": "booking_001",
+          "customer_id": "customer_001",
+          "garage_id": "garage_001",
+          "job_id": "job_001",
+          "invoice_id": "invoice_001",
+          "events": [
+            {
+              "type": "BOOKING_CREATED",
+              "timestamp": "2026-10-07T15:00:00+05:30"
+            },
+            {
+              "type": "BOOKING_ACCEPTED",
+              "timestamp": "2026-10-07T16:00:00+05:30"
+            },
+            {
+              "type": "JOB_CREATED",
+              "timestamp": "2026-10-08T10:00:00+05:30"
+            },
+            {
+              "type": "JOB_COMPLETED",
+              "timestamp": "2026-10-08T12:00:00+05:30"
+            },
+            {
+              "type": "INVOICE_PUBLISHED",
+              "timestamp": "2026-10-08T12:10:00+05:30"
+            },
+            {
+              "type": "PAYMENT_CONFIRMED",
+              "payment_id": "payment_001",
+              "timestamp": "2026-10-08T12:15:00+05:30"
+            },
+            {
+              "type": "REVIEW_SUBMITTED",
+              "review_id": "review_001",
+              "timestamp": "2026-10-08T12:20:00+05:30"
+            }
+          ]
+        },
+        "permission": "activity.read + relevant linked-record permissions",
+        "status": 200,
+        "query": "",
+        "rules": "",
+        "errors": "404 RESOURCE_NOT_FOUND",
+        "private": false,
+        "headers": "",
+        "id": "ADM-66"
+      }
+    ]
+  }
+]
