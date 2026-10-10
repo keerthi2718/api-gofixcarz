@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.session import get_session
 from app.dependencies.auth import CurrentUser
 from app.schemas.auth import (
+    AccountDeleteRequest,
     LogoutRequest,
     RefreshRequest,
     SendOTPRequest,
@@ -151,3 +152,16 @@ async def logout(current_user: CurrentUser, data: LogoutRequest, session: DBSess
     service = AuthService(session)
     result = await service.logout(str(current_user.id), data.refresh_token)
     return APIResponse.ok(data=result, message=result["message"])
+
+
+@router.delete("/account", response_model=APIResponse)
+async def delete_account(data: AccountDeleteRequest, current_user: CurrentUser, session: DBSession):
+    """Mark the current garage-owner account DELETED and revoke all sessions.
+
+    Personal and linked business data is retained by product policy. This is
+    account archival, not permanent personal-data erasure.
+    """
+    result = await AuthService(session).delete_account(current_user.id)
+    return APIResponse.ok(
+        data=result, message="Account marked deleted. All sessions have been revoked.",
+    )

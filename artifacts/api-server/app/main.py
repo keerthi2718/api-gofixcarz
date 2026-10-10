@@ -132,7 +132,8 @@ app.state.limiter = limiter
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    # Bearer-token API: wildcard origins must not enable cross-site cookies.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

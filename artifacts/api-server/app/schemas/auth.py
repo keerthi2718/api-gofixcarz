@@ -3,10 +3,10 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, StrictBool, field_validator, model_validator
 
 from app.core.constants import DEFAULT_COUNTRY_CODE, VALID_COUNTRY_CODES
-from app.models.user import UserRole
+from app.models.user import AccountStatus, UserRole
 
 _VALID_WHEELERS = {"2W", "3W", "4W", "6W"}
 
@@ -240,6 +240,7 @@ class UserResponse(BaseModel):
     country_code_2: Optional[str] = None
     email: Optional[str]
     is_active: bool
+    account_status: AccountStatus
     role: UserRole = UserRole.GARAGE_OWNER
     created_at: datetime
 
@@ -259,3 +260,15 @@ class RefreshRequest(BaseModel):
 
 class LogoutRequest(BaseModel):
     refresh_token: Optional[str] = None
+
+
+class AccountDeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    confirm: StrictBool
+
+    @field_validator("confirm")
+    @classmethod
+    def require_confirmation(cls, value: bool) -> bool:
+        if value is not True:
+            raise ValueError("Set confirm to true to mark your account deleted")
+        return value

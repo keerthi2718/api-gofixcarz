@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, field_validator, model_validator
-from app.models.user import UserRole
+from app.models.user import AccountStatus, UserRole
 
 
 class ProfileResponse(BaseModel):
@@ -12,6 +12,7 @@ class ProfileResponse(BaseModel):
     mobile: str
     email: Optional[str]
     is_active: bool
+    account_status: AccountStatus
     role: UserRole = UserRole.GARAGE_OWNER
     created_at: datetime
     updated_at: datetime

@@ -41,9 +41,12 @@ class AdminRepository:
         )).scalars().all()
         return rows, total
 
-    async def get_user(self, user_id):
+    async def get_user(self, user_id, include_deleted=False):
+        query = select(User).where(User.id == user_id)
+        if not include_deleted:
+            query = query.where(User.deleted_at.is_(None))
         return (await self.session.execute(
-            select(User).where(User.id == user_id, User.deleted_at.is_(None))
+            query
         )).scalar_one_or_none()
 
     async def get_garage(self, garage_id):
@@ -58,8 +61,10 @@ class AdminRepository:
             .options(selectinload(Job.customer), selectinload(Job.vehicle), selectinload(Job.timelines))
         )).scalar_one_or_none()
 
-    def users_query(self, search=None, is_active=None, role=None):
-        query = select(User).where(User.deleted_at.is_(None))
+    def users_query(self, search=None, is_active=None, role=None, include_deleted=False):
+        query = select(User)
+        if not include_deleted:
+            query = query.where(User.deleted_at.is_(None))
         if search:
             term = f"%{search}%"
             query = query.where(or_(User.name.ilike(term), User.email.ilike(term), User.mobile.ilike(term)))

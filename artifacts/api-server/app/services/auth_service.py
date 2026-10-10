@@ -1,10 +1,14 @@
 from datetime import datetime, timezone
 from typing import Optional
+import uuid
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import AppException, BadRequestException, ConflictException, UnauthorizedException
+from app.core.exceptions import AppException, BadRequestException, ConflictException, ForbiddenException, UnauthorizedException
+from app.models.user import AccountStatus, User, UserRole
+from app.models.admin_audit_log import AdminAuditLog
 from app.core.security import (
     create_access_token,
     generate_otp,
@@ -265,3 +269,33 @@ class AuthService:
             import uuid as _uuid
             await self.refresh_token_repo.revoke_all_for_user(_uuid.UUID(user_id))
         return {"message": "Logged out successfully."}
+
+    async def delete_account(self, user_id: uuid.UUID) -> dict:
+        """Owner-requested archival, never a cascading physical deletion."""
+        user = (await self.session.execute(
+            select(User).where(User.id == user_id).with_for_update()
+        )).scalar_one_or_none()
+        if not user or not user.is_active or user.deleted_at is not None:
+            raise UnauthorizedException("Account not found or inactive.")
+        if user.role != UserRole.GARAGE_OWNER.value:
+            raise ForbiddenException("Only garage owners can delete their account here.")
+        now = datetime.now(timezone.utc)
+        user.is_active = False
+        user.deleted_at = now
+        user.updated_at = now
+        user.otp = None
+        user.otp_expires_at = None
+        await self.refresh_token_repo.revoke_all_for_user(user.id)
+        self.session.add(AdminAuditLog(
+            actor_id=user.id, action="users.account_deleted", resource_id=user.id,
+            details={"account_status": AccountStatus.DELETED.value, "data_retained": True},
+        ))
+        await self.session.flush()
+        return {
+            "account_id": str(user.id),
+            "account_status": AccountStatus.DELETED.value,
+            "is_active": False,
+            "deleted_at": now.isoformat(),
+            "sessions_revoked": True,
+            "data_retained": True,
+        }

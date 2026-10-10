@@ -15,6 +15,12 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 
+class AccountStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    DELETED = "DELETED"
+
+
 class User(Base, SoftDeleteMixin):
     __tablename__ = "users"
     __table_args__ = (
@@ -51,3 +57,10 @@ class User(Base, SoftDeleteMixin):
     # Relationships
     garages: Mapped[list["Garage"]] = relationship("Garage", back_populates="user")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship("RefreshToken", back_populates="user")
+
+    @property
+    def account_status(self) -> AccountStatus:
+        """Keep the existing flags authoritative; no redundant status column."""
+        if self.deleted_at is not None:
+            return AccountStatus.DELETED
+        return AccountStatus.ACTIVE if self.is_active else AccountStatus.INACTIVE

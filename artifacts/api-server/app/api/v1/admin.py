@@ -60,20 +60,21 @@ async def dashboard(admin: CurrentAdmin, session: DBSession):
 async def users(
     admin: CurrentAdmin, session: DBSession, search: Search = None,
     is_active: bool | None = None, role: UserRole | None = None,
+    include_deleted: bool = False,
     page: Page = 1, page_size: PageSize = 20,
 ):
     service = AdminService(session)
     result = await service.page(
-        service.repo.users_query(search, is_active, role), UserResponse, page, page_size,
+        service.repo.users_query(search, is_active, role, include_deleted=include_deleted), UserResponse, page, page_size,
     )
     await service.audit(admin.id, "users.list")
     return APIResponse.ok(data=result)
 
 
 @router.get("/users/{user_id}", response_model=APIResponse[AdminUserDetail])
-async def user_detail(user_id: uuid.UUID, admin: CurrentAdmin, session: DBSession):
+async def user_detail(user_id: uuid.UUID, admin: CurrentAdmin, session: DBSession, include_deleted: bool = False):
     service = AdminService(session)
-    result = await service.user_detail(user_id)
+    result = await service.user_detail(user_id, include_deleted=include_deleted)
     await service.audit(admin.id, "users.read", user_id)
     return APIResponse.ok(data=result)
 

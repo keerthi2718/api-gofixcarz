@@ -54,8 +54,8 @@ class AdminService:
             pages=max(1, (total + page_size - 1) // page_size),
         )
 
-    async def user_detail(self, user_id):
-        user = await self.repo.get_user(user_id)
+    async def user_detail(self, user_id, include_deleted=False):
+        user = await self.repo.get_user(user_id, include_deleted=include_deleted)
         if not user:
             raise NotFoundException("User not found.")
         garages = (await self.session.execute(self.repo.garages_query(user_id=user_id))).scalars().all()
