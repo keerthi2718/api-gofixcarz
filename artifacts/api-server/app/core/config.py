@@ -4,6 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Transitional compatibility is explicitly disabled for normal operation.
+    ALLOW_LEGACY_ADMIN_TOKENS: bool = False
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

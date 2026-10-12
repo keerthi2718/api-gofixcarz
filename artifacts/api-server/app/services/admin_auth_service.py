@@ -2,7 +2,7 @@ import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.concurrency import run_in_threadpool
 
@@ -11,7 +11,8 @@ from app.core.admin_security import (
 )
 from app.core.exceptions import UnauthorizedException
 from app.core.security import hash_refresh_token
-from app.models.admin_account import AdminAccount, AdminSession
+from app.models.admin_account import AdminAccount, AdminSession, AdminMfaChallenge
+from app.core.admin_totp import new_secret, encrypt_secret, decrypt_secret, verify_totp
 from app.models.admin_audit_log import AdminAuditLog
 from app.schemas.admin_auth import AdminIdentity, AdminMenu
 
@@ -39,13 +40,14 @@ class AdminAuthService:
             admin_account_id=account.id, action=action, resource_id=account.id, details={},
         ))
 
-    async def issue(self, account):
+    async def issue(self, account, mfa_verified_at=None, family_id=None, expires_at=None):
         raw = secrets.token_urlsafe(48)
         login_session = AdminSession(
             id=uuid.uuid4(), admin_account_id=account.id,
             credential_version=account.credential_version,
             refresh_token_hash=hash_refresh_token(raw),
-            expires_at=datetime.now(timezone.utc) + timedelta(days=7),
+            expires_at=expires_at or datetime.now(timezone.utc) + timedelta(days=7),
+            mfa_verified_at=mfa_verified_at, family_id=family_id or uuid.uuid4(),
         )
         self.session.add(login_session)
         await self.session.flush()
@@ -79,8 +81,57 @@ class AdminAuthService:
             return None
         account.failed_attempts = 0
         account.locked_until = None
-        self.audit(account, "auth.login")
-        return await self.issue(account)
+        if not account.mfa_required:
+            # Private, deliberate transitional policy; never a public request field.
+            self.audit(account, "auth.login")
+            return await self.issue(account)
+        challenge = AdminMfaChallenge(
+            id=uuid.uuid4(), admin_account_id=account.id,
+            expires_at=now + timedelta(minutes=5),
+        )
+        result = {
+            "challenge_id": str(challenge.id), "mfa_required": True, "mfa_method": "TOTP",
+            "expires_in_seconds": 300, "enrollment_required": not bool(account.mfa_secret_encrypted),
+        }
+        if not account.mfa_secret_encrypted:
+            secret = new_secret()
+            challenge.pending_secret_encrypted = encrypt_secret(secret)
+            # Only returned following password verification, on a private no-store route.
+            from urllib.parse import quote
+            result["provisioning_uri"] = (
+                f"otpauth://totp/{quote('GoFixCarz:' + account.email)}?secret={secret}&issuer=GoFixCarz"
+            )
+        self.session.add(challenge)
+        self.audit(account, "auth.mfa_challenge")
+        await self.session.flush()
+        return result
+
+    async def complete_mfa(self, challenge_id, code):
+        challenge = (await self.session.execute(select(AdminMfaChallenge).where(
+            AdminMfaChallenge.id == challenge_id,
+        ).with_for_update())).scalar_one_or_none()
+        now = datetime.now(timezone.utc)
+        if not challenge or challenge.consumed_at or challenge.expires_at <= now or challenge.attempts >= 5:
+            return None
+        account = (await self.session.execute(select(AdminAccount).where(
+            AdminAccount.id == challenge.admin_account_id,
+        ).with_for_update())).scalar_one()
+        challenge.attempts += 1
+        if not account.is_active or (account.locked_until and account.locked_until > now):
+            return None
+        encrypted = account.mfa_secret_encrypted or challenge.pending_secret_encrypted
+        # An old enrollment proof must never replace a factor already enrolled elsewhere.
+        if not encrypted or (account.mfa_secret_encrypted and challenge.pending_secret_encrypted):
+            return None
+        counter = verify_totp(decrypt_secret(encrypted), code, account.last_totp_counter)
+        if counter is None:
+            self.audit(account, "auth.mfa_failed")
+            return None
+        account.mfa_secret_encrypted = encrypted
+        account.last_totp_counter = counter
+        challenge.consumed_at = now
+        self.audit(account, "auth.mfa_verified")
+        return await self.issue(account, mfa_verified_at=now)
 
     async def refresh(self, raw):
         # Lock the old session so a refresh token can only be consumed once.
@@ -88,11 +139,18 @@ class AdminAuthService:
             AdminSession.refresh_token_hash == hash_refresh_token(raw),
         ).with_for_update())).scalar_one_or_none()
         now = datetime.now(timezone.utc)
-        if not previous or previous.revoked_at or previous.expires_at <= now:
+        if previous and previous.revoked_at:
+            await self.session.execute(update(AdminSession).where(
+                AdminSession.family_id == previous.family_id, AdminSession.revoked_at.is_(None),
+            ).values(revoked_at=now))
+            # Return instead of raising so family revocation commits on failure.
+            return None
+        if not previous or previous.expires_at <= now:
             raise UnauthorizedException("Invalid or expired session.")
         account = await self.session.get(AdminAccount, previous.admin_account_id)
         if not account or not account.is_active or account.credential_version != previous.credential_version:
             raise UnauthorizedException("Invalid or expired session.")
         previous.revoked_at = now
         self.audit(account, "auth.refresh")
-        return await self.issue(account)
+        return await self.issue(account, mfa_verified_at=previous.mfa_verified_at,
+                                family_id=previous.family_id, expires_at=previous.expires_at)

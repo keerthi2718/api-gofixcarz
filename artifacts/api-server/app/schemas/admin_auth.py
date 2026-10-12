@@ -21,6 +21,12 @@ class AdminRefreshRequest(BaseModel):
     refresh_token: SecretStr = Field(min_length=32, max_length=256)
 
 
+class AdminMfaRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    challenge_id: uuid.UUID
+    code: str = Field(pattern=r"^\d{6}$")
+
+
 class AdminIdentity(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
