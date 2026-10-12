@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import get_session
@@ -25,9 +25,11 @@ from app.schemas.response import APIResponse, PaginatedData
 from app.services.admin_service import AdminService, validate_dates
 from app.services.garage_service import _with_logo_url
 from app.services.job_service import _with_photo_urls
+from app.core.admin_read_filters import AdminReadFilters, reject_unknown_admin_query
+from app.api.v1.admin_monitoring import Filters
 
 # Router-wide protection prevents accidentally adding an unguarded admin route.
-router = APIRouter(dependencies=[Depends(get_current_admin)])
+router = APIRouter(dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 Page = Annotated[int, Query(ge=1)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
@@ -49,9 +51,9 @@ async def admin_me(admin: CurrentAdmin, session: DBSession):
 
 
 @router.get("/dashboard", response_model=APIResponse[AdminDashboardResponse])
-async def dashboard(admin: CurrentAdmin, session: DBSession):
+async def dashboard(admin: CurrentAdmin, session: DBSession, filters: Filters):
     service = AdminService(session)
-    result = await service.dashboard()
+    result = await service.dashboard(filters)
     await service.audit(admin.id, "dashboard.read")
     return APIResponse.ok(data=result)
 
@@ -91,11 +93,13 @@ async def user_status(
 @router.get("/garages", response_model=APIResponse[PaginatedData[GarageResponse]])
 async def garages(
     admin: CurrentAdmin, session: DBSession, search: Search = None, user_id: uuid.UUID | None = None,
+    city: Annotated[str | None, Query(max_length=100)] = None,
     page: Page = 1, page_size: PageSize = 20,
 ):
     service = AdminService(session)
     result = await service.page(
-        service.repo.garages_query(search, user_id), GarageResponse, page, page_size, _with_logo_url,
+        service.repo.garages_query(search, user_id, filters=AdminReadFilters(city=city)),
+        GarageResponse, page, page_size, _with_logo_url,
     )
     await service.audit(admin.id, "garages.list")
     return APIResponse.ok(data=result)
@@ -111,15 +115,22 @@ async def garage_detail(garage_id: uuid.UUID, admin: CurrentAdmin, session: DBSe
 
 @router.get("/jobs", response_model=APIResponse[PaginatedData[JobResponse]])
 async def jobs(
-    admin: CurrentAdmin, session: DBSession, garage_id: uuid.UUID | None = None,
+    admin: CurrentAdmin, session: DBSession, filters: Filters,
     status: JobStatus | None = None, search: Search = None,
-    date_from: date | None = None, date_to: date | None = None,
+    customer_id: uuid.UUID | None = None,
+    booking_id: uuid.UUID | None = None,
     page: Page = 1, page_size: PageSize = 20,
 ):
-    validate_dates(date_from, date_to)
     service = AdminService(session)
+    query = service.repo.jobs_query(status=status, search=search, filters=filters)
+    if customer_id is not None:
+        from app.models.job import Job
+        query = query.where(Job.customer_id == customer_id)
+    if booking_id is not None:
+        from app.models.job import Job
+        query = query.where(Job.booking_id == booking_id)
     result = await service.page(
-        service.repo.jobs_query(garage_id, status, search, date_from, date_to),
+        query,
         JobResponse, page, page_size, _with_photo_urls,
     )
     await service.audit(admin.id, "jobs.list")
@@ -136,12 +147,14 @@ async def job_detail(job_id: uuid.UUID, admin: CurrentAdmin, session: DBSession)
 
 @router.get("/bookings", response_model=APIResponse[PaginatedData[BookingResponse]])
 async def bookings(
-    admin: CurrentAdmin, session: DBSession, garage_id: uuid.UUID | None = None,
+    admin: CurrentAdmin, session: DBSession, filters: Filters,
+    customer_id: uuid.UUID | None = None, search: Search = None,
     status: BookingStatus | None = None, page: Page = 1, page_size: PageSize = 20,
 ):
     service = AdminService(session)
     result = await service.page(
-        service.repo.bookings_query(garage_id, status), BookingResponse, page, page_size,
+        service.repo.bookings_query(status=status, filters=filters, customer_id=customer_id, search=search),
+        BookingResponse, page, page_size,
     )
     await service.audit(admin.id, "bookings.list")
     return APIResponse.ok(data=result)
@@ -149,13 +162,18 @@ async def bookings(
 
 @router.get("/analytics", response_model=APIResponse[AdminAnalyticsResponse])
 async def analytics(
-    admin: CurrentAdmin, session: DBSession, garage_id: uuid.UUID | None = None,
+    admin: CurrentAdmin, session: DBSession, filters: Filters,
     period: Literal["daily", "weekly", "monthly", "custom"] = "monthly",
     start_date: date | None = None, end_date: date | None = None,
 ):
     service = AdminService(session)
-    result = await service.analytics(garage_id, period, start_date, end_date)
-    await service.audit(admin.id, "analytics.read", garage_id)
+    if (start_date and filters.date_from and start_date != filters.date_from) or (
+        end_date and filters.date_to and end_date != filters.date_to
+    ):
+        raise HTTPException(422, "Conflicting date aliases")
+    result = await service.analytics(filters.garage_id, period, start_date or filters.date_from,
+                                     end_date or filters.date_to, filters=filters)
+    await service.audit(admin.id, "analytics.read", filters.garage_id)
     return APIResponse.ok(data=result)
 
 
@@ -179,12 +197,13 @@ async def audit_logs(
     admin: CurrentAdmin, session: DBSession, actor_id: uuid.UUID | None = None,
     action: Annotated[str | None, Query(max_length=100)] = None,
     date_from: date | None = None, date_to: date | None = None,
+    timezone: Annotated[str, Query(max_length=64)] = "UTC",
     page: Page = 1, page_size: PageSize = 20,
 ):
     validate_dates(date_from, date_to)
     service = AdminService(session)
     result = await service.page(
-        service.repo.audit_query(actor_id, action, date_from, date_to),
+        service.repo.audit_query(actor_id, action, filters=AdminReadFilters(date_from, date_to, timezone)),
         AdminAuditResponse, page, page_size,
     )
     await service.audit(admin.id, "audit.list")

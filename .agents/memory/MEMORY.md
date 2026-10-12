@@ -7,3 +7,4 @@
 - [Platform admin boundary](platform-admin-boundary.md) — admin is cross-garage, while garage owners stay tenant-scoped; bootstrap must be deliberate.
 - [Customer API document scope](customer-api-document-scope.md) — approval documents contain customer-only contracts, excluding public browsing and other-role URL catalogues.
 - [Owner account retention](owner-account-retention.md) — user wants deletion represented by status with data retained for future retrieval; do not promise Apple approval.
+- [Admin draft approval](admin-draft-approval.md) — existing-data scope is not approval of proposed policies; job amounts and contact records are not payment or identity sources.

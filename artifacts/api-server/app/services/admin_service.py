@@ -1,10 +1,14 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+from dataclasses import replace
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import BadRequestException, NotFoundException
+from app.core.admin_read_filters import AdminReadFilters
+from app.models.garage import Garage
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.admin_account import AdminAccount
 from app.models.user import User, UserRole
@@ -19,7 +23,7 @@ from app.schemas.booking import BookingResponse
 from app.schemas.garage import GarageResponse
 from app.schemas.job import JobDetailResponse, JobResponse
 from app.schemas.response import PaginatedData
-from app.services.analytics_service import _date_label, _period_dates
+from app.services.analytics_service import _date_label
 from app.services.garage_service import _with_logo_url
 from app.services.job_service import _with_photo_urls
 
@@ -105,33 +109,64 @@ class AdminService:
             raise NotFoundException("Job not found.")
         return _with_photo_urls(JobDetailResponse.model_validate(job))
 
-    async def dashboard(self):
-        today = date.today()
-        counts = await self.repo.status_counts()
+    async def dashboard(self, filters=None):
+        filters = filters or AdminReadFilters()
+        if filters.garage_id and not await self.repo.get_garage(filters.garage_id):
+            raise NotFoundException("Garage not found.")
+        today = datetime.now(ZoneInfo(filters.timezone)).date()
+        counts = await self.repo.status_counts(filters=filters)
+        users = self.repo.users_query()
+        if filters.city is not None or filters.garage_id is not None:
+            users = users.where(User.id.in_(
+                self.repo.garages_query(filters=filters).with_only_columns(Garage.user_id).order_by(None)
+            ))
+        today_filters = replace(filters, date_from=max(filters.date_from or today, today),
+                                date_to=min(filters.date_to or today, today)) if (
+            (not filters.date_from or filters.date_from <= today) and
+            (not filters.date_to or filters.date_to >= today)
+        ) else None
         return AdminDashboardResponse(
-            total_users=await self.repo.count(self.repo.users_query()),
-            active_users=await self.repo.count(self.repo.users_query(is_active=True)),
-            total_garages=await self.repo.count(self.repo.garages_query()),
+            total_users=await self.repo.count(users),
+            active_users=await self.repo.count(users.where(User.is_active.is_(True))),
+            total_garages=await self.repo.count(self.repo.garages_query(filters=filters)),
             total_jobs=sum(counts.values()),
-            jobs_today=await self.repo.count(self.repo.jobs_query(date_from=today, date_to=today)),
+            jobs_today=await self.repo.count(self.repo.jobs_query(filters=today_filters)) if today_filters else 0,
             status_counts=counts,
-            total_bookings=await self.repo.count(self.repo.bookings_query()),
-            pending_bookings=await self.repo.count(self.repo.bookings_query(status="PENDING")),
-            revenue_today=await self.repo.revenue(start_date=today, end_date=today),
-            revenue_this_month=await self.repo.revenue(start_date=today.replace(day=1), end_date=today),
-            total_revenue=await self.repo.revenue(),
-            billing_issue_count=await self.repo.count(self.repo.jobs_query(billing_issues=True)),
+            total_bookings=await self.repo.count(self.repo.bookings_query(filters=filters)),
+            pending_bookings=await self.repo.count(self.repo.bookings_query(status="PENDING", filters=filters)),
+            revenue_today=await self.repo.revenue(start_date=today, end_date=today, filters=filters),
+            revenue_this_month=await self.repo.revenue(start_date=today.replace(day=1), end_date=today, filters=filters),
+            total_revenue=await self.repo.revenue(filters=filters),
+            billing_issue_count=await self.repo.count(self.repo.jobs_query(billing_issues=True, filters=filters)),
+            filters=filters.metadata(), generated_at=datetime.now(timezone.utc),
+            metric_bases={
+                "users_and_garages": "current inventory; dates do not filter inventory",
+                "jobs_and_bookings": "created_at cohort; current persisted status",
+                "revenue": "completed_at; recorded job final amounts in INR, not payment collections",
+            },
         )
 
-    async def analytics(self, garage_id, period, start_date, end_date):
+    async def analytics(self, garage_id, period, start_date, end_date, filters=None):
         if period == "custom" and (not start_date or not end_date):
             raise BadRequestException("start_date and end_date are required for custom period.")
         validate_dates(start_date, end_date)
         if garage_id and not await self.repo.get_garage(garage_id):
             raise NotFoundException("Garage not found.")
-        start, end, trunc = _period_dates(period, start_date, end_date)
-        counts = await self.repo.status_counts(garage_id, start, end)
-        jobs, revenues = await self.repo.time_series(garage_id, start, end, trunc)
+        filters = filters or AdminReadFilters()
+        today = datetime.now(ZoneInfo(filters.timezone)).date()
+        if period == "daily":
+            start, end, trunc = today - timedelta(days=6), today, "day"
+        elif period == "weekly":
+            start, end, trunc = today - timedelta(weeks=4), today, "week"
+        elif period == "monthly":
+            start, end, trunc = today.replace(day=1) - timedelta(days=335), today, "month"
+        else:
+            start, end, trunc = start_date, end_date, "day"
+        # Unlike the owner analytics helper, explicit admin dates apply to every period.
+        start, end = start_date or start, end_date or end
+        filters = replace(filters, date_from=start, date_to=end, garage_id=garage_id)
+        counts = await self.repo.status_counts(filters=filters)
+        jobs, revenues = await self.repo.time_series(garage_id, start, end, trunc, filters=filters)
         merged = {}
         for row in jobs:
             merged[row.bucket] = {"job_count": row.count, "completed_count": 0, "revenue": 0}
@@ -140,9 +175,15 @@ class AdminService:
             merged[row.bucket].update(completed_count=row.count, revenue=row.revenue)
         return AdminAnalyticsResponse(
             garage_id=garage_id, period=period, start_date=start, end_date=end,
-            total_jobs=sum(counts.values()), total_revenue=await self.repo.revenue(garage_id, start, end),
+            total_jobs=sum(counts.values()), total_revenue=await self.repo.revenue(filters=filters),
             status_counts=counts,
             graph_data=[AdminTimeSeriesPoint(
                 label=_date_label(bucket, trunc), **merged[bucket],
             ) for bucket in sorted(merged)],
+            filters=filters.metadata(), generated_at=datetime.now(timezone.utc),
+            metric_bases={
+                "job_count_and_status_counts": "job.created_at; current status",
+                "completed_count": "job.completed_at; current COMPLETED status",
+                "revenue": "job.completed_at; recorded final amounts in INR, not collections",
+            },
         )

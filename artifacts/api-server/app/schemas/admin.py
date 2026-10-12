@@ -38,6 +38,9 @@ class AdminDashboardResponse(BaseModel):
     revenue_this_month: Money
     total_revenue: Money
     billing_issue_count: int
+    filters: dict | None = None
+    generated_at: datetime | None = None
+    metric_bases: dict[str, str] | None = None
 
 
 class AdminTimeSeriesPoint(BaseModel):
@@ -56,6 +59,9 @@ class AdminAnalyticsResponse(BaseModel):
     total_revenue: Money
     status_counts: dict[str, int]
     graph_data: list[AdminTimeSeriesPoint]
+    filters: dict | None = None
+    generated_at: datetime | None = None
+    metric_bases: dict[str, str] | None = None
 
 
 class AdminAuditResponse(BaseModel):
