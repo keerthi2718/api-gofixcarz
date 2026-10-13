@@ -96,6 +96,11 @@ script consumes the value only inside runtime and writes a password hash. It
 refuses non-internal-development targets and will not overwrite existing credentials.
 Nothing automatically provisions production.
 
+An alternative operator-only first-admin setup API is documented separately in
+`admin-first-signup.private.md`. It is disabled by default, requires a private
+setup key and an empty dedicated admin account store, and enforces MFA at login.
+Keep that private setup contract out of public OpenAPI and shared API catalogues.
+
 For legacy OTP admins, a trusted operator must select an existing, active user.
 
 For **development only**, from `artifacts/api-server`:

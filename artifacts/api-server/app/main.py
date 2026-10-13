@@ -197,9 +197,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
-    # Escape braces so loguru doesn't try to format them as template placeholders
-    safe = str(exc).replace("{", "{{").replace("}", "}}")
-    logger.opt(exception=True).error(f"Unhandled exception: {safe}")
+    signup_failure = request.url.path.rstrip("/") == "/api/v1/admin-auth/sign-up"
+    if signup_failure:
+        # Rich tracebacks and driver messages can expose setup/password values.
+        # Keep a fixed diagnostic plus error type, never arguments or locals.
+        logger.error("Admin signup failed ({})", type(exc).__name__)
+    else:
+        # Escape braces so loguru doesn't try to format them as template placeholders
+        safe = str(exc).replace("{", "{{").replace("}", "}}")
+        logger.opt(exception=True).error(f"Unhandled exception: {safe}")
     return JSONResponse(
         status_code=500,
         content={
@@ -209,6 +215,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
             "errors": [],
             "status_code": 500,
         },
+        headers={"Cache-Control": "no-store"} if signup_failure else None,
     )
 
 

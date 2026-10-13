@@ -3,24 +3,52 @@ from typing import Annotated
 from datetime import datetime, timezone
 import uuid
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Header, Request
 from fastapi.responses import JSONResponse
+from pydantic import SecretStr
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.admin_security import decode_admin_access
-from app.core.exceptions import UnauthorizedException
+from app.core.exceptions import AppException, UnauthorizedException
 from app.database.session import get_session
 from app.dependencies.auth import CurrentAdmin
 from app.models.admin_account import AdminAccount, AdminSession
-from app.schemas.admin_auth import AdminLoginRequest, AdminRefreshRequest, AdminMfaRequest
+from app.schemas.admin_auth import AdminLoginRequest, AdminRefreshRequest, AdminMfaRequest, AdminSignupRequest
 from app.schemas.response import APIResponse
 from app.services.admin_auth_service import AdminAuthService
+from app.services.admin_signup_service import AdminSignupService
 
 router = APIRouter(include_in_schema=False)
 limiter = Limiter(key_func=get_remote_address)
 DBSession = Annotated[AsyncSession, Depends(get_session)]
+
+
+@router.post("/sign-up", status_code=201)
+@limiter.limit("5/minute")
+async def sign_up(
+    request: Request,
+    data: AdminSignupRequest,
+    session: DBSession,
+    setup_key: Annotated[SecretStr | None, Header(alias="X-Admin-Setup-Key")] = None,
+):
+    try:
+        result = await AdminSignupService(session).signup(data, setup_key)
+    except AppException as exc:
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=APIResponse.error(message=exc.message, status_code=exc.status_code).model_dump(mode="json"),
+            headers={"Cache-Control": "no-store"},
+        )
+    return JSONResponse(
+        status_code=201,
+        content=APIResponse.ok(
+            data=result, message="Admin account created. Sign in to complete MFA.",
+            status_code=201,
+        ).model_dump(mode="json"),
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @router.post("/sign-in")

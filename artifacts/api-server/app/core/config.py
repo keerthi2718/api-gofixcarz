@@ -6,6 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # Transitional compatibility is explicitly disabled for normal operation.
     ALLOW_LEGACY_ADMIN_TOKENS: bool = False
+    # Temporary operator-only first-admin setup; never public registration.
+    ADMIN_SIGNUP_ENABLED: bool = False
+    ADMIN_SETUP_KEY: SecretStr = SecretStr("")
     ADMIN_DELAY_HOURS: int = Field(default=24, ge=1, le=720)
     ADMIN_SNAPSHOT_HOURS: int = Field(default=24, ge=1, le=168)
     ADMIN_MAX_REPORT_ROWS: int = Field(default=10000, ge=1, le=50000)

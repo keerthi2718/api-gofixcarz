@@ -3,6 +3,25 @@ import uuid
 from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
 
 
+class AdminSignupRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    email: EmailStr = Field(max_length=255)
+    name: str = Field(min_length=1, max_length=255)
+    password: SecretStr
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def trimmed_name(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("password")
+    @classmethod
+    def bounded_password(cls, value):
+        if not 16 <= len(value.get_secret_value()) <= 128:
+            raise ValueError("Admin password must contain 16 to 128 characters.")
+        return value
+
+
 class AdminLoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     email: EmailStr = Field(validation_alias=AliasChoices("email", "identifier"))
