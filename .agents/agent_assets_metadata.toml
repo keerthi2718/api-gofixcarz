@@ -98,3 +98,17 @@ mtime_ms = 1791437416806
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/88fc9533-276c-4251-bee0-792065481997/55ba5b85-e035-46e7-a261-6a86f3dd9d07"
 storage_version_token = "1791437450480568"
 content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "X81tf7R5EydQBPt2SqIfx"
+uri = "file://artifacts/api-server/docs/GoFixCarz_Admin_APIs.postman_collection.json"
+type = "unspecified"
+title = "GoFixCarz Admin APIs — Postman Collection"
+description = "Import this collection into Postman to test all 66 documented admin operations and 4 private authentication endpoints. Set your own development API base URL and local environment credentials first."
+logical_id = "b2000536-6d28-4569-9f8f-fa7d57cf73d2"
+content_hash = "sha256:b029f9642b6d9dc47876cc123a86e2ff151aa452f56b8e4184d5adb79953ae1d"
+size = 74171
+mtime_ms = 1791868332019
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/b2000536-6d28-4569-9f8f-fa7d57cf73d2/9a937e19-e84f-4f5c-b6c7-22ec5fcb68e3"
+storage_version_token = "1791868374691531"
+content_type = "application/octet-stream"

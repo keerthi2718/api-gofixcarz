@@ -1,0 +1,2534 @@
+{
+  "info": {
+    "_postman_id": "d8c190d0-1bc3-4d20-9eb4-0a5fa1f607d0",
+    "name": "GoFixCarz Admin API — Postman Tests",
+    "description": "Postman collection generated from the running FastAPI OpenAPI schema. Includes 66 public admin operations and 4 private authentication operations.\n\nSet baseUrl to the API server origin (no trailing slash); set adminEmail/adminPassword in a local Postman environment. Run Sign In, then Complete MFA if challenged. Copy returned access_token and refresh_token to the adminToken/refreshToken environment variables.\n\nUse the dedicated admin token. Many write actions require a recent MFA proof. Read current records first and use their expected_version. Mutation examples are for a development/test database only. Announcement sends are IN_APP only. Replace placeholder IDs with real development record IDs. Financial/customer/review results require authentic source records.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{adminToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "00 Private Authentication",
+      "description": "Private admin auth endpoints are intentionally excluded from public OpenAPI. Do not share TOTP seeds, passwords or tokens.",
+      "item": [
+        {
+          "name": "Sign In (private)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin-auth/sign-in",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\",\n  \"device_name\": \"Postman development test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Private admin password verification. If MFA is required, the response contains challenge_id and (on first enrollment only) provisioning_uri. Add the URI to an authenticator, then use Complete MFA. Never share the provisioning URI or tokens."
+          }
+        },
+        {
+          "name": "Complete MFA (private)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin-auth/mfa",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challenge_id\": \"{{mfaChallengeId}}\",\n  \"code\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Enter the current six-digit TOTP from the enrolled authenticator. The example code is a placeholder. Challenge expires after five minutes and is single-use. Copy data.access_token to the Postman environment variable adminToken and data.refresh_token to refreshToken."
+          }
+        },
+        {
+          "name": "Refresh Session (private)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin-auth/refresh",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Refresh tokens rotate: copy the newly returned access_token and refresh_token over the old environment values. Reusing the old refresh token revokes its family."
+          }
+        },
+        {
+          "name": "Logout (private)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin-auth/logout",
+              "query": []
+            },
+            "description": "Revoke the current dedicated admin session. Requires Bearer {{adminToken}}."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Menus",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/menus",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Admin Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/me",
+              "query": []
+            },
+            "description": "Admin identity; no owned garage is required."
+          }
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/dashboard",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users",
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "{{is_active}}",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "{{role}}",
+                  "disabled": true
+                },
+                {
+                  "key": "include_deleted",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "User Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{user_id}}",
+              "query": [
+                {
+                  "key": "include_deleted",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "User Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/users/{{user_id}}/status",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Activate/deactivate garage-owner accounts; admin deactivation is disallowed."
+          }
+        },
+        {
+          "name": "Garages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garages",
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                },
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "operational_status",
+                  "value": "{{operational_status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "verification_status",
+                  "value": "{{verification_status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Garage Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/jobs",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                },
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "booking_id",
+                  "value": "{{booking_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Job Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/jobs/{{job_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/bookings",
+              "query": [
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/analytics",
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly",
+                  "description": "Allowed: daily, weekly, monthly, custom. Default: monthly.",
+                  "disabled": false
+                },
+                {
+                  "key": "start_date",
+                  "value": "{{start_date}}",
+                  "disabled": true
+                },
+                {
+                  "key": "end_date",
+                  "value": "{{end_date}}",
+                  "disabled": true
+                },
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Billing Issues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/billing/issues",
+              "query": [
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Read-only review of completed jobs missing final amount, billing or completion time."
+          }
+        },
+        {
+          "name": "Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/audit-logs",
+              "query": [
+                {
+                  "key": "actor_id",
+                  "value": "{{actor_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "action",
+                  "value": "{{action}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Finance",
+      "item": [
+        {
+          "name": "Finance Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/finance/summary",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Finance Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/finance/trends",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "period",
+                  "value": "daily",
+                  "description": "Allowed: daily, weekly, monthly. Default: daily.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/invoices",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/payments",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "invoice_id",
+                  "value": "{{invoice_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refunds",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/refunds",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "payment_id",
+                  "value": "{{payment_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disputes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/disputes",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Invoice Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/invoices/{{invoice_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Payment Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/payments/{{payment_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Dispute Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/disputes/{{dispute_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Payment Attempts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/invoices/{{invoice_id}}/payment-attempts",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Monitoring",
+      "item": [
+        {
+          "name": "Owners",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garage-owners",
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "include_deleted",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "min_rating",
+                  "value": "{{min_rating}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Owner Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garage-owners/{{owner_id}}",
+              "query": [
+                {
+                  "key": "include_deleted",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Booking Exceptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/bookings/exception-statistics",
+              "query": [
+                {
+                  "key": "group_by",
+                  "value": "{{group_by}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Booking Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/bookings/{{booking_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Timeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/jobs/{{job_id}}/timeline",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Audit Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/audit-logs/{{audit_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Activity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/activity",
+              "query": [
+                {
+                  "key": "owner_id",
+                  "value": "{{owner_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "booking_id",
+                  "value": "{{booking_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "job_id",
+                  "value": "{{job_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "event_type",
+                  "value": "{{event_type}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Funnel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/activity/service-funnels/{{booking_id}}",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Operations",
+      "item": [
+        {
+          "name": "Garage Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}/status",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman development test\",\n  \"expected_version\": 1,\n  \"operational_status\": \"ACTIVE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Garage Verification",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}/verification",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman development test\",\n  \"expected_version\": 1,\n  \"verification_status\": \"UNVERIFIED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Garage Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}/reviews",
+              "query": [
+                {
+                  "key": "moderation_status",
+                  "value": "{{moderation_status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/customers",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "account_status",
+                  "value": "{{account_status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "has_failed_payments",
+                  "value": "{{has_failed_payments}}",
+                  "disabled": true
+                },
+                {
+                  "key": "has_support_flags",
+                  "value": "{{has_support_flags}}",
+                  "disabled": true
+                },
+                {
+                  "key": "inactive_since",
+                  "value": "{{inactive_since}}",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/customers/{{customer_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Customer Vehicles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/customers/{{customer_id}}/vehicles",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Customer Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/customers/{{customer_id}}/reviews",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delays",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/jobs/delays",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "overdue",
+                  "value": "{{overdue}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/alerts",
+              "query": [
+                {
+                  "key": "type",
+                  "value": "JOB_DELAY",
+                  "description": "Default: JOB_DELAY.",
+                  "disabled": false
+                },
+                {
+                  "key": "severity",
+                  "value": "{{severity}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/notifications",
+              "query": [
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "channel",
+                  "value": "{{channel}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notification Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/notifications/{{notification_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Preview Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/announcements/preview",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"audience\": {\n    \"recipient_roles\": [\n      \"GARAGE_OWNER\"\n    ],\n    \"garage_ids\": []\n  },\n  \"channels\": [\n    \"IN_APP\"\n  ],\n  \"title\": \"Development test announcement\",\n  \"body\": \"Test message. Send only to development test accounts.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Send Announcement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{announcementIdempotencyKey}}",
+                "description": "Use a unique key for each new operation and reuse it only when retrying that same operation.",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/announcements",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preview_id\": \"{{preview_id}}\",\n  \"reason\": \"Postman development test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Announcements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/announcements",
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Announcement Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/announcements/{{announcement_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Announcement Deliveries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/announcements/{{announcement_id}}/deliveries",
+              "query": [
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets",
+              "query": [
+                {
+                  "key": "customer_id",
+                  "value": "{{customer_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}",
+                  "disabled": true
+                },
+                {
+                  "key": "priority",
+                  "value": "{{priority}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ticket Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Ticket Assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/assignment",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman development test\",\n  \"expected_version\": 1,\n  \"assignee_id\": \"{{assignee_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ticket Priority",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/priority",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Postman development test\",\n  \"expected_version\": 1,\n  \"priority\": \"NORMAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ticket Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/status",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_version\": 1,\n  \"status\": \"IN_PROGRESS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ticket Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/messages",
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "30",
+                  "description": "Default: 30.",
+                  "disabled": false
+                },
+                {
+                  "key": "cursor",
+                  "value": "{{cursor}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ticket Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/messages",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_message_id\": \"postman-test-001\",\n  \"text\": \"Development test reply. Do not send from production.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Owner Statistics",
+      "item": [
+        {
+          "name": "Owner Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "exclude_inactive",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "sort",
+                  "value": "jobs_created_desc",
+                  "description": "Allowed: jobs_created_desc, net_collected_amount_desc, owner_name_asc. Default: jobs_created_desc.",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Owner Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics/summary",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "exclude_inactive",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Owner Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics/{{owner_id}}",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "exclude_inactive",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Owner Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics/{{owner_id}}/trends",
+              "query": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{snapshot_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "exclude_inactive",
+                  "value": "false",
+                  "description": "Default: false.",
+                  "disabled": false
+                },
+                {
+                  "key": "period",
+                  "value": "daily",
+                  "description": "Allowed: daily, weekly, monthly. Default: daily.",
+                  "disabled": false
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{date_from}}",
+                  "disabled": true
+                },
+                {
+                  "key": "date_to",
+                  "value": "{{date_to}}",
+                  "disabled": true
+                },
+                {
+                  "key": "timezone",
+                  "value": "UTC",
+                  "description": "Default: UTC.",
+                  "disabled": false
+                },
+                {
+                  "key": "city",
+                  "value": "{{city}}",
+                  "disabled": true
+                },
+                {
+                  "key": "garage_id",
+                  "value": "{{garage_id}}",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Reports",
+      "item": [
+        {
+          "name": "Request Export",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{exportIdempotencyKey}}",
+                "description": "Use a unique key for each new operation and reuse it only when retrying that same operation.",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/exports",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"report_type\": \"OPERATIONS\",\n  \"format\": \"CSV\",\n  \"filters\": {\n    \"date_from\": \"2026-10-01\",\n    \"date_to\": \"2026-10-13\",\n    \"timezone\": \"UTC\"\n  },\n  \"exclude_inactive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Report Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/exports/{{export_id}}",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Download Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/reports/exports/{{export_id}}/download",
+              "query": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Security",
+      "item": [
+        {
+          "name": "Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/permissions",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Roles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/roles",
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Staff",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/staff",
+              "query": [
+                {
+                  "key": "search",
+                  "value": "{{search}}",
+                  "disabled": true
+                },
+                {
+                  "key": "is_active",
+                  "value": "{{is_active}}",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Default: 1.",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "description": "Default: 20.",
+                  "disabled": false
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Roles",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/staff/{{admin_id}}/roles",
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_ids\": [\n    \"role_operations\"\n  ],\n  \"data_scope\": {\n    \"type\": \"PLATFORM\",\n    \"garage_ids\": []\n  },\n  \"reason\": \"Postman development test; assign only to a separate test admin.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "default"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@example.com",
+      "type": "default"
+    },
+    {
+      "key": "adminPassword",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "mfaChallengeId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "announcementIdempotencyKey",
+      "value": "postman-announcement-001",
+      "type": "default"
+    },
+    {
+      "key": "exportIdempotencyKey",
+      "value": "postman-export-001",
+      "type": "default"
+    },
+    {
+      "key": "preview_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "assignee_id",
+      "value": "00000000-0000-4000-8000-000000000002",
+      "type": "default"
+    },
+    {
+      "key": "admin_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "announcement_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "audit_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "booking_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "customer_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "dispute_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "export_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "garage_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "invoice_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "job_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "notification_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "owner_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "payment_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "ticket_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    },
+    {
+      "key": "user_id",
+      "value": "00000000-0000-4000-8000-000000000001",
+      "type": "default"
+    }
+  ]
+}
