@@ -74,7 +74,8 @@ async def signup(d, **changes):
     })
 
 
-async def test_signup_hash_audit_and_required_mfa_journey(isolated_signup):
+async def test_signup_hash_audit_and_required_mfa_journey(isolated_signup, monkeypatch):
+    monkeypatch.setattr(settings, "ADMIN_MFA_REQUIRED", True)
     d = isolated_signup
     response = await signup(d)
     assert response.status_code == 201, response.text
@@ -106,6 +107,29 @@ async def test_signup_hash_audit_and_required_mfa_journey(isolated_signup):
     me = await d["client"].get("/api/v1/admin/me", headers={"Authorization": "Bearer " + token})
     assert me.status_code == 200
     assert "admin-auth" not in str(app.openapi()["paths"])
+
+
+async def test_signup_and_sign_in_work_without_mfa_by_default(isolated_signup):
+    d = isolated_signup
+    response = await signup(d)
+    assert response.status_code == 201, response.text
+    result = response.json()["data"]
+    assert result["mfa_required"] is False
+    assert result["next_step"] == "SIGN_IN"
+    assert "Sign in with your password" in response.json()["message"]
+
+    login = await d["client"].post(BASE + "/sign-in", json={
+        "email": result["email"], "password": PASSWORD,
+    })
+    assert login.status_code == 200
+    data = login.json()["data"]
+    assert "access_token" in data and "refresh_token" in data
+    assert "challenge_id" not in data and "provisioning_uri" not in data
+    me = await d["client"].get(
+        "/api/v1/admin/me",
+        headers={"Authorization": "Bearer " + data["access_token"]},
+    )
+    assert me.status_code == 200
 
 
 async def test_repeat_and_inactive_accounts_cannot_be_overwritten(isolated_signup):

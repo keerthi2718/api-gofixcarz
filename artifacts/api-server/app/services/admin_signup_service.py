@@ -70,11 +70,14 @@ class AdminSignupService:
             resource_id=account.id, details={"source": "operator_setup_api"},
         ))
         # Commit while holding the lock and before sending a success response.
-        # No access or refresh session is issued; sign-in must complete MFA.
+        # No session is issued here. The operator must sign in separately.
         result = AdminIdentity.model_validate(account).model_dump(mode="json")
         result.update(
-            role_ids=["role_ceo"], mfa_required=True,
-            next_step="SIGN_IN_AND_COMPLETE_MFA",
+            role_ids=["role_ceo"],
+            mfa_required=settings.ADMIN_MFA_REQUIRED,
+            next_step=(
+                "SIGN_IN_AND_COMPLETE_MFA" if settings.ADMIN_MFA_REQUIRED else "SIGN_IN"
+            ),
         )
         await self.session.commit()
         return result

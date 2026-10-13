@@ -32,3 +32,13 @@ visitors gain platform-wide access.
 **How to apply:** Preserve deliberate operator authorization and the separation
 from garage-owner signup. Building or publishing this API does not authorize
 creating an account on the user's behalf or exposing credentials in handoffs.
+
+Admin sign-in currently allows password-only sessions by default; authenticator
+MFA is opt-in at the platform policy level.
+
+**Why:** The user explicitly chose to make admin MFA optional so they can proceed
+without entering an authenticator code.
+
+**How to apply:** Keep `ADMIN_MFA_REQUIRED` defaulted to false unless the user
+changes this policy. Never weaken password verification, rate limits, JWT
+validation, or authorization as part of bypassing TOTP.

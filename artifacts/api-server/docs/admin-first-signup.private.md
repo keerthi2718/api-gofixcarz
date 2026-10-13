@@ -6,6 +6,8 @@ the public API catalogue, or distribute filled-in passwords or setup keys.
 This creates the first dedicated platform administrator. It does not create a
 garage, send SMS, promote a garage owner, overwrite credentials, or log in the
 new account. Additional staff must use the existing authenticated staff controls.
+Admin sign-in currently uses password-only authentication by default. Set
+`ADMIN_MFA_REQUIRED=true` to require authenticator-based MFA.
 
 ## Enable deliberately
 
@@ -73,8 +75,8 @@ All successful and expected setup-error responses include `Cache-Control: no-sto
     "role": "admin",
     "is_active": true,
     "role_ids": ["role_ceo"],
-    "mfa_required": true,
-    "next_step": "SIGN_IN_AND_COMPLETE_MFA"
+  "mfa_required": false,
+  "next_step": "SIGN_IN"
   },
   "errors": [],
   "status_code": 201
@@ -85,15 +87,18 @@ The created identity has platform-wide scope and the initial CEO permission
 role. Only a salted password hash is stored. Neither password, setup key,
 password hash, access token, nor refresh token is returned.
 
-## Sign in after signup
+## Sign in after signup (MFA optional)
 
 Use the chosen email and password with the existing private
-`POST /api/v1/admin-auth/sign-in` endpoint. It returns an MFA challenge rather
-than usable tokens. Enroll the returned `provisioning_uri` in an authenticator
-app and submit its current six-digit code and the returned `challenge_id` to
-`POST /api/v1/admin-auth/mfa`. Only completing MFA issues the admin session.
+`POST /api/v1/admin-auth/sign-in` endpoint. With the default
+`ADMIN_MFA_REQUIRED=false`, successful password verification issues the admin
+session directly. No mobile number or authenticator app is needed.
 
-Keep the provisioning URI private too. Signup does not disable or bypass MFA.
+When `ADMIN_MFA_REQUIRED=true`, sign-in instead returns an MFA challenge.
+Enroll the returned `provisioning_uri` in an authenticator app and submit its
+current six-digit code and `challenge_id` to `POST /api/v1/admin-auth/mfa`.
+Role and scope changes then require recent MFA. With MFA disabled, those
+operations rely on the password-authenticated admin session instead.
 
 ## Errors
 

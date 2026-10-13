@@ -41,14 +41,17 @@ provider is connected, or that every proposed extension has a source already.
 
 ## Authorization and privacy
 
-- Dedicated admin passwords and mandatory TOTP are the normal development
-  policy. Seeds are encrypted, codes cannot be reused, and challenges expire
-  after five minutes and are bound to credential version.
+- Dedicated admin passwords are required. TOTP is optional and off by default
+  (`ADMIN_MFA_REQUIRED=false`); setting it to true requires TOTP for accounts
+  marked as MFA-required. Seeds are encrypted, codes cannot be reused, and
+  challenges expire after five minutes and are bound to credential version.
 - Access sessions last 15 minutes. Refresh families have a seven-day absolute
   lifetime, rotate on use, and are revoked after replay. Logout invalidates the
   current session. MFA failures and password failures have bounded retries.
-- Privileged changes require MFA verified within five minutes; re-authenticate
-  through the private flow for a fresh proof.
+- When MFA is enabled, privileged changes require MFA verified within five
+  minutes; re-authenticate through the private flow for a fresh proof. With the
+  current optional-MFA policy, these changes rely on the password-authenticated
+  admin session.
 - Approved development roles are `role_ceo`, `role_operations`, `role_finance`
   and `role_support`. Fixed role definitions are visible through `/roles`.
 - Only a platform-scoped security administrator can assign roles. Self

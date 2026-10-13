@@ -9,6 +9,7 @@ from starlette.concurrency import run_in_threadpool
 from app.core.admin_security import (
     ACCESS_SECONDS, admin_access_token, hash_admin_password, verify_admin_password,
 )
+from app.core.config import settings
 from app.core.exceptions import UnauthorizedException
 from app.core.security import hash_refresh_token
 from app.models.admin_account import AdminAccount, AdminSession, AdminMfaChallenge, AdminRevokedFamily
@@ -105,8 +106,8 @@ class AdminAuthService:
             return None
         account.failed_attempts = 0
         account.locked_until = None
-        if not account.mfa_required:
-            # Private, deliberate transitional policy; never a public request field.
+        if not (settings.ADMIN_MFA_REQUIRED and account.mfa_required):
+            # Password-only login is an explicit platform policy, not a client choice.
             self.audit(account, "auth.login")
             return await self.issue(account)
         challenge = AdminMfaChallenge(

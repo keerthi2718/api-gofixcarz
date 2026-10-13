@@ -27,7 +27,8 @@ def body():
 
 def test_default_is_disabled():
     assert Settings.model_fields["ADMIN_SIGNUP_ENABLED"].default is False
-    assert Settings.model_fields["ADMIN_SETUP_KEY"].default.get_secret_value() == ""
+    assert Settings.model_fields["ADMIN_SETUP_KEY"].get_default().get_secret_value() == ""
+    assert Settings.model_fields["ADMIN_MFA_REQUIRED"].default is False
 
 
 @pytest.mark.parametrize("configured", ["", "x" * 31, "x" * 257])

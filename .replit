@@ -48,3 +48,4 @@ packages = ["freetype", "glibcLocales", "gumbo", "harfbuzz", "jbig2dec", "libjpe
 
 [userenv.production]
 ADMIN_SIGNUP_ENABLED = "true"
+ADMIN_MFA_REQUIRED = "false"

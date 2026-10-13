@@ -19,9 +19,10 @@ PRIVATE_BASE = "/api/v1/admin-auth"
 
 
 @pytest_asyncio.fixture
-async def dedicated(setup_admin_api):
+async def dedicated(setup_admin_api, monkeypatch):
     from app.api.v1.admin_auth import limiter
     limiter.reset()
+    monkeypatch.setattr(settings, "ADMIN_MFA_REQUIRED", True)
     d = setup_admin_api
     account = AdminAccount(
         id=uuid4(), email=f"admin-{uuid4()}@fixture.com", name="Dedicated fixture",
@@ -57,6 +58,23 @@ async def login(d):
 
 def bearer(token):
     return {"Authorization": "Bearer " + token}
+
+
+async def test_password_only_login_when_mfa_is_optional(dedicated, monkeypatch):
+    d = dedicated
+    monkeypatch.setattr(settings, "ADMIN_MFA_REQUIRED", False)
+    response = await d["client"].post(PRIVATE_BASE + "/sign-in", json={
+        "email": d["account"].email, "password": PASSWORD,
+    })
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-store"
+    data = response.json()["data"]
+    assert "access_token" in data and "refresh_token" in data
+    assert "challenge_id" not in data and "provisioning_uri" not in data
+    menus = await d["client"].get(
+        "/api/v1/admin/menus", headers=bearer(data["access_token"]),
+    )
+    assert menus.status_code == 200
 
 
 async def test_dedicated_login_all_menus_and_dashboard_access(dedicated):

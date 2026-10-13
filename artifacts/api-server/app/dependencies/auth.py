@@ -72,7 +72,10 @@ async def get_admin_principal(
                 or login_session.expires_at <= datetime.now(timezone.utc)
                 or payload["ver"] != account.credential_version
                 or login_session.credential_version != account.credential_version
-                or (account.mfa_required and not login_session.mfa_verified_at)
+                or (
+                    settings.ADMIN_MFA_REQUIRED and account.mfa_required
+                    and not login_session.mfa_verified_at
+                )
             ):
                 raise UnauthorizedException("Invalid or expired session.")
             account._mfa_verified_at = login_session.mfa_verified_at

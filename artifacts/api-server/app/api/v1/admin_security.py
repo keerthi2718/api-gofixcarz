@@ -6,6 +6,7 @@ from sqlalchemy import or_, select, update
 
 from app.api.v1.admin import DBSession, Page, PageSize
 from app.core.admin_policy import PERMISSIONS, ROLES, effective_permissions, require_permission
+from app.core.config import settings
 from app.core.admin_read_filters import reject_unknown_admin_query
 from app.dependencies.auth import CurrentAdmin, get_current_admin
 from app.models.admin_account import AdminAccount, AdminSession
@@ -25,7 +26,8 @@ def staff_row(account):
         "permissions": sorted(effective_permissions(account)),
         "data_scope": {"type": "PLATFORM" if account.garage_scope is None else "GARAGES",
                        "garage_ids": account.garage_scope or []},
-        "mfa_enrolled": bool(account.mfa_secret_encrypted), "mfa_required": account.mfa_required,
+        "mfa_enrolled": bool(account.mfa_secret_encrypted),
+        "mfa_required": settings.ADMIN_MFA_REQUIRED and account.mfa_required,
     }
 
 

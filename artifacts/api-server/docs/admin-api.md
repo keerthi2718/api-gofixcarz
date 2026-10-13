@@ -97,8 +97,9 @@ refuses non-internal-development targets and will not overwrite existing credent
 Nothing automatically provisions production.
 
 An alternative operator-only first-admin setup API is documented separately in
-`admin-first-signup.private.md`. It is disabled by default, requires a private
-setup key and an empty dedicated admin account store, and enforces MFA at login.
+`admin-first-signup.private.md`. It is disabled by default and requires a private
+setup key and an empty dedicated admin account store. Admin MFA is optional and
+off by default; set `ADMIN_MFA_REQUIRED=true` to require authenticator enrollment.
 Keep that private setup contract out of public OpenAPI and shared API catalogues.
 
 For legacy OTP admins, a trusted operator must select an existing, active user.

@@ -18,7 +18,7 @@ The Postman collection uses a variable named `base_url` set to `https://api.gofi
 
 ## Authentication
 
-1. `POST /api/v1/admin-auth/sign-in` with administrator email (or the accepted `identifier` alias) and password. If `mfa_required` is true, copy `challenge_id` and call `/api/v1/admin-auth/mfa` with the current six-digit TOTP. On first enrollment, the password-verified sign-in response also contains a secret `provisioning_uri` for an authenticator.
+1. `POST /api/v1/admin-auth/sign-in` with administrator email (or the accepted `identifier` alias) and password. MFA is optional and off by default (`ADMIN_MFA_REQUIRED=false`): a successful password sign-in returns the token pair directly. If production is configured to require MFA, copy `challenge_id` and call `/api/v1/admin-auth/mfa` with the current six-digit TOTP. The first enrollment response contains a private `provisioning_uri`.
 2. Save `access_token` and `refresh_token` in secure client storage. Send `Authorization: Bearer <access_token>` for every `/api/v1/admin/*` request and `/admin-auth/logout`.
 3. Access tokens expire after 15 minutes. Refresh rotates the refresh token; replace both tokens after every successful refresh. TOTP challenges expire after five minutes and are single-use.
 4. Use `/me` and `/menus` to build navigation. The backend permission-checks every request; a hidden frontend button is not authorization.
@@ -57,7 +57,7 @@ This is the response returned when credentials are rejected or the account is un
 }
 ```
 
-### Sign-in requires MFA — HTTP 200
+### Sign-in requires MFA when enabled — HTTP 200
 
 ```json
 {
@@ -74,6 +74,12 @@ This is the response returned when credentials are rejected or the account is un
   "status_code": 200
 }
 ```
+
+### Password sign-in (default) — HTTP 200
+
+With `ADMIN_MFA_REQUIRED=false`, sign-in returns the access and refresh tokens
+directly in the completed sign-in response below; there is no MFA challenge or
+mobile number requirement.
 
 ### Sign-in completed — HTTP 200
 

@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
 
+from app.core.config import settings
+
 PERMISSIONS = {
     "security.read", "security.manage", "dashboard.read", "users.read", "users.status.write",
     "garages.read", "garages.status.write", "garages.verify", "customers.read",
@@ -36,7 +38,7 @@ def require_permission(session, permission, *, recent_mfa=False):
     access = session.info.get("admin_access")
     if not access or permission not in access["permissions"]:
         raise HTTPException(403, "PERMISSION_DENIED")
-    if recent_mfa:
+    if recent_mfa and settings.ADMIN_MFA_REQUIRED:
         stamp = access.get("mfa_verified_at")
         if not stamp or stamp < datetime.now(timezone.utc) - timedelta(minutes=5):
             raise HTTPException(403, "RECENT_MFA_REQUIRED")

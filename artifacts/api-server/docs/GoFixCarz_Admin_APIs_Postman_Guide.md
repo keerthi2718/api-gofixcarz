@@ -6,7 +6,7 @@ This file accompanies **GoFixCarz_Admin_APIs.postman_collection.json**. Import t
 - Base path: `https://api.gofixcarz.com/api/v1/admin`; private auth path: `https://api.gofixcarz.com/api/v1/admin-auth`.
 - Set `base_url` to `https://api.gofixcarz.com/api/v1` (includes `/api/v1`; requests append `/admin/...` or `/admin-auth/...`).
 - Create a private Postman environment. Set `adminEmail`, `adminPassword` (mark it Secret), `adminToken` (Secret), `refreshToken` (Secret), and `mfaChallengeId`. Do not put real credentials in an exported collection.
-- Send **Sign In**. If it returns an MFA challenge, copy `data.challenge_id` into `mfaChallengeId`. On first enrollment only, add `data.provisioning_uri` to an authenticator. Then send **Complete MFA** with the current six-digit code.
+- Send **Sign In**. MFA is optional and off by default, so successful sign-in returns tokens directly. If the deployment is configured with `ADMIN_MFA_REQUIRED=true`, copy `data.challenge_id` into `mfaChallengeId`; on first enrollment, add `data.provisioning_uri` to an authenticator, then send **Complete MFA** with the current six-digit code.
 - The example MFA code is a placeholder. TOTP challenges expire in five minutes and are single-use. Refresh rotates the refresh token; replace both environment values with the new ones.
 - UUID path placeholders are examples, not real records. For authorized versioned writes, first GET the production record and use its current `expected_version`; stale versions return 409. Do not use live records to test mutations.
 - PRODUCTION WARNING: this collection targets live data. GET requests read production records; POST/PATCH/PUT/DELETE requests may create or change live data or send in-app messages. Do not run mutations or the collection runner for testing. Financial reads require a finance-authorized role. Live customer/finance/review results require authentic source records.
@@ -21,7 +21,7 @@ The API base URL supplied for this handoff is `https://api.gofixcarz.com/api/v1`
 
 ### POST `https://api.gofixcarz.com/api/v1/admin-auth/sign-in` — Sign In (private)
 
-Private admin password verification. If MFA is required, the response contains challenge_id and (on first enrollment only) provisioning_uri. Add the URI to an authenticator, then use Complete MFA. Never share the provisioning URI or tokens.
+Private admin password verification. By default, successful sign-in returns tokens without MFA. If the deployment requires MFA, the response contains challenge_id and (on first enrollment only) provisioning_uri. Add the URI to an authenticator, then use Complete MFA. Never share the provisioning URI or tokens.
 
 **Example 401 response when credentials are rejected or the account is unavailable**
 

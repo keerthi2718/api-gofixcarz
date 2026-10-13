@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     # Temporary operator-only first-admin setup; never public registration.
     ADMIN_SIGNUP_ENABLED: bool = False
     ADMIN_SETUP_KEY: SecretStr = SecretStr("")
+    # Admin password-only sign-in is the current default; enable to require TOTP.
+    ADMIN_MFA_REQUIRED: bool = False
     ADMIN_DELAY_HOURS: int = Field(default=24, ge=1, le=720)
     ADMIN_SNAPSHOT_HOURS: int = Field(default=24, ge=1, le=168)
     ADMIN_MAX_REPORT_ROWS: int = Field(default=10000, ge=1, le=50000)

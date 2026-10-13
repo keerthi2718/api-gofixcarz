@@ -228,7 +228,8 @@ async def test_report_queue_snapshot_download_permissions_and_expiry(suite, form
     assert (await get(d, path+"/download")).status_code == 410
 
 
-async def test_staff_role_assignment_revokes_session_and_requires_recent_mfa(suite):
+async def test_staff_role_assignment_revokes_session_and_requires_recent_mfa(suite, monkeypatch):
+    monkeypatch.setattr(settings, "ADMIN_MFA_REQUIRED", True)
     d = suite
     other = AdminAccount(id=uuid4(), email=f"staff-{uuid4()}@fixture.test", name="Assignable",
                          password_hash=hash_admin_password("fixture-only-password"), role_ids=["role_support"])

@@ -11,6 +11,7 @@ from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.admin_security import decode_admin_access
+from app.core.config import settings
 from app.core.exceptions import AppException, UnauthorizedException
 from app.database.session import get_session
 from app.dependencies.auth import CurrentAdmin
@@ -44,7 +45,12 @@ async def sign_up(
     return JSONResponse(
         status_code=201,
         content=APIResponse.ok(
-            data=result, message="Admin account created. Sign in to complete MFA.",
+            data=result,
+            message=(
+                "Admin account created. Sign in with your password."
+                if not settings.ADMIN_MFA_REQUIRED
+                else "Admin account created. Sign in to complete MFA."
+            ),
             status_code=201,
         ).model_dump(mode="json"),
         headers={"Cache-Control": "no-store"},
