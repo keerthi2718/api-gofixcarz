@@ -20,7 +20,7 @@ from app.models.admin_audit_log import AdminAuditLog
 
 async def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--email keerthana@thesmartbridge.com", required=True)
+    parser.add_argument("--email", required=True)
     parser.add_argument("--name", default="Platform administrator")
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
