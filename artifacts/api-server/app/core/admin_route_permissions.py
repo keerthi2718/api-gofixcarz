@@ -5,6 +5,8 @@ from app.core.admin_policy import require_permission
 def enforce_route_permission(request, session, legacy=False):
     path = request.url.path.split("/api/v1/admin", 1)[-1].strip("/")
     method = request.method
+    if path == "-auth/logout":
+        return
     if path in ("me", "menus") or path.startswith("/") or not path:
         return
     root = path.split("/")[0]
@@ -34,6 +36,9 @@ def enforce_route_permission(request, session, legacy=False):
                           "support.reply" if path.endswith("/messages") else "support.manage")
     if permission:
         require_permission(session, permission, recent_mfa=method not in ("GET", "HEAD") and not legacy)
+    else:
+        from fastapi import HTTPException
+        raise HTTPException(403, "UNMAPPED_ADMIN_OPERATION")
     if root == "activity":
         require_permission(session, "bookings.read")
         require_permission(session, "jobs.read")

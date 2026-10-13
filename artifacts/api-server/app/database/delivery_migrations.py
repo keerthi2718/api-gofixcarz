@@ -15,7 +15,7 @@ DELIVERY_TABLE = "0008_sms_delivery"
 DELIVERY_HEAD = "0009_sms_delivery_retention"
 # The admin-role migration follows the approved delivery target. Recognizing
 # this known head does not authorize applying it during delivery-only startup.
-REVIEWED_CODE_HEAD = "0011_admin_accounts"
+REVIEWED_CODE_HEAD = "0014_admin_challenge_binding"
 # Transaction-level lock serializes concurrently starting production instances.
 MIGRATION_LOCK = 70991009
 

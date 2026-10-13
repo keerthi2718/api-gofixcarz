@@ -41,15 +41,21 @@ class BookingService:
         return BookingDetailResponse.model_validate(booking)
 
     async def accept(self, garage_id: uuid.UUID, booking_id: uuid.UUID) -> BookingResponse:
+        from app.services.admin_booking_history import ensure_new_work, lock_booking, record_booking_event
+        await ensure_new_work(self.repo.session, garage_id)
+        await lock_booking(self.repo.session, garage_id, booking_id)
         booking = await self.repo.get_by_id(booking_id, garage_id)
         if not booking:
             raise NotFoundException("Booking not found")
         if booking.status != BookingStatus.PENDING:
             raise BadRequestException(f"Only PENDING bookings can be accepted (current: {booking.status.value})")
         updated = await self.repo.update_status(booking, BookingStatus.ACCEPTED)
+        await record_booking_event(self.repo.session, updated, "ACCEPTED")
         return BookingResponse.model_validate(updated)
 
     async def reject(self, garage_id: uuid.UUID, booking_id: uuid.UUID) -> BookingResponse:
+        from app.services.admin_booking_history import lock_booking, record_booking_event
+        await lock_booking(self.repo.session, garage_id, booking_id)
         booking = await self.repo.get_by_id(booking_id, garage_id)
         if not booking:
             raise NotFoundException("Booking not found")
@@ -58,11 +64,14 @@ class BookingService:
                 f"Cannot reject a booking with status {booking.status.value}"
             )
         updated = await self.repo.update_status(booking, BookingStatus.REJECTED)
+        await record_booking_event(self.repo.session, updated, "REJECTED")
         return BookingResponse.model_validate(updated)
 
     async def create_job_from_booking(
         self, garage_id: uuid.UUID, booking_id: uuid.UUID
     ) -> JobResponse:
+        from app.services.admin_booking_history import ensure_new_work, lock_booking
+        await lock_booking(self.repo.session, garage_id, booking_id)
         booking = await self.repo.get_by_id(booking_id, garage_id, load_relations=True)
         if not booking:
             raise NotFoundException("Booking not found")
@@ -70,6 +79,9 @@ class BookingService:
             raise BadRequestException("Booking has already been converted to a job")
         if booking.status == BookingStatus.REJECTED:
             raise BadRequestException("Cannot convert a rejected booking to a job")
+        # Conversion of previously accepted work remains allowed while suspended.
+        if booking.status == BookingStatus.PENDING:
+            await ensure_new_work(self.repo.session, garage_id)
         if not booking.customer_id or not booking.vehicle_id:
             raise BadRequestException(
                 "Booking must have a linked customer and vehicle to create a job"
@@ -86,5 +98,7 @@ class BookingService:
 
         # Mark booking as CONVERTED
         await self.repo.update_status(booking, BookingStatus.CONVERTED)
+        from app.services.admin_booking_history import record_booking_event
+        await record_booking_event(self.repo.session, booking, "CONVERTED")
 
         return JobResponse.model_validate(job)

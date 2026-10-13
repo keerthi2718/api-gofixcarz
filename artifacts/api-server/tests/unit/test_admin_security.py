@@ -49,11 +49,14 @@ def test_expired_and_malformed_jwt_denied():
 
 
 async def test_current_database_role_controls_admin_access():
-    admin = SimpleNamespace(role="admin")
-    assert await get_current_admin(admin) is admin
+    from starlette.requests import Request
+    admin = SimpleNamespace(role="admin", id=uuid4())
+    session = SimpleNamespace(info={})
+    request = Request({"type": "http", "method": "GET", "path": "/api/v1/admin/me", "headers": []})
+    assert await get_current_admin(admin, session, request) is admin
     admin.role = "garage_owner"
     with pytest.raises(ForbiddenException):
-        await get_current_admin(admin)
+        await get_current_admin(admin, session, request)
 
 
 @pytest.mark.parametrize("schema,data", [

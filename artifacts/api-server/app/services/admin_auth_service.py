@@ -11,7 +11,7 @@ from app.core.admin_security import (
 )
 from app.core.exceptions import UnauthorizedException
 from app.core.security import hash_refresh_token
-from app.models.admin_account import AdminAccount, AdminSession, AdminMfaChallenge
+from app.models.admin_account import AdminAccount, AdminSession, AdminMfaChallenge, AdminRevokedFamily
 from app.core.admin_totp import new_secret, encrypt_secret, decrypt_secret, verify_totp
 from app.models.admin_audit_log import AdminAuditLog
 from app.schemas.admin_auth import AdminIdentity, AdminMenu
@@ -29,6 +29,25 @@ MENUS = [
         ("audit_logs", "Audit logs", "audit-logs"),
     ]
 ]
+
+
+def authorized_menus(permissions):
+    catalog = [(m.key, m.label, m.api, {
+        "dashboard": "dashboard.read", "users": "users.read", "garages": "garages.read",
+        "jobs": "jobs.read", "bookings": "bookings.read", "analytics": "dashboard.read",
+        "billing_issues": "finance.read", "audit_logs": "audit.read",
+    }[m.key]) for m in MENUS]
+    catalog.extend((key, label, f"/api/v1/admin/{path}", permission) for key, label, path, permission in [
+        ("security", "Security", "staff", "security.read"),
+        ("customers", "Customers", "customers", "customers.read"),
+        ("finance", "Finance", "finance/summary", "finance.read"),
+        ("notifications", "Notifications", "notifications", "notifications.read"),
+        ("support", "Support", "support/tickets", "support.read"),
+        ("owners", "Owner performance", "garage-owner-statistics", "owner_statistics.read"),
+        ("reports", "Reports", "reports/exports", "reports.export"),
+    ])
+    return [{"key": key, "label": label, "api": path} for key, label, path, permission in catalog
+            if permission in permissions]
 
 
 class AdminAuthService:
@@ -51,10 +70,15 @@ class AdminAuthService:
         )
         self.session.add(login_session)
         await self.session.flush()
+        from app.core.admin_policy import effective_permissions
+        identity = AdminIdentity.model_validate(account).model_dump(mode="json")
+        identity.update(role_ids=account.role_ids, permissions=sorted(effective_permissions(account)),
+                        data_scope={"type": "PLATFORM" if account.garage_scope is None else "GARAGES",
+                                    "garage_ids": account.garage_scope or []})
         return {
             "access_token": admin_access_token(account, login_session),
             "refresh_token": raw, "token_type": "bearer", "expires_in": ACCESS_SECONDS,
-            "user": AdminIdentity.model_validate(account).model_dump(mode="json"),
+            "user": identity,
         }
 
     async def login(self, email, password):
@@ -88,6 +112,7 @@ class AdminAuthService:
         challenge = AdminMfaChallenge(
             id=uuid.uuid4(), admin_account_id=account.id,
             expires_at=now + timedelta(minutes=5),
+            credential_version=account.credential_version,
         )
         result = {
             "challenge_id": str(challenge.id), "mfa_required": True, "mfa_method": "TOTP",
@@ -117,7 +142,8 @@ class AdminAuthService:
             AdminAccount.id == challenge.admin_account_id,
         ).with_for_update())).scalar_one()
         challenge.attempts += 1
-        if not account.is_active or (account.locked_until and account.locked_until > now):
+        if not account.is_active or challenge.credential_version != account.credential_version or (
+            account.locked_until and account.locked_until > now):
             return None
         encrypted = account.mfa_secret_encrypted or challenge.pending_secret_encrypted
         # An old enrollment proof must never replace a factor already enrolled elsewhere.
@@ -125,10 +151,14 @@ class AdminAuthService:
             return None
         counter = verify_totp(decrypt_secret(encrypted), code, account.last_totp_counter)
         if counter is None:
+            account.failed_attempts += 1
+            if account.failed_attempts >= 5:
+                account.locked_until = now + timedelta(minutes=15)
             self.audit(account, "auth.mfa_failed")
             return None
         account.mfa_secret_encrypted = encrypted
         account.last_totp_counter = counter
+        account.failed_attempts = 0
         challenge.consumed_at = now
         self.audit(account, "auth.mfa_verified")
         return await self.issue(account, mfa_verified_at=now)
@@ -140,6 +170,10 @@ class AdminAuthService:
         ).with_for_update())).scalar_one_or_none()
         now = datetime.now(timezone.utc)
         if previous and previous.revoked_at:
+            from sqlalchemy.dialects.postgresql import insert
+            await self.session.execute(insert(AdminRevokedFamily).values(
+                family_id=previous.family_id, revoked_at=now,
+            ).on_conflict_do_nothing())
             await self.session.execute(update(AdminSession).where(
                 AdminSession.family_id == previous.family_id, AdminSession.revoked_at.is_(None),
             ).values(revoked_at=now))
@@ -147,6 +181,8 @@ class AdminAuthService:
             return None
         if not previous or previous.expires_at <= now:
             raise UnauthorizedException("Invalid or expired session.")
+        if await self.session.get(AdminRevokedFamily, previous.family_id):
+            return None
         account = await self.session.get(AdminAccount, previous.admin_account_id)
         if not account or not account.is_active or account.credential_version != previous.credential_version:
             raise UnauthorizedException("Invalid or expired session.")

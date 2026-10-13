@@ -7,7 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.core.exceptions import ForbiddenException, UnauthorizedException
 from app.core.security import decode_access_token
 from app.core.admin_security import decode_admin_access
-from app.models.admin_account import AdminAccount, AdminSession
+from app.models.admin_account import AdminAccount, AdminSession, AdminRevokedFamily
 from app.database.session import get_session
 from app.models.user import User, UserRole
 from app.core.config import settings
@@ -49,8 +49,12 @@ DBSession = Annotated[AsyncSession, Depends(get_session)]
 async def get_admin_principal(
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
     session: Annotated[AsyncSession, Depends(get_session)],
+    request: Request,
 ) -> User | AdminAccount:
     session.info.pop("admin_access", None)
+    # Stable read snapshots for admin GETs; write workflows retain normal row-lock behavior.
+    if request.method == "GET" and not session.in_transaction():
+        await session.connection(execution_options={"isolation_level": "REPEATABLE READ"})
     if credentials:
         payload = decode_admin_access(credentials.credentials)
         if payload:
@@ -72,6 +76,8 @@ async def get_admin_principal(
             ):
                 raise UnauthorizedException("Invalid or expired session.")
             account._mfa_verified_at = login_session.mfa_verified_at
+            if await session.get(AdminRevokedFamily, login_session.family_id):
+                raise UnauthorizedException("Invalid or expired session.")
             return account
     if not settings.ALLOW_LEGACY_ADMIN_TOKENS:
         raise UnauthorizedException("A dedicated administrative session is required.")
@@ -100,6 +106,7 @@ async def get_current_admin(
         ) else None,
         "mfa_verified_at": mfa_at,
     }
+    request.state.admin_access = session.info["admin_access"]
     from app.core.admin_route_permissions import enforce_route_permission
     enforce_route_permission(request, session, isinstance(current_user, User))
     return current_user

@@ -85,6 +85,15 @@ async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
 
     scheduler = AsyncIOScheduler()
+    from app.services.admin_export_service import AdminExportService
+
+    async def process_admin_exports():
+        async with async_session() as session:
+            await AdminExportService.process_queue(session)
+            await session.commit()
+
+    scheduler.add_job(process_admin_exports, trigger="interval", seconds=5,
+                      id="admin_exports", max_instances=1, replace_existing=True)
     # Run once at startup, then every 24 hours
     scheduler.add_job(
         _delete_expired_refresh_tokens,
@@ -275,6 +284,10 @@ from app.api.v1.images import router as images_router  # noqa: E402
 from app.api.v1.admin import router as admin_router  # noqa: E402
 from app.api.v1.admin_monitoring import router as admin_monitoring_router  # noqa: E402
 from app.api.v1.admin_security import router as admin_security_router  # noqa: E402
+from app.api.v1.admin_operations import router as admin_operations_router  # noqa: E402
+from app.api.v1.admin_finance import router as admin_finance_router  # noqa: E402
+from app.api.v1.admin_owner_statistics import router as admin_owner_statistics_router  # noqa: E402
+from app.api.v1.admin_reports import router as admin_reports_router  # noqa: E402
 
 v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -290,6 +303,10 @@ v1_router.include_router(service_packages_router, prefix="/service-packages", ta
 v1_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 v1_router.include_router(static_router, prefix="/static", tags=["Static"])
 v1_router.include_router(images_router, prefix="/images", tags=["Images"])
+v1_router.include_router(admin_operations_router, prefix="/admin", tags=["Admin Operations"])
+v1_router.include_router(admin_finance_router, prefix="/admin", tags=["Admin Finance"])
+v1_router.include_router(admin_owner_statistics_router, prefix="/admin", tags=["Admin Owner Statistics"])
+v1_router.include_router(admin_reports_router, prefix="/admin", tags=["Admin Reports"])
 v1_router.include_router(admin_monitoring_router, prefix="/admin", tags=["Admin Monitoring"])
 v1_router.include_router(admin_security_router, prefix="/admin", tags=["Admin Security"])
 v1_router.include_router(admin_router, prefix="/admin", tags=["Admin"])

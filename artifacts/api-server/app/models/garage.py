@@ -35,6 +35,9 @@ class Garage(Base, SoftDeleteMixin):
     latitude: Mapped[Optional[float]] = mapped_column(Numeric(10, 7), nullable=True)
     longitude: Mapped[Optional[float]] = mapped_column(Numeric(10, 7), nullable=True)
     logo_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    operational_status: Mapped[str] = mapped_column(String(20), default="ACTIVE", server_default="ACTIVE")
+    verification_status: Mapped[str] = mapped_column(String(20), default="UNVERIFIED", server_default="UNVERIFIED")
+    admin_version: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="garages")

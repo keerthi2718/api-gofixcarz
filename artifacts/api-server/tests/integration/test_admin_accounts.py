@@ -26,6 +26,7 @@ async def dedicated(setup_admin_api):
     account = AdminAccount(
         id=uuid4(), email=f"admin-{uuid4()}@fixture.com", name="Dedicated fixture",
         password_hash=hash_admin_password(PASSWORD),
+        role_ids=["role_ceo"],
     )
     d["session"].add(account)
     await d["session"].flush()
@@ -41,7 +42,17 @@ async def login(d):
     assert r.status_code == 200
     assert r.headers["cache-control"] == "no-store"
     assert PASSWORD not in r.text and "password_hash" not in r.text
-    return r.json()["data"]
+    data = r.json()["data"]
+    assert data["mfa_required"] and "access_token" not in data
+    from urllib.parse import urlparse, parse_qs
+    from app.core.admin_totp import decrypt_secret, totp
+    secret = (parse_qs(urlparse(data["provisioning_uri"]).query)["secret"][0] if data["enrollment_required"]
+              else decrypt_secret(d["account"].mfa_secret_encrypted))
+    proof = await d["client"].post(PRIVATE_BASE + "/mfa", json={
+        "challenge_id": data["challenge_id"], "code": totp(secret),
+    })
+    assert proof.status_code == 200
+    return proof.json()["data"]
 
 
 def bearer(token):
@@ -63,7 +74,7 @@ async def test_dedicated_login_all_menus_and_dashboard_access(dedicated):
         assert r.status_code == 200
         assert "password_hash" not in r.text and "refresh_token_hash" not in r.text
     menus = await d["client"].get("/api/v1/admin/menus", headers=bearer(data["access_token"]))
-    assert len(menus.json()["data"]["menus"]) == 8
+    assert len(menus.json()["data"]["menus"]) == 15
     assert (await d["client"].get("/api/v1/profile", headers=bearer(data["access_token"]))).status_code == 401
     logs = (await d["session"].execute(select(AdminAuditLog).where(
         AdminAuditLog.admin_account_id == d["account"].id,
@@ -84,8 +95,9 @@ async def test_refresh_rotation_logout_and_replay_denial(dedicated):
             headers=bearer(original["access_token"]))).status_code == 401
     assert (await d["client"].post(PRIVATE_BASE + "/refresh",
             json={"refresh_token": original["refresh_token"]})).status_code == 401
+    # Replay revokes the whole family, including the rotated successor.
     assert (await d["client"].post(PRIVATE_BASE + "/logout",
-            headers=bearer(rotated["access_token"]))).status_code == 200
+            headers=bearer(rotated["access_token"]))).status_code == 401
     assert (await d["client"].get("/api/v1/admin/menus",
             headers=bearer(rotated["access_token"]))).status_code == 401
     assert (await d["client"].post(PRIVATE_BASE + "/refresh",

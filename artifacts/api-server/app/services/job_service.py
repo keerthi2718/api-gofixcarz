@@ -61,6 +61,8 @@ class JobService:
         self.vehicle_repo = VehicleRepository(session)
 
     async def create(self, garage_id: uuid.UUID, data: JobCreate) -> JobResponse:
+        from app.services.admin_booking_history import ensure_new_work
+        await ensure_new_work(self.repo.session, garage_id)
         """Create a job.
 
         Two paths:

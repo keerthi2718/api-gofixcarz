@@ -10,6 +10,7 @@ from app.models.garage import Garage
 from app.models.job import Job, JobStatus
 from app.models.job_timeline import JobTimeline
 from app.models.user import AccountStatus, User, UserRole
+from app.models.admin_operations import SourceRecord
 from app.repositories.admin_repository import AdminRepository, job_scope
 
 
@@ -120,6 +121,37 @@ class AdminMonitoringRepository(AdminRepository):
             event(job_base.join(JobTimeline, JobTimeline.job_id == Job.id), Job,
                   JobTimeline.created_at, "JOB_STATUS_RECORDED", JobTimeline.id, JobTimeline.status),
         ]
+        can_finance = "finance.read" in self.session.info.get("admin_access", {}).get("permissions", [])
+        source_kinds = {
+            "BOOKING_ACCEPTED": ("BOOKING_EVENT", "ACCEPTED"),
+            "BOOKING_REJECTED": ("BOOKING_EVENT", "REJECTED"),
+            "BOOKING_CONVERTED": ("BOOKING_EVENT", "CONVERTED"),
+            "BOOKING_CANCELLED": ("BOOKING_EVENT", "CANCELLED"),
+            "BOOKING_EXPIRED": ("BOOKING_EVENT", "EXPIRED"),
+            "REVIEW_PUBLISHED": ("REVIEW", "PUBLISHED"),
+        }
+        financial_kinds = {
+            "INVOICE_ISSUED": ("INVOICE", "ISSUED"), "PAYMENT_CAPTURED": ("PAYMENT", "CAPTURED"),
+            "PAYMENT_FAILED": ("PAYMENT", "FAILED"), "REFUND_SETTLED": ("REFUND", "SETTLED"),
+        }
+        if event_type in financial_kinds and not can_finance:
+            from fastapi import HTTPException
+            raise HTTPException(403, "PERMISSION_DENIED")
+        if can_finance:
+            source_kinds.update(financial_kinds)
+        for kind, (source_kind, source_status) in source_kinds.items():
+            source_query = select(
+                (literal(kind + ":") + cast(SourceRecord.id, String)).label("id"),
+                literal(kind).label("event_type"), SourceRecord.customer_id,
+                Garage.user_id.label("owner_id"), Garage.id.label("garage_id"),
+                func.coalesce(SourceRecord.booking_id, Job.booking_id).label("booking_id"),
+                SourceRecord.job_id.label("job_id"), SourceRecord.occurred_at.label("timestamp"),
+                SourceRecord.status.label("status"), SourceRecord.source.label("source"),
+            ).select_from(SourceRecord).join(Garage, SourceRecord.garage_id == Garage.id).outerjoin(
+                Job, SourceRecord.job_id == Job.id,
+            ).where(SourceRecord.kind == source_kind, SourceRecord.status == source_status,
+                    Garage.deleted_at.is_(None))
+            events.append(apply_admin_filters(source_query, filters, SourceRecord.occurred_at))
         combined = union_all(*events).subquery()
         query = select(combined)
         for column, value in [(combined.c.customer_id, customer_id), (combined.c.booking_id, booking_id),

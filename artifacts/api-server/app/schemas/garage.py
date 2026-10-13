@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class GarageUpdate(BaseModel):
@@ -62,6 +62,9 @@ class GarageResponse(BaseModel):
     user_id: uuid.UUID
     name: str
     owner: str
+    operational_status: str = "ACTIVE"
+    verification_status: str = "UNVERIFIED"
+    version: int = Field(default=1, validation_alias="admin_version")
     address: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None

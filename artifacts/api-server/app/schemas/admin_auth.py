@@ -1,12 +1,13 @@
 import uuid
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
 
 
 class AdminLoginRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    email: EmailStr
+    email: EmailStr = Field(validation_alias=AliasChoices("email", "identifier"))
     password: SecretStr
+    device_name: str | None = Field(default=None, max_length=100)
 
     @field_validator("password")
     @classmethod

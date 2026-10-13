@@ -1,19 +1,21 @@
 ---
 name: Admin draft approval boundary
-description: The approved existing-data phase does not approve the PDF's proposed policies or missing domains.
+description: Conservative development defaults are approved; production policy and missing data-source boundaries remain separate.
 ---
 
-The user selected “Existing-data APIs first (recommended)” for the admin
-requirements PDF. Treat that as permission to extend reads using actual stored
-data, not blanket approval of the full draft's business or security defaults.
+The user initially selected “Existing-data APIs first (recommended)”, then
+approved “Choose conservative development rules (recommended)” and asked to
+work on all admin APIs. Choose and document conservative configurable
+development policies rather than repeatedly requesting policy decisions.
+This does not approve production changes.
 
-**Why:** The supplied document explicitly calls its contracts proposed, and
+**Why:** The user explicitly expanded the development scope. The supplied document calls its contracts proposed, and
 missing payment, review, customer identity and transition sources cannot be
 replaced by convenient existing contact or billing records.
 
-**How to apply:** Preserve baseline authorization and legacy money meanings
-unless a change is approved. Never label stored job final amounts as captured
+**How to apply:** Preserve legacy money meanings. Never label stored job final amounts as captured
 payments, garage contact records as customer accounts, or creation timestamps
-as booking decision history. Resolve affected lifecycle, MFA/scope, snapshot,
-delay and privacy policies before implementing those domains. Keep omissions
-explicit rather than returning fabricated successful data.
+as booking decision history. Document chosen lifecycle, MFA/scope, snapshot,
+delay and privacy defaults. Require separate production rollout approval.
+Missing providers or source integrations must remain explicit, not successful
+placeholder responses.

@@ -42,7 +42,7 @@ async def refresh(request: Request, data: AdminRefreshRequest, session: DBSessio
     result = await AdminAuthService(session).refresh(data.refresh_token.get_secret_value())
     if result is None:
         return JSONResponse(status_code=401, content=APIResponse.error(
-            "Invalid or reused refresh credential.", status_code=401,
+            message="Invalid or reused refresh credential.", status_code=401,
         ).model_dump(mode="json"), headers={"Cache-Control": "no-store"})
     return JSONResponse(content=APIResponse.ok(data=result).model_dump(mode="json"),
                         headers={"Cache-Control": "no-store"})
@@ -54,7 +54,7 @@ async def complete_mfa(request: Request, data: AdminMfaRequest, session: DBSessi
     result = await AdminAuthService(session).complete_mfa(data.challenge_id, data.code)
     if result is None:
         return JSONResponse(status_code=400, content=APIResponse.error(
-            "Invalid or expired MFA proof.", status_code=400,
+            message="Invalid or expired MFA proof.", status_code=400,
         ).model_dump(mode="json"), headers={"Cache-Control": "no-store"})
     return JSONResponse(content=APIResponse.ok(data=result).model_dump(mode="json"),
                         headers={"Cache-Control": "no-store"})

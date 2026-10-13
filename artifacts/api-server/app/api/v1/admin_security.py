@@ -13,8 +13,9 @@ from app.models.garage import Garage
 from app.schemas.admin_security import AdminRoleAssignment
 from app.schemas.response import APIResponse
 from app.services.admin_service import AdminService
+from app.core.admin_privacy import AdminPrivacyRoute
 
-router = APIRouter(dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
+router = APIRouter(route_class=AdminPrivacyRoute, dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
 
 
 def staff_row(account):

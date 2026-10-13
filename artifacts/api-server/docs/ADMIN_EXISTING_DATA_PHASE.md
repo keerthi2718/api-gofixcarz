@@ -1,5 +1,9 @@
 # Admin APIs — existing-data phase
 
+This file describes the historical first phase. For the subsequently approved
+development implementation and current limits, see
+[`ADMIN_API_IMPLEMENTATION.md`](ADMIN_API_IMPLEMENTATION.md).
+
 This implements the user's choice to start with data already stored by the API.
 It is **not approval or implementation of the full proposed admin PDF**.
 No migrations, production changes, new admin provisioning, finance writes,

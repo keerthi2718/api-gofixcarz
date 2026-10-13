@@ -36,6 +36,8 @@ class AdminBookingDetail(BookingDetailResponse):
     decision_reason: str | None = None
     decision_timestamp: datetime | None = None
     missing_history: list[str]
+    history: list[dict] = []
+    history_truncated: bool = False
 
 
 class AdminTimelineEvent(BaseModel):
@@ -50,7 +52,7 @@ class AdminTimelineEvent(BaseModel):
 
 class AdminActivityEvent(BaseModel):
     id: str
-    event_type: Literal["BOOKING_CREATED", "JOB_CREATED", "JOB_COMPLETED", "JOB_STATUS_RECORDED"]
+    event_type: str
     customer_id: UUID | None
     owner_id: UUID
     garage_id: UUID
@@ -80,6 +82,7 @@ class AdminActivityPage(PaginatedData[AdminActivityEvent]):
     filters: dict
     generated_at: datetime
     unavailable_history: list[str]
+    restricted_history: list[str] = []
 
 
 class AdminFunnelResponse(BaseModel):
@@ -95,14 +98,14 @@ class AdminFunnelResponse(BaseModel):
 class AdminBookingExceptionGroup(BaseModel):
     owner_id: UUID
     city: str | None
-    reason: Literal["UNSPECIFIED"]
+    reason: str
     count: int
 
 
 class AdminBookingExceptionsResponse(BaseModel):
     filters: dict
     generated_at: datetime
-    cohort: Literal["booking.created_at"]
+    cohort: str
     rejected: int
     reason_counts: dict[str, int]
     breakdown: list[AdminBookingExceptionGroup]

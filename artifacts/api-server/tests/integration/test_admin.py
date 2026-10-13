@@ -30,7 +30,9 @@ ADMIN_PATHS = [
 
 
 @pytest_asyncio.fixture
-async def setup_admin_api():
+async def setup_admin_api(monkeypatch):
+    # Explicit compatibility coverage for the pre-MFA admin surface only.
+    monkeypatch.setattr(settings, "ALLOW_LEGACY_ADMIN_TOKENS", True)
     url, connect_args = build_async_url(settings.DATABASE_URL)
     # These tests may only write throwaway rows in the internal development DB.
     from sqlalchemy.engine import make_url

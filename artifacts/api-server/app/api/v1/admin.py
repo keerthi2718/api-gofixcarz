@@ -27,9 +27,10 @@ from app.services.garage_service import _with_logo_url
 from app.services.job_service import _with_photo_urls
 from app.core.admin_read_filters import AdminReadFilters, reject_unknown_admin_query
 from app.api.v1.admin_monitoring import Filters
+from app.core.admin_privacy import AdminPrivacyRoute
 
 # Router-wide protection prevents accidentally adding an unguarded admin route.
-router = APIRouter(dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
+router = APIRouter(route_class=AdminPrivacyRoute, dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 Page = Annotated[int, Query(ge=1)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
@@ -39,21 +40,42 @@ Search = Annotated[str | None, Query(max_length=200)]
 @router.get("/menus", response_model=APIResponse)
 async def admin_menus(admin: CurrentAdmin, session: DBSession):
     await AdminService(session).audit(admin.id, "menus.read")
-    return APIResponse.ok(data={"menus": [menu.model_dump() for menu in MENUS]})
+    from app.core.admin_route_permissions import enforce_route_permission
+    from app.services.admin_auth_service import authorized_menus
+    return APIResponse.ok(data={"menus": authorized_menus(session.info["admin_access"]["permissions"])})
 
 
-@router.get("/me", response_model=APIResponse[UserResponse | AdminIdentity])
+@router.get("/me", response_model=APIResponse)
 async def admin_me(admin: CurrentAdmin, session: DBSession):
     """Admin identity; no owned garage is required."""
     await AdminService(session).audit(admin.id, "me.read")
     schema = AdminIdentity if isinstance(admin, AdminAccount) else UserResponse
-    return APIResponse.ok(data=schema.model_validate(admin))
+    result = schema.model_validate(admin).model_dump(mode="json")
+    access = session.info["admin_access"]
+    result.update(permissions=sorted(access["permissions"]),
+                  role_ids=admin.role_ids if isinstance(admin, AdminAccount) else [],
+                  data_scope={"type": "PLATFORM" if access["garage_ids"] is None else "GARAGES",
+                              "garage_ids": access["garage_ids"] or []})
+    return APIResponse.ok(data=result)
 
 
-@router.get("/dashboard", response_model=APIResponse[AdminDashboardResponse])
-async def dashboard(admin: CurrentAdmin, session: DBSession, filters: Filters):
+@router.get("/dashboard", response_model=APIResponse)
+async def dashboard(admin: CurrentAdmin, session: DBSession, filters: Filters,
+                    snapshot_id: uuid.UUID | None = None):
     service = AdminService(session)
-    result = await service.dashboard(filters)
+    from app.services.admin_metrics_service import AdminMetricsService
+    metrics = AdminMetricsService(session)
+    snapshot = await metrics.dataset(filters, snapshot_id)
+    if snapshot_id:
+        result = snapshot.payload.get("dashboard")
+        if result is None:
+            raise HTTPException(409, "SNAPSHOT_DATASET_MISMATCH")
+    else:
+        from fastapi.encoders import jsonable_encoder
+        result = jsonable_encoder(await service.dashboard(filters))
+        snapshot.payload = {**snapshot.payload, "dashboard": result}
+    result = {**result, "snapshot_id": snapshot.id, "generated_at": snapshot.payload["generated_at"],
+              "extended_metrics": {**metrics.finance(snapshot, filters), **metrics.metadata(snapshot)}}
     await service.audit(admin.id, "dashboard.read")
     return APIResponse.ok(data=result)
 
@@ -94,11 +116,19 @@ async def user_status(
 async def garages(
     admin: CurrentAdmin, session: DBSession, search: Search = None, user_id: uuid.UUID | None = None,
     city: Annotated[str | None, Query(max_length=100)] = None,
+    operational_status: Literal["ACTIVE", "SUSPENDED"] | None = None,
+    verification_status: Literal["UNVERIFIED", "VERIFIED", "REJECTED"] | None = None,
     page: Page = 1, page_size: PageSize = 20,
 ):
     service = AdminService(session)
+    query = service.repo.garages_query(search, user_id, filters=AdminReadFilters(city=city))
+    from app.models.garage import Garage
+    if operational_status:
+        query = query.where(Garage.operational_status == operational_status)
+    if verification_status:
+        query = query.where(Garage.verification_status == verification_status)
     result = await service.page(
-        service.repo.garages_query(search, user_id, filters=AdminReadFilters(city=city)),
+        query,
         GarageResponse, page, page_size, _with_logo_url,
     )
     await service.audit(admin.id, "garages.list")
@@ -160,11 +190,12 @@ async def bookings(
     return APIResponse.ok(data=result)
 
 
-@router.get("/analytics", response_model=APIResponse[AdminAnalyticsResponse])
+@router.get("/analytics", response_model=APIResponse)
 async def analytics(
     admin: CurrentAdmin, session: DBSession, filters: Filters,
     period: Literal["daily", "weekly", "monthly", "custom"] = "monthly",
     start_date: date | None = None, end_date: date | None = None,
+    snapshot_id: uuid.UUID | None = None,
 ):
     service = AdminService(session)
     if (start_date and filters.date_from and start_date != filters.date_from) or (
@@ -173,6 +204,21 @@ async def analytics(
         raise HTTPException(422, "Conflicting date aliases")
     result = await service.analytics(filters.garage_id, period, start_date or filters.date_from,
                                      end_date or filters.date_to, filters=filters)
+    from dataclasses import replace
+    from fastapi.encoders import jsonable_encoder
+    from app.services.admin_metrics_service import AdminMetricsService
+    metrics = AdminMetricsService(session)
+    snapshot_filters = replace(filters, date_from=start_date or filters.date_from, date_to=end_date or filters.date_to)
+    snapshot = await metrics.dataset(snapshot_filters, snapshot_id)
+    key = "analytics_" + period
+    if snapshot_id:
+        result = snapshot.payload.get(key)
+        if result is None:
+            raise HTTPException(409, "SNAPSHOT_DATASET_MISMATCH")
+    else:
+        result = jsonable_encoder(result)
+        snapshot.payload = {**snapshot.payload, key: result}
+    result = {**result, "snapshot_id": snapshot.id, "generated_at": snapshot.payload["generated_at"]}
     await service.audit(admin.id, "analytics.read", filters.garage_id)
     return APIResponse.ok(data=result)
 

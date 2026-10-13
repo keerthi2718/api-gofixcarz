@@ -43,7 +43,8 @@ async def main():
                 print("Development admin already exists; password verification succeeded.")
                 return
             raise SystemExit("Admin account already exists; refusing to overwrite its credentials.")
-        account = AdminAccount(email=email, name=args.name, password_hash=hash_admin_password(password))
+        account = AdminAccount(email=email, name=args.name, password_hash=hash_admin_password(password),
+                               role_ids=["role_ceo"], garage_scope=None)
         session.add(account)
         await session.flush()
         session.add(AdminAuditLog(

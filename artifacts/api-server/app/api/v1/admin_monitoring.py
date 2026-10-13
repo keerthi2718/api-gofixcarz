@@ -20,7 +20,8 @@ from app.schemas.response import APIResponse, PaginatedData
 from app.services.admin_monitoring_service import AdminMonitoringService
 
 
-router = APIRouter(dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
+from app.core.admin_privacy import AdminPrivacyRoute
+router = APIRouter(route_class=AdminPrivacyRoute, dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
 DBSession = Annotated[AsyncSession, Depends(get_session)]
 Page = Annotated[int, Query(ge=1)]
 PageSize = Annotated[int, Query(ge=1, le=100)]
@@ -56,10 +57,11 @@ async def owners(
     admin: CurrentAdmin, session: DBSession, filters: Filters,
     search: Annotated[str | None, Query(max_length=200)] = None,
     status: AccountStatus | None = None, include_deleted: bool = False,
+    min_rating: Annotated[float | None, Query(ge=1, le=5)] = None,
     page: Page = 1, page_size: PageSize = 20,
 ):
     service = AdminMonitoringService(session)
-    result = await service.owners(filters, search, status, include_deleted, page, page_size)
+    result = await service.owners(filters, search, status, include_deleted, page, page_size, min_rating)
     await service.audit(admin.id, "garage_owners.list")
     return APIResponse.ok(data={**result.model_dump(), **read_metadata(filters)})
 
@@ -76,10 +78,11 @@ async def owner_detail(
 
 
 # Static operation must precede the UUID booking-detail route.
-@router.get("/bookings/exception-statistics", response_model=APIResponse[AdminBookingExceptionsResponse])
-async def booking_exceptions(admin: CurrentAdmin, session: DBSession, filters: Filters):
+@router.get("/bookings/exception-statistics", response_model=APIResponse)
+async def booking_exceptions(admin: CurrentAdmin, session: DBSession, filters: Filters,
+                             group_by: Annotated[str | None, Query(max_length=100)] = None):
     service = AdminMonitoringService(session)
-    result = await service.exceptions(filters)
+    result = await service.exceptions(filters, group_by)
     await service.audit(admin.id, "bookings.exceptions")
     return APIResponse.ok(data=result)
 
@@ -115,17 +118,29 @@ async def activity(
     admin: CurrentAdmin, session: DBSession, filters: Filters,
     owner_id: UUID | None = None, customer_id: UUID | None = None,
     booking_id: UUID | None = None, job_id: UUID | None = None,
-    event_type: Literal["BOOKING_CREATED", "JOB_CREATED", "JOB_COMPLETED", "JOB_STATUS_RECORDED"] | None = None,
+    event_type: Literal["BOOKING_CREATED", "JOB_CREATED", "JOB_COMPLETED", "JOB_STATUS_RECORDED",
+                        "BOOKING_ACCEPTED", "BOOKING_REJECTED", "BOOKING_CONVERTED", "BOOKING_CANCELLED",
+                        "BOOKING_EXPIRED", "INVOICE_ISSUED", "PAYMENT_CAPTURED", "PAYMENT_FAILED",
+                        "REFUND_SETTLED", "REVIEW_PUBLISHED"] | None = None,
     page: Page = 1, page_size: PageSize = 20,
 ):
     filters = replace(filters, owner_id=owner_id)
     service = AdminMonitoringService(session)
     result = await service.activity(filters, page, page_size, customer_id=customer_id,
                                     booking_id=booking_id, job_id=job_id, event_type=event_type)
+    recorded = await service.recorded_types(filters, customer_id=customer_id, booking_id=booking_id,
+                                           job_id=job_id, event_type=event_type)
+    categories = {
+        "booking_decisions": {"BOOKING_ACCEPTED", "BOOKING_REJECTED", "BOOKING_CANCELLED", "BOOKING_EXPIRED"},
+        "invoices": {"INVOICE_ISSUED"}, "payments": {"PAYMENT_CAPTURED", "PAYMENT_FAILED"},
+        "reviews": {"REVIEW_PUBLISHED"},
+    }
+    restricted = ["invoices", "payments"] if "finance.read" not in session.info["admin_access"]["permissions"] else []
     await service.audit(admin.id, "activity.list")
     return APIResponse.ok(data={
         **result.model_dump(), "filters": filters.metadata(), "generated_at": datetime.now(utc_timezone.utc),
-        "unavailable_history": ["booking_decisions", "invoices", "payments", "reviews"],
+        "unavailable_history": [key for key, types in categories.items() if not recorded & types and key not in restricted],
+        "restricted_history": restricted,
     })
 
 
