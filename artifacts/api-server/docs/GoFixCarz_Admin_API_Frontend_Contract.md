@@ -1288,3 +1288,3872 @@ Authorization: Bearer {{admin_access_token}}
 - Announcement sends currently support IN_APP only; PUSH/SMS/EMAIL return 409. Send is a real inbox mutation and requires `Idempotency-Key`.
 - Exports are asynchronous: request -> poll status -> download when READY.
 - This handoff points to the production host provided. Write examples can alter live data; only send them when authorized and when the change is intended. No server deployment was performed.
+
+<!-- GENERATED_ENDPOINT_EXAMPLES -->
+
+## Complete per-endpoint request and response examples
+
+The examples in this section are the concrete contracts for all 70 operations. They supersede the schema-only success summaries above. Every response is synthetic; it shows the response envelope and representative `data` fields, not live customer or production records.
+
+**Before using an example:** Replace each sample UUID with an existing record ID visible to the signed-in administrator. Replace `{{...}}` variables with values from the current auth response or secure client storage. These URLs use the production host, and write operations can change production data; do not send them as test requests.
+
+All JSON responses use the same envelope: `success`, `message`, `data`, `errors`, and `status_code`. GET operations have no request body; their example URL shows path and query values. `Idempotency-Key` is required for announcement send and report export.
+
+Some finance fields are permission-filtered. Financial values in these examples assume an administrator with the required `finance.read` permission; the customer payment-flag filter also requires it. Updating staff roles requires `security.manage` and a recent MFA check.
+
+### GET /api/v1/admin/activity
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/activity?owner_id=66666666-6666-4666-8666-666666666666&customer_id=77777777-7777-4777-8777-777777777777&booking_id=55555555-5555-4555-8555-555555555555&job_id=44444444-4444-4444-8444-444444444444&event_type=BOOKING_CREATED&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "event-20261012-001",
+        "event_type": "JOB_CREATED",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "owner_id": "66666666-6666-4666-8666-666666666666",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "booking_id": "55555555-5555-4555-8555-555555555555",
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "timestamp": "2026-10-12T10:00:00Z",
+        "status": "IN_PROGRESS",
+        "source": "job.created_at"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1,
+    "filters": {
+      "timezone": "UTC",
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12"
+    },
+    "generated_at": "2026-10-12T11:00:00Z",
+    "unavailable_history": [
+      "payments",
+      "reviews"
+    ],
+    "restricted_history": []
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Activity. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/activity/service-funnels/{booking_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/activity/service-funnels/55555555-5555-4555-8555-555555555555?page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "booking_id": "55555555-5555-4555-8555-555555555555",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "job_ids": [
+      "44444444-4444-4444-8444-444444444444"
+    ],
+    "linked_jobs_truncated": false,
+    "events": {
+      "items": [
+        {
+          "id": "event-20261012-001",
+          "event_type": "JOB_CREATED",
+          "customer_id": "77777777-7777-4777-8777-777777777777",
+          "owner_id": "66666666-6666-4666-8666-666666666666",
+          "garage_id": "33333333-3333-4333-8333-333333333333",
+          "booking_id": "55555555-5555-4555-8555-555555555555",
+          "job_id": "44444444-4444-4444-8444-444444444444",
+          "timestamp": "2026-10-12T10:00:00Z",
+          "status": "IN_PROGRESS",
+          "source": "job.created_at"
+        }
+      ],
+      "total": 1,
+      "page": 1,
+      "page_size": 20,
+      "pages": 1
+    },
+    "data_coverage": {
+      "booking_decisions": true,
+      "invoices": false,
+      "payments": false,
+      "reviews": false
+    }
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Funnel. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/alerts
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/alerts?type=JOB_DELAY&severity=MEDIUM&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "a7be53b0-3b94-5535-8c04-1504267b8f7c",
+        "type": "JOB_DELAY",
+        "severity": "HIGH",
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "job_number": "J-2026-0042",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "status": "IN_PROGRESS",
+        "state_entered_at": "2026-10-12T07:00:00Z",
+        "state_age_hours": 4.5,
+        "threshold_hours": 2,
+        "overdue": true,
+        "as_of": "2026-10-12T11:30:00Z",
+        "duration_basis": "latest recorded entry to current state; creation fallback"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "as_of": "2026-10-12T11:30:00Z",
+    "generation": "live deterministic state episodes"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Alerts. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/analytics
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/analytics?period=monthly&start_date=2026-10-01&end_date=2026-10-12&snapshot_id=14141414-1414-4141-8141-141414141414&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "period": "monthly",
+    "start_date": "2026-01-01",
+    "end_date": "2026-10-12",
+    "total_jobs": 4,
+    "total_revenue": "7788.00",
+    "status_counts": {
+      "OPEN": 0,
+      "IN_PROGRESS": 1,
+      "WAITING_FOR_PARTS": 0,
+      "QUALITY_CHECK": 0,
+      "READY": 0,
+      "COMPLETED": 3,
+      "CANCELLED": 0
+    },
+    "graph_data": [
+      {
+        "label": "Oct 2026",
+        "job_count": 4,
+        "completed_count": 3,
+        "revenue": "7788.00"
+      }
+    ],
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Analytics. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/announcements
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/announcements?page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        "status": "DELIVERED",
+        "title": "Service update",
+        "message": "New operating hours start Monday.",
+        "delivery_count": 1,
+        "created_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Announcements. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin/announcements
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/announcements`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+Idempotency-Key: demo-idempotency-key-001
+```
+
+**Request body:**
+
+```json
+{
+  "preview_id": "13131313-1313-4131-8131-131313131313",
+  "reason": "Scheduled maintenance notice"
+}
+```
+
+**Expected response: HTTP 202**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    "status": "DELIVERED",
+    "title": "Service update",
+    "message": "New operating hours start Monday.",
+    "delivery_count": 1,
+    "created_at": "2026-10-12T10:30:00Z"
+  },
+  "errors": [],
+  "status_code": 202
+}
+```
+
+_Operation: Send Announcement. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin/announcements/preview
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/announcements/preview`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "audience": {
+    "recipient_roles": [
+      "GARAGE_OWNER"
+    ],
+    "garage_ids": [],
+    "city": "Pune",
+    "operational_status": "ACTIVE"
+  },
+  "channels": [
+    "IN_APP"
+  ],
+  "title": "Service update",
+  "body": "New operating hours start Monday."
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "preview_id": "13131313-1313-4131-8131-131313131313",
+    "recipient_count": 1,
+    "delivery_count": 1,
+    "channels": [
+      "IN_APP"
+    ],
+    "expires_at": "2026-10-12T11:05:00Z"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Preview Announcement. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/announcements/{announcement_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/announcements/cccccccc-cccc-4ccc-8ccc-cccccccccccc`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    "status": "DELIVERED",
+    "title": "Service update",
+    "message": "New operating hours start Monday.",
+    "delivery_count": 1,
+    "created_at": "2026-10-12T10:30:00Z"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Announcement Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/announcements/{announcement_id}/deliveries
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/announcements/cccccccc-cccc-4ccc-8ccc-cccccccccccc/deliveries?status=DELIVERED&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "recipient_id": "66666666-6666-4666-8666-666666666666",
+        "channel": "IN_APP",
+        "status": "DELIVERED"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Announcement Deliveries. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/audit-logs
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/audit-logs?actor_id=11111111-1111-4111-8111-111111111111&action=example&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "actor_id": "11111111-1111-4111-8111-111111111111",
+        "admin_account_id": "11111111-1111-4111-8111-111111111111",
+        "action": "<example>",
+        "resource_id": "11111111-1111-4111-8111-111111111111",
+        "details": {},
+        "created_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Audit Logs. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/audit-logs/{audit_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/audit-logs/eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+    "actor_id": "22222222-2222-4222-8222-222222222222",
+    "admin_account_id": "22222222-2222-4222-8222-222222222222",
+    "action": "jobs.read",
+    "resource_id": "44444444-4444-4444-8444-444444444444",
+    "details": {
+      "source": "admin_console"
+    },
+    "created_at": "2026-10-12T10:30:00Z"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Audit Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/billing/issues
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/billing/issues?garage_id=33333333-3333-4333-8333-333333333333&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "job_number": "<example>",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "booking_id": "55555555-5555-4555-8555-555555555555",
+        "customer_name": "<example>",
+        "customer_mobile": "<example>",
+        "registration_number": "<example>",
+        "brand": "<example>",
+        "vehicle_model": "<example>",
+        "fuel_type": "<example>",
+        "odometer_km": 0,
+        "photos": [],
+        "inspection": null,
+        "services": [
+          null
+        ],
+        "labour": null,
+        "billing": {
+          "services_total": 0.0,
+          "labour_total": 0.0,
+          "subtotal": 0.0,
+          "gst_amount": 0.0,
+          "grand_total": 0.0
+        },
+        "status": "OPEN",
+        "description": "Example description",
+        "estimated_amount": 0.0,
+        "final_amount": 0.0,
+        "completed_at": "2026-10-12T10:30:00Z",
+        "created_at": "2026-10-12T10:30:00Z",
+        "updated_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Billing Issues. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/bookings
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/bookings?customer_id=77777777-7777-4777-8777-777777777777&search=Aarav&status=PENDING&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "status": "PENDING",
+        "booking_date": "2026-10-12",
+        "notes": "Example notes",
+        "customer_name": "<example>",
+        "customer_mobile": "<example>",
+        "service_requested": "<example>",
+        "created_at": "2026-10-12T10:30:00Z",
+        "updated_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Bookings. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/bookings/exception-statistics
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/bookings/exception-statistics?group_by=owner%2Ccity&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "filters": {
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "generated_at": "2026-10-12T11:00:00Z",
+    "cohort": "booking.created_at",
+    "rejected": 1,
+    "cancelled": 0,
+    "expired": 0,
+    "reason_counts": {
+      "UNSPECIFIED": 1
+    },
+    "breakdown": [
+      {
+        "owner_id": "66666666-6666-4666-8666-666666666666",
+        "city": "Pune",
+        "reason": "UNSPECIFIED",
+        "count": 1
+      }
+    ],
+    "breakdown_truncated": false,
+    "unavailable_states": [
+      "CANCELLED",
+      "EXPIRED"
+    ],
+    "reason_history_available": false
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Booking Exceptions. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/bookings/{booking_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/bookings/55555555-5555-4555-8555-555555555555`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "55555555-5555-4555-8555-555555555555",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "vehicle_id": "15151515-1515-4151-8151-151515151515",
+    "status": "ACCEPTED",
+    "booking_date": "2026-10-15",
+    "notes": "Please check the brakes",
+    "customer_name": "Aarav Sharma",
+    "customer_mobile": "9000000000",
+    "service_requested": "Brake service",
+    "created_at": "2026-10-10T08:00:00Z",
+    "updated_at": "2026-10-10T08:30:00Z",
+    "customer": null,
+    "vehicle": null,
+    "linked_job_ids": [
+      "44444444-4444-4444-8444-444444444444"
+    ],
+    "linked_jobs_truncated": false,
+    "decision_actor": "66666666-6666-4666-8666-666666666666",
+    "decision_reason": "Appointment confirmed",
+    "decision_timestamp": "2026-10-10T08:30:00Z",
+    "missing_history": [],
+    "history": [],
+    "history_truncated": false
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Booking Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/customers
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/customers?page=1&page_size=20&account_status=ACTIVE&has_failed_payments=true&has_support_flags=true&inactive_since=2026-10-01T00%3A00%3A00Z&search=Aarav`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "77777777-7777-4777-8777-777777777777",
+        "name": "Aarav Sharma",
+        "email": "aarav@example.test",
+        "mobile": "9000000000",
+        "account_status": "ACTIVE",
+        "last_activity_at": "2026-10-12T09:00:00Z",
+        "garage_ids": [
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "has_support_flags": true,
+        "has_failed_payments": false,
+        "source": "CUSTOMER_APP",
+        "restricted_fields": []
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+**Permission note:** If `has_failed_payments` is supplied, the caller needs `finance.read`; otherwise that customer field is redacted.
+
+_Operation: Customers. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/customers/{customer_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/customers/77777777-7777-4777-8777-777777777777`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "77777777-7777-4777-8777-777777777777",
+    "name": "Aarav Sharma",
+    "email": "aarav@example.test",
+    "mobile": "9000000000",
+    "account_status": "ACTIVE",
+    "last_activity_at": "2026-10-12T09:00:00Z",
+    "garage_ids": [
+      "33333333-3333-4333-8333-333333333333"
+    ],
+    "has_support_flags": true,
+    "has_failed_payments": false,
+    "source": "CUSTOMER_APP",
+    "restricted_fields": [],
+    "vehicles": [
+      {
+        "id": "15151515-1515-4151-8151-151515151515",
+        "kind": "VEHICLE",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": null,
+        "status": "ACTIVE",
+        "occurred_at": "2026-10-12T09:00:00Z",
+        "version": 1,
+        "currency": null,
+        "registration_number": "MH12AB1234",
+        "brand": "Maruti Suzuki",
+        "model": "Swift",
+        "fuel_type": "PETROL"
+      }
+    ],
+    "reviews": [
+      {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "kind": "REVIEW",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": null,
+        "status": "PUBLISHED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": null,
+        "rating": 5,
+        "text": "Clear estimate and prompt service"
+      }
+    ],
+    "preview_limit": 20
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Customer Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/customers/{customer_id}/reviews
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/customers/77777777-7777-4777-8777-777777777777/reviews?page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "kind": "REVIEW",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": null,
+        "status": "PUBLISHED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": null,
+        "rating": 5,
+        "text": "Clear estimate and prompt service"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Customer Reviews. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/customers/{customer_id}/vehicles
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/customers/77777777-7777-4777-8777-777777777777/vehicles?page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "15151515-1515-4151-8151-151515151515",
+        "kind": "VEHICLE",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": null,
+        "status": "ACTIVE",
+        "occurred_at": "2026-10-12T09:00:00Z",
+        "version": 1,
+        "currency": null,
+        "registration_number": "MH12AB1234",
+        "brand": "Maruti Suzuki",
+        "model": "Swift",
+        "fuel_type": "PETROL"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Customer Vehicles. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/dashboard
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/dashboard?snapshot_id=14141414-1414-4141-8141-141414141414&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "total_users": 320,
+    "active_users": 286,
+    "total_garages": 42,
+    "total_jobs": 790,
+    "jobs_today": 12,
+    "status_counts": {
+      "OPEN": 8,
+      "IN_PROGRESS": 24,
+      "WAITING_FOR_PARTS": 5,
+      "QUALITY_CHECK": 3,
+      "READY": 2,
+      "COMPLETED": 740,
+      "CANCELLED": 8
+    },
+    "total_bookings": 510,
+    "pending_bookings": 14,
+    "revenue_today": "12500.00",
+    "revenue_this_month": "184250.00",
+    "total_revenue": "2450000.00",
+    "billing_issue_count": 3,
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "extended_metrics": {
+      "gross_collected_amount": 389400,
+      "refunded_amount": 0,
+      "net_collected_amount": 389400,
+      "captured_payments": 1,
+      "failed_attempts": 0,
+      "paid_invoice_count": 1,
+      "issued_invoice_count": 1,
+      "issued_invoice_total_amount": 389400,
+      "average_invoice_amount": 389400,
+      "currency": "INR",
+      "money_unit": "paise",
+      "source_status": "RECORDED_EVENTS",
+      "snapshot_expires_at": "2026-10-12T17:00:00Z"
+    }
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Dashboard. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/disputes
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/disputes?status=OPEN&customer_id=77777777-7777-4777-8777-777777777777&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+        "kind": "DISPUTE",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": "99999999-9999-4999-8999-999999999999",
+        "status": "OPEN",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": null,
+        "reason": "Payment not recognized",
+        "amount": null
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1,
+    "filters": {
+      "timezone": "UTC"
+    },
+    "money_unit": "paise",
+    "currency": "INR",
+    "source_status": "RECORDED_EVENTS"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Disputes. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/disputes/{dispute_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/disputes/ffffffff-ffff-4fff-8fff-ffffffffffff`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "ffffffff-ffff-4fff-8fff-ffffffffffff",
+    "kind": "DISPUTE",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": null,
+    "parent_id": "99999999-9999-4999-8999-999999999999",
+    "status": "OPEN",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 1,
+    "currency": null,
+    "reason": "Payment not recognized",
+    "amount": null
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Dispute Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/finance/summary
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/finance/summary?snapshot_id=14141414-1414-4141-8141-141414141414&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "expires_at": "2026-10-12T17:00:00Z",
+    "filters": {
+      "date_from": "2026-09-13",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "metric_definitions": {
+      "collections": "CAPTURED payment events; amounts in integer INR paise"
+    },
+    "gross_collected_amount": 389400,
+    "refunded_amount": 0,
+    "net_collected_amount": 389400,
+    "captured_payments": 1,
+    "failed_attempts": 0,
+    "paid_invoice_count": 1,
+    "issued_invoice_count": 1,
+    "issued_invoice_total_amount": 389400,
+    "average_invoice_amount": 389400,
+    "currency": "INR",
+    "money_unit": "paise",
+    "source_status": "RECORDED_EVENTS"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Finance Summary. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/finance/trends
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/finance/trends?snapshot_id=14141414-1414-4141-8141-141414141414&period=daily&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "expires_at": "2026-10-12T17:00:00Z",
+    "filters": {
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "metric_definitions": {
+      "collections": "CAPTURED payment events; amounts in integer INR paise"
+    },
+    "period": "daily",
+    "series": [
+      {
+        "date": "2026-10-12",
+        "jobs_created": 1,
+        "jobs_completed": 1,
+        "gross_collected_amount": 389400,
+        "refunded_amount": 0,
+        "net_collected_amount": 389400
+      }
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Finance Trends. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garage-owner-statistics
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics?snapshot_id=14141414-1414-4141-8141-141414141414&exclude_inactive=false&sort=jobs_created_desc&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "expires_at": "2026-10-12T17:00:00Z",
+    "filters": {
+      "date_from": "2026-09-13",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "metric_definitions": {
+      "jobs": "created-in-window cohort; current status frozen at generated_at"
+    },
+    "items": [
+      {
+        "owner_id": "66666666-6666-4666-8666-666666666666",
+        "owner_name": "Aarav Sharma",
+        "garage_ids": [
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "jobs_created": 4,
+        "status_counts": {
+          "OPEN": 0,
+          "IN_PROGRESS": 1,
+          "WAITING_FOR_PARTS": 0,
+          "QUALITY_CHECK": 0,
+          "READY": 0,
+          "COMPLETED": 3,
+          "CANCELLED": 0
+        },
+        "completed_jobs": 3,
+        "eligible_garages": 1,
+        "average_jobs_per_garage": 4.0,
+        "eligible_accepted_bookings": 3,
+        "converted_bookings": 2,
+        "conversion_percent": 66.67,
+        "completion_sample_size": 2,
+        "completion_total_hours": 24.0,
+        "average_completion_hours": 12.0,
+        "completion_exclusions": 0,
+        "garage_breakdown": [
+          {
+            "garage_id": "33333333-3333-4333-8333-333333333333",
+            "jobs_created": 4
+          }
+        ],
+        "gross_collected_amount": 389400,
+        "refunded_amount": 0,
+        "net_collected_amount": 389400,
+        "captured_payments": 1,
+        "failed_attempts": 0,
+        "paid_invoice_count": 1,
+        "issued_invoice_count": 1,
+        "issued_invoice_total_amount": 389400,
+        "average_invoice_amount": 389400,
+        "currency": "INR",
+        "money_unit": "paise",
+        "source_status": "RECORDED_EVENTS",
+        "missing_sources": [],
+        "rank": 1
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "source_totals": {
+      "jobs_created": 4,
+      "eligible_garages": 1,
+      "eligible_accepted_bookings": 3,
+      "converted_bookings": 2,
+      "completion_sample_size": 2,
+      "completion_total_hours": 24.0,
+      "completion_exclusions": 0,
+      "gross_collected_amount": 389400,
+      "refunded_amount": 0,
+      "net_collected_amount": 389400,
+      "paid_invoice_count": 1,
+      "issued_invoice_count": 1,
+      "issued_invoice_total_amount": 389400,
+      "failed_attempts": 0,
+      "status_counts": {
+        "OPEN": 0,
+        "IN_PROGRESS": 1,
+        "WAITING_FOR_PARTS": 0,
+        "QUALITY_CHECK": 0,
+        "READY": 0,
+        "COMPLETED": 3,
+        "CANCELLED": 0
+      },
+      "average_jobs_per_garage": 4.0,
+      "conversion_percent": 66.67,
+      "average_completion_hours": 12.0,
+      "average_invoice_amount": 389400
+    }
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Owner Statistics. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garage-owner-statistics/summary
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/summary?snapshot_id=14141414-1414-4141-8141-141414141414&exclude_inactive=false&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "expires_at": "2026-10-12T17:00:00Z",
+    "exclude_inactive": false,
+    "filters": {
+      "date_from": "2026-09-13",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "metric_definitions": {
+      "jobs": "created-in-window cohort; current status frozen at generated_at"
+    },
+    "jobs_created": 4,
+    "eligible_garages": 1,
+    "eligible_accepted_bookings": 3,
+    "converted_bookings": 2,
+    "completion_sample_size": 2,
+    "completion_total_hours": 24.0,
+    "completion_exclusions": 0,
+    "gross_collected_amount": 389400,
+    "refunded_amount": 0,
+    "net_collected_amount": 389400,
+    "paid_invoice_count": 1,
+    "issued_invoice_count": 1,
+    "issued_invoice_total_amount": 389400,
+    "failed_attempts": 0,
+    "status_counts": {
+      "OPEN": 0,
+      "IN_PROGRESS": 1,
+      "WAITING_FOR_PARTS": 0,
+      "QUALITY_CHECK": 0,
+      "READY": 0,
+      "COMPLETED": 3,
+      "CANCELLED": 0
+    },
+    "average_jobs_per_garage": 4.0,
+    "conversion_percent": 66.67,
+    "average_completion_hours": 12.0,
+    "average_invoice_amount": 389400
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Owner Summary. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garage-owner-statistics/{owner_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/66666666-6666-4666-8666-666666666666?snapshot_id=14141414-1414-4141-8141-141414141414&exclude_inactive=false&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "expires_at": "2026-10-12T17:00:00Z",
+    "filters": {
+      "date_from": "2026-09-13",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "metric_definitions": {
+      "jobs": "created-in-window cohort; current status frozen at generated_at"
+    },
+    "owner_id": "66666666-6666-4666-8666-666666666666",
+    "owner_name": "Aarav Sharma",
+    "garage_ids": [
+      "33333333-3333-4333-8333-333333333333"
+    ],
+    "jobs_created": 4,
+    "status_counts": {
+      "OPEN": 0,
+      "IN_PROGRESS": 1,
+      "WAITING_FOR_PARTS": 0,
+      "QUALITY_CHECK": 0,
+      "READY": 0,
+      "COMPLETED": 3,
+      "CANCELLED": 0
+    },
+    "completed_jobs": 3,
+    "eligible_garages": 1,
+    "average_jobs_per_garage": 4.0,
+    "eligible_accepted_bookings": 3,
+    "converted_bookings": 2,
+    "conversion_percent": 66.67,
+    "completion_sample_size": 2,
+    "completion_total_hours": 24.0,
+    "average_completion_hours": 12.0,
+    "completion_exclusions": 0,
+    "garage_breakdown": [
+      {
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "jobs_created": 4
+      }
+    ],
+    "gross_collected_amount": 389400,
+    "refunded_amount": 0,
+    "net_collected_amount": 389400,
+    "captured_payments": 1,
+    "failed_attempts": 0,
+    "paid_invoice_count": 1,
+    "issued_invoice_count": 1,
+    "issued_invoice_total_amount": 389400,
+    "average_invoice_amount": 389400,
+    "currency": "INR",
+    "money_unit": "paise",
+    "source_status": "RECORDED_EVENTS",
+    "missing_sources": []
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Owner Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garage-owner-statistics/{owner_id}/trends
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/66666666-6666-4666-8666-666666666666/trends?snapshot_id=14141414-1414-4141-8141-141414141414&exclude_inactive=false&period=daily&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "expires_at": "2026-10-12T17:00:00Z",
+    "filters": {
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "metric_definitions": {
+      "collections": "CAPTURED payment events; amounts in integer INR paise"
+    },
+    "period": "daily",
+    "series": [
+      {
+        "date": "2026-10-12",
+        "jobs_created": 1,
+        "jobs_completed": 1,
+        "gross_collected_amount": 389400,
+        "refunded_amount": 0,
+        "net_collected_amount": 389400
+      }
+    ],
+    "owner_id": "66666666-6666-4666-8666-666666666666"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Owner Trends. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garage-owners
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garage-owners?search=Aarav&status=ACTIVE&include_deleted=false&min_rating=4.5&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "66666666-6666-4666-8666-666666666666",
+        "first_name": "Aarav",
+        "last_name": "Sharma",
+        "name": "Aarav Sharma",
+        "mobile": "9000000000",
+        "country_code": "91",
+        "country_code_2": null,
+        "email": "aarav@example.test",
+        "is_active": true,
+        "account_status": "ACTIVE",
+        "role": "GARAGE_OWNER",
+        "created_at": "2026-01-10T09:00:00Z",
+        "display_name": "Aarav Sharma",
+        "garage_ids": [
+          "33333333-3333-4333-8333-333333333333"
+        ],
+        "total_garages": 1,
+        "related_garages_truncated": false,
+        "cities": [
+          "Pune"
+        ],
+        "bookings": 3,
+        "jobs_created": 4,
+        "completed_jobs": 2,
+        "completed_job_amount_paise": 389400,
+        "currency": "INR",
+        "average_rating": 4.5
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1,
+    "filters": {
+      "timezone": "UTC",
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12"
+    },
+    "generated_at": "2026-10-12T11:00:00Z",
+    "metric_bases": {
+      "bookings": "booking.created_at",
+      "jobs_created": "job.created_at",
+      "completed_jobs": "current COMPLETED state within job.created_at cohort",
+      "completed_job_amount_paise": "job.completed_at; recorded final amounts, not captured payments"
+    },
+    "unavailable_data_sources": [
+      "reviews",
+      "payment_collections"
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Owners. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garage-owners/{owner_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garage-owners/66666666-6666-4666-8666-666666666666?include_deleted=false&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "66666666-6666-4666-8666-666666666666",
+    "first_name": "Aarav",
+    "last_name": "Sharma",
+    "name": "Aarav Sharma",
+    "mobile": "9000000000",
+    "country_code": "91",
+    "country_code_2": null,
+    "email": "aarav@example.test",
+    "is_active": true,
+    "account_status": "ACTIVE",
+    "role": "GARAGE_OWNER",
+    "created_at": "2026-01-10T09:00:00Z",
+    "display_name": "Aarav Sharma",
+    "garage_ids": [
+      "33333333-3333-4333-8333-333333333333"
+    ],
+    "total_garages": 1,
+    "related_garages_truncated": false,
+    "cities": [
+      "Pune"
+    ],
+    "bookings": 3,
+    "jobs_created": 4,
+    "completed_jobs": 2,
+    "completed_job_amount_paise": 389400,
+    "currency": "INR",
+    "average_rating": 4.5,
+    "garages": [
+      {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "user_id": "66666666-6666-4666-8666-666666666666",
+        "name": "Example Auto Care",
+        "owner": "Aarav Sharma",
+        "operational_status": "ACTIVE",
+        "verification_status": "VERIFIED",
+        "version": 3,
+        "address": "12 Example Road",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "zipcode": "411001",
+        "country": "IN",
+        "alternate_number": null,
+        "wheelers": [
+          "2W",
+          "4W"
+        ],
+        "working_hours": {
+          "monday": "09:00-18:00"
+        },
+        "latitude": 18.5204,
+        "longitude": 73.8567,
+        "logo_object_key": null,
+        "logo_url": null,
+        "created_at": "2026-01-10T09:00:00Z",
+        "updated_at": "2026-10-12T10:00:00Z"
+      }
+    ],
+    "filters": {
+      "timezone": "UTC",
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12"
+    },
+    "generated_at": "2026-10-12T11:00:00Z",
+    "metric_bases": {
+      "bookings": "booking.created_at",
+      "jobs_created": "job.created_at",
+      "completed_jobs": "current COMPLETED state within job.created_at cohort",
+      "completed_job_amount_paise": "job.completed_at; recorded final amounts, not captured payments"
+    },
+    "unavailable_data_sources": [
+      "reviews",
+      "payment_collections"
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Owner Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garages
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages?search=Aarav&user_id=11111111-1111-4111-8111-111111111111&city=Pune&operational_status=ACTIVE&verification_status=UNVERIFIED&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "user_id": "11111111-1111-4111-8111-111111111111",
+        "name": "Example Auto Care",
+        "owner": "<example>",
+        "operational_status": "<example>",
+        "verification_status": "<example>",
+        "version": 1,
+        "address": "<example>",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "zipcode": "411001",
+        "country": "<example>",
+        "alternate_number": "<example>",
+        "wheelers": [
+          "<example>"
+        ],
+        "working_hours": {},
+        "latitude": "<example>",
+        "longitude": "<example>",
+        "logo_object_key": "<example>",
+        "logo_url": "<example>",
+        "created_at": "2026-10-12T10:30:00Z",
+        "updated_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Garages. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garages/{garage_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages/33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "user_id": "11111111-1111-4111-8111-111111111111",
+    "name": "Example Auto Care",
+    "owner": "<example>",
+    "operational_status": "<example>",
+    "verification_status": "<example>",
+    "version": 1,
+    "address": "<example>",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "zipcode": "411001",
+    "country": "<example>",
+    "alternate_number": "<example>",
+    "wheelers": [
+      "<example>"
+    ],
+    "working_hours": {},
+    "latitude": "<example>",
+    "longitude": "<example>",
+    "logo_object_key": "<example>",
+    "logo_url": "<example>",
+    "created_at": "2026-10-12T10:30:00Z",
+    "updated_at": "2026-10-12T10:30:00Z",
+    "total_jobs": 0,
+    "completed_jobs": 0,
+    "total_revenue": 0.0,
+    "billing_issue_count": 0
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Garage Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/garages/{garage_id}/reviews
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages/33333333-3333-4333-8333-333333333333/reviews?moderation_status=PENDING&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "kind": "REVIEW",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": null,
+        "status": "PUBLISHED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": null,
+        "rating": 5,
+        "text": "Clear estimate and prompt service"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Garage Reviews. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PATCH /api/v1/admin/garages/{garage_id}/status
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages/33333333-3333-4333-8333-333333333333/status`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "operational_status": "SUSPENDED",
+  "reason": "Safety review",
+  "expected_version": 3
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "operational_status": "ACTIVE",
+    "verification_status": "VERIFIED",
+    "version": 4,
+    "new_work_allowed": true
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Garage Status. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PATCH /api/v1/admin/garages/{garage_id}/verification
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages/33333333-3333-4333-8333-333333333333/verification`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "verification_status": "VERIFIED",
+  "reason": "Documents reviewed",
+  "expected_version": 3
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "operational_status": "ACTIVE",
+    "verification_status": "VERIFIED",
+    "version": 4,
+    "new_work_allowed": true
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Garage Verification. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/invoices
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/invoices?status=DRAFT&customer_id=77777777-7777-4777-8777-777777777777&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "kind": "INVOICE",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "parent_id": null,
+        "status": "PAID",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": "INR",
+        "invoice_number": "INV-2026-0042",
+        "subtotal": 330000,
+        "tax_amount": 59400,
+        "discount_amount": 0,
+        "total_amount": 389400
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1,
+    "filters": {
+      "timezone": "UTC"
+    },
+    "money_unit": "paise",
+    "currency": "INR",
+    "source_status": "RECORDED_EVENTS"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Invoices. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/invoices/{invoice_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/invoices/99999999-9999-4999-8999-999999999999`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "99999999-9999-4999-8999-999999999999",
+    "kind": "INVOICE",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": "44444444-4444-4444-8444-444444444444",
+    "parent_id": null,
+    "status": "PAID",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 1,
+    "currency": "INR",
+    "invoice_number": "INV-2026-0042",
+    "subtotal": 330000,
+    "tax_amount": 59400,
+    "discount_amount": 0,
+    "total_amount": 389400,
+    "linked_records": [
+      {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "PAYMENT",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "parent_id": "99999999-9999-4999-8999-999999999999",
+        "status": "CAPTURED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": "INR",
+        "gateway_reference": "pay_demo_0042",
+        "amount": 389400
+      }
+    ],
+    "preview_limit": 20
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Invoice Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/invoices/{invoice_id}/payment-attempts
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/invoices/99999999-9999-4999-8999-999999999999/payment-attempts?page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "PAYMENT",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "parent_id": "99999999-9999-4999-8999-999999999999",
+        "status": "CAPTURED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": "INR",
+        "gateway_reference": "pay_demo_0042",
+        "amount": 389400
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Payment Attempts. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/jobs
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/jobs?status=OPEN&search=Aarav&customer_id=77777777-7777-4777-8777-777777777777&booking_id=55555555-5555-4555-8555-555555555555&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "job_number": "<example>",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "vehicle_id": "11111111-1111-4111-8111-111111111111",
+        "booking_id": "55555555-5555-4555-8555-555555555555",
+        "customer_name": "<example>",
+        "customer_mobile": "<example>",
+        "registration_number": "<example>",
+        "brand": "<example>",
+        "vehicle_model": "<example>",
+        "fuel_type": "<example>",
+        "odometer_km": 0,
+        "photos": [],
+        "inspection": null,
+        "services": [
+          null
+        ],
+        "labour": null,
+        "billing": {
+          "services_total": 0.0,
+          "labour_total": 0.0,
+          "subtotal": 0.0,
+          "gst_amount": 0.0,
+          "grand_total": 0.0
+        },
+        "status": "OPEN",
+        "description": "Example description",
+        "estimated_amount": 0.0,
+        "final_amount": 0.0,
+        "completed_at": "2026-10-12T10:30:00Z",
+        "created_at": "2026-10-12T10:30:00Z",
+        "updated_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Jobs. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/jobs/delays
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/jobs/delays?status=OPEN&overdue=true&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "job_number": "J-2026-0042",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "status": "IN_PROGRESS",
+        "state_entered_at": "2026-10-12T08:00:00Z",
+        "state_age_hours": 3.5,
+        "threshold_hours": 2,
+        "overdue": true,
+        "as_of": "2026-10-12T11:30:00Z",
+        "duration_basis": "latest recorded entry to current state; creation fallback"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "as_of": "2026-10-12T11:30:00Z"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Delays. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/jobs/{job_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/jobs/44444444-4444-4444-8444-444444444444`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "job_number": "<example>",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "vehicle_id": "11111111-1111-4111-8111-111111111111",
+    "booking_id": "55555555-5555-4555-8555-555555555555",
+    "customer_name": "<example>",
+    "customer_mobile": "<example>",
+    "registration_number": "<example>",
+    "brand": "<example>",
+    "vehicle_model": "<example>",
+    "fuel_type": "<example>",
+    "odometer_km": 0,
+    "photos": [],
+    "inspection": null,
+    "services": [
+      null
+    ],
+    "labour": null,
+    "billing": {
+      "services_total": 0.0,
+      "labour_total": 0.0,
+      "subtotal": 0.0,
+      "gst_amount": 0.0,
+      "grand_total": 0.0
+    },
+    "status": "OPEN",
+    "description": "Example description",
+    "estimated_amount": 0.0,
+    "final_amount": 0.0,
+    "completed_at": "2026-10-12T10:30:00Z",
+    "created_at": "2026-10-12T10:30:00Z",
+    "updated_at": "2026-10-12T10:30:00Z",
+    "customer": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "garage_id": "33333333-3333-4333-8333-333333333333",
+      "name": "Example Auto Care",
+      "mobile": "9000000000",
+      "email": "aarav@example.test",
+      "address": "<example>",
+      "notes": "Example notes",
+      "created_at": "2026-10-12T10:30:00Z",
+      "updated_at": "2026-10-12T10:30:00Z"
+    },
+    "vehicle": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "garage_id": "33333333-3333-4333-8333-333333333333",
+      "customer_id": "77777777-7777-4777-8777-777777777777",
+      "make": "<example>",
+      "model": "<example>",
+      "year": 0,
+      "registration_plate": "<example>",
+      "vin": "<example>",
+      "colour": "<example>",
+      "notes": "Example notes",
+      "created_at": "2026-10-12T10:30:00Z",
+      "updated_at": "2026-10-12T10:30:00Z"
+    },
+    "timelines": []
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Job Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/jobs/{job_id}/timeline
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/jobs/44444444-4444-4444-8444-444444444444/timeline?page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "status": "ACTIVE",
+        "notes": "Example notes",
+        "created_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Timeline. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/me
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/me`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "22222222-2222-4222-8222-222222222222",
+    "email": "admin@example.test",
+    "name": "Example Admin",
+    "role": "ADMIN",
+    "is_active": true,
+    "permissions": [
+      "garages.read",
+      "jobs.read"
+    ],
+    "role_ids": [
+      "role_operations"
+    ],
+    "data_scope": {
+      "type": "PLATFORM",
+      "garage_ids": []
+    }
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Admin Me. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/menus
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/menus`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "menus": [
+      {
+        "key": "dashboard",
+        "label": "Dashboard",
+        "api": "/api/v1/admin/dashboard"
+      },
+      {
+        "key": "jobs",
+        "label": "Jobs",
+        "api": "/api/v1/admin/jobs"
+      },
+      {
+        "key": "support",
+        "label": "Support",
+        "api": "/api/v1/admin/support/tickets"
+      }
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Admin Menus. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/notifications
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/notifications?garage_id=33333333-3333-4333-8333-333333333333&channel=IN_APP&status=DELIVERED&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "title": "Job status updated",
+        "message": "Your vehicle is in progress.",
+        "channel": "IN_APP",
+        "status": "DELIVERED",
+        "read_at": null
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Notifications. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/notifications/{notification_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/notifications/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "title": "Job status updated",
+    "message": "Your vehicle is in progress.",
+    "channel": "IN_APP",
+    "status": "DELIVERED",
+    "read_at": null,
+    "created_at": "2026-10-12T10:30:00Z",
+    "attempts": []
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Notification Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/payments
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/payments?status=CREATED&customer_id=77777777-7777-4777-8777-777777777777&invoice_id=99999999-9999-4999-8999-999999999999&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "kind": "PAYMENT",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": "44444444-4444-4444-8444-444444444444",
+        "parent_id": "99999999-9999-4999-8999-999999999999",
+        "status": "CAPTURED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": "INR",
+        "gateway_reference": "pay_demo_0042",
+        "amount": 389400
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1,
+    "filters": {
+      "timezone": "UTC"
+    },
+    "money_unit": "paise",
+    "currency": "INR",
+    "source_status": "RECORDED_EVENTS"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Payments. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/payments/{payment_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/payments/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+    "kind": "PAYMENT",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": "44444444-4444-4444-8444-444444444444",
+    "parent_id": "99999999-9999-4999-8999-999999999999",
+    "status": "CAPTURED",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 1,
+    "currency": "INR",
+    "gateway_reference": "pay_demo_0042",
+    "amount": 389400,
+    "linked_records": [],
+    "preview_limit": 20
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Payment Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/permissions
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/permissions`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "code": "jobs.read",
+        "description": "jobs read"
+      },
+      {
+        "code": "support.reply",
+        "description": "support reply"
+      }
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Permissions. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/refunds
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/refunds?status=PENDING&customer_id=77777777-7777-4777-8777-777777777777&payment_id=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "99999999-9999-4999-8999-999999999999",
+        "kind": "REFUND",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "status": "SETTLED",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": "INR",
+        "reason": "Customer request",
+        "amount": 0
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1,
+    "filters": {
+      "timezone": "UTC"
+    },
+    "money_unit": "paise",
+    "currency": "INR",
+    "source_status": "RECORDED_EVENTS"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Refunds. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin/reports/exports
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/reports/exports`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+Idempotency-Key: demo-idempotency-key-001
+```
+
+**Request body:**
+
+```json
+{
+  "report_type": "OPERATIONS",
+  "format": "CSV",
+  "filters": {
+    "date_from": "2026-10-01",
+    "date_to": "2026-10-12",
+    "timezone": "Asia/Kolkata",
+    "city": "Pune",
+    "garage_id": null,
+    "owner_id": null,
+    "service_id": null
+  },
+  "snapshot_id": null,
+  "exclude_inactive": false
+}
+```
+
+**Expected response: HTTP 202**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "report_type": "OPERATIONS",
+    "format": "CSV",
+    "filters": {
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "row_count": 13,
+    "source_totals": {
+      "jobs_created": 4,
+      "bookings_created": 9
+    },
+    "metric_definitions": {
+      "jobs": "created-in-window cohort"
+    },
+    "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    "status": "QUEUED",
+    "expires_at": "2026-10-13T11:00:00Z",
+    "error": null,
+    "download_path": null
+  },
+  "errors": [],
+  "status_code": 202
+}
+```
+
+_Operation: Request Export. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/reports/exports/{export_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/reports/exports/dddddddd-dddd-4ddd-8ddd-dddddddddddd`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "report_type": "OPERATIONS",
+    "format": "CSV",
+    "filters": {
+      "date_from": "2026-10-01",
+      "date_to": "2026-10-12",
+      "timezone": "UTC"
+    },
+    "snapshot_id": "14141414-1414-4141-8141-141414141414",
+    "generated_at": "2026-10-12T11:00:00Z",
+    "row_count": 13,
+    "source_totals": {
+      "jobs_created": 4,
+      "bookings_created": 9
+    },
+    "metric_definitions": {
+      "jobs": "created-in-window cohort"
+    },
+    "id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    "status": "READY",
+    "expires_at": "2026-10-13T11:00:00Z",
+    "error": null,
+    "download_path": "/api/v1/admin/reports/exports/dddddddd-dddd-4ddd-8ddd-dddddddddddd/download"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Report Status. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/reports/exports/{export_id}/download
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/reports/exports/dddddddd-dddd-4ddd-8ddd-dddddddddddd/download`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+This endpoint returns a file download, not a JSON envelope. For a ready CSV export, the response has `Content-Type: text/csv`, `Content-Disposition: attachment; filename="operations.csv"`, `Cache-Control: no-store`, and `X-Content-Type-Options: nosniff`.
+
+```text
+metadata,"{...JSON report metadata...}"
+booking_id,created_at,garage_id,status
+55555555-5555-4555-8555-555555555555,2026-10-12T10:00:00Z,33333333-3333-4333-8333-333333333333,ACCEPTED
+```
+
+**Readiness note:** The export must have status `READY`; `QUEUED` or `PROCESSING` returns HTTP 409.
+
+_Operation: Download Report. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/roles
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/roles`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "role_support",
+        "name": "Support",
+        "permissions": [
+          "support.read",
+          "support.reply"
+        ]
+      }
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Roles. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/staff
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/staff?search=Aarav&is_active=true&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "22222222-2222-4222-8222-222222222222",
+        "display_name": "Example Admin",
+        "email": "admin@example.test",
+        "is_active": true,
+        "role_ids": [
+          "role_support"
+        ],
+        "permissions": [
+          "support.read",
+          "support.reply"
+        ],
+        "data_scope": {
+          "type": "PLATFORM",
+          "garage_ids": []
+        },
+        "mfa_enrolled": true,
+        "mfa_required": false
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Staff. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PUT /api/v1/admin/staff/{admin_id}/roles
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/staff/22222222-2222-4222-8222-222222222222/roles`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "role_ids": [
+    "role_support"
+  ],
+  "data_scope": {
+    "type": "PLATFORM",
+    "garage_ids": []
+  },
+  "reason": "Assign customer support responsibilities"
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "role_support",
+        "name": "Support",
+        "permissions": [
+          "support.read",
+          "support.reply"
+        ]
+      }
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+**Authorization note:** Requires `security.manage`, a recent MFA check, and a platform-scoped admin. Self role/scope changes are rejected.
+
+_Operation: Assign Roles. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/support/tickets
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets?customer_id=77777777-7777-4777-8777-777777777777&status=OPEN&priority=LOW&page=1&page_size=20&date_from=2026-10-01&date_to=2026-10-12&timezone=UTC&city=Pune&garage_id=33333333-3333-4333-8333-333333333333`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "88888888-8888-4888-8888-888888888888",
+        "kind": "TICKET",
+        "garage_id": "33333333-3333-4333-8333-333333333333",
+        "customer_id": "77777777-7777-4777-8777-777777777777",
+        "booking_id": null,
+        "job_id": null,
+        "parent_id": null,
+        "status": "IN_PROGRESS",
+        "occurred_at": "2026-10-12T10:30:00Z",
+        "version": 1,
+        "currency": null,
+        "subject": "Brake service question",
+        "description": "Please share an update.",
+        "priority": "HIGH",
+        "assignee_id": "22222222-2222-4222-8222-222222222222"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Tickets. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/support/tickets/{ticket_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/88888888-8888-4888-8888-888888888888`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "88888888-8888-4888-8888-888888888888",
+    "kind": "TICKET",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": null,
+    "parent_id": null,
+    "status": "IN_PROGRESS",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 1,
+    "currency": null,
+    "subject": "Brake service question",
+    "description": "Please share an update.",
+    "priority": "HIGH",
+    "assignee_id": "22222222-2222-4222-8222-222222222222"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Ticket Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PATCH /api/v1/admin/support/tickets/{ticket_id}/assignment
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/88888888-8888-4888-8888-888888888888/assignment`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "assignee_id": "22222222-2222-4222-8222-222222222222",
+  "reason": "Assign to support queue",
+  "expected_version": 2
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "88888888-8888-4888-8888-888888888888",
+    "kind": "TICKET",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": null,
+    "parent_id": null,
+    "status": "IN_PROGRESS",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 3,
+    "currency": null,
+    "subject": "Brake service question",
+    "description": "Please share an update.",
+    "priority": "HIGH",
+    "assignee_id": "22222222-2222-4222-8222-222222222222"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Ticket Assignment. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/support/tickets/{ticket_id}/messages
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/88888888-8888-4888-8888-888888888888/messages?limit=30&cursor=11111111-1111-4111-8111-111111111111`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "12121212-1212-4121-8121-121212121212",
+        "sender_role": "ADMIN",
+        "text": "The garage has confirmed the appointment.",
+        "created_at": "2026-10-12T10:30:00Z",
+        "client_message_id": "support-reply-demo-001"
+      }
+    ],
+    "next_cursor": null
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Ticket Messages. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin/support/tickets/{ticket_id}/messages
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/88888888-8888-4888-8888-888888888888/messages`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "client_message_id": "support-reply-demo-001",
+  "text": "The garage has confirmed the appointment."
+}
+```
+
+**Expected response: HTTP 201**
+
+```json
+{
+  "success": true,
+  "message": "Created successfully",
+  "data": {
+    "id": "12121212-1212-4121-8121-121212121212",
+    "sender_role": "ADMIN",
+    "text": "The garage has confirmed the appointment.",
+    "created_at": "2026-10-12T10:30:00Z",
+    "client_message_id": "support-reply-demo-001"
+  },
+  "errors": [],
+  "status_code": 201
+}
+```
+
+_Operation: Ticket Reply. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PATCH /api/v1/admin/support/tickets/{ticket_id}/priority
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/88888888-8888-4888-8888-888888888888/priority`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "priority": "HIGH",
+  "reason": "Customer cannot use vehicle",
+  "expected_version": 2
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "88888888-8888-4888-8888-888888888888",
+    "kind": "TICKET",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": null,
+    "parent_id": null,
+    "status": "IN_PROGRESS",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 3,
+    "currency": null,
+    "subject": "Brake service question",
+    "description": "Please share an update.",
+    "priority": "HIGH",
+    "assignee_id": "22222222-2222-4222-8222-222222222222"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Ticket Priority. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PATCH /api/v1/admin/support/tickets/{ticket_id}/status
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/88888888-8888-4888-8888-888888888888/status`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "status": "RESOLVED",
+  "resolution": "Replacement part installed",
+  "expected_version": 2
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "88888888-8888-4888-8888-888888888888",
+    "kind": "TICKET",
+    "garage_id": "33333333-3333-4333-8333-333333333333",
+    "customer_id": "77777777-7777-4777-8777-777777777777",
+    "booking_id": null,
+    "job_id": null,
+    "parent_id": null,
+    "status": "RESOLVED",
+    "occurred_at": "2026-10-12T10:30:00Z",
+    "version": 3,
+    "currency": null,
+    "subject": "Brake service question",
+    "description": "Please share an update.",
+    "priority": "HIGH",
+    "assignee_id": "22222222-2222-4222-8222-222222222222",
+    "resolution": "Replacement part installed"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Ticket Status. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/users
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/users?search=Aarav&is_active=true&role=garage_owner&include_deleted=false&page=1&page_size=20`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "items": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "first_name": "Aarav",
+        "last_name": "Sharma",
+        "name": "Example Auto Care",
+        "mobile": "9000000000",
+        "country_code": "91",
+        "country_code_2": "<example>",
+        "email": "aarav@example.test",
+        "is_active": true,
+        "account_status": "ACTIVE",
+        "role": "garage_owner",
+        "created_at": "2026-10-12T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "pages": 1
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Users. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### GET /api/v1/admin/users/{user_id}
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/users/11111111-1111-4111-8111-111111111111?include_deleted=false`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "first_name": "Aarav",
+    "last_name": "Sharma",
+    "name": "Example Auto Care",
+    "mobile": "9000000000",
+    "country_code": "91",
+    "country_code_2": "<example>",
+    "email": "aarav@example.test",
+    "is_active": true,
+    "account_status": "ACTIVE",
+    "role": "garage_owner",
+    "created_at": "2026-10-12T10:30:00Z",
+    "garages": [
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "user_id": "11111111-1111-4111-8111-111111111111",
+        "name": "Example Auto Care",
+        "owner": "<example>",
+        "operational_status": "<example>",
+        "verification_status": "<example>",
+        "version": 1,
+        "address": "<example>",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "zipcode": "411001",
+        "country": "<example>",
+        "alternate_number": "<example>",
+        "wheelers": [
+          "<example>"
+        ],
+        "working_hours": {},
+        "latitude": "<example>",
+        "longitude": "<example>",
+        "logo_object_key": "<example>",
+        "logo_url": "<example>",
+        "created_at": "2026-10-12T10:30:00Z",
+        "updated_at": "2026-10-12T10:30:00Z"
+      }
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: User Detail. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### PATCH /api/v1/admin/users/{user_id}/status
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/users/11111111-1111-4111-8111-111111111111/status`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "is_active": false
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Account status updated",
+  "data": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "first_name": "Aarav",
+    "last_name": "Sharma",
+    "name": "Example Auto Care",
+    "mobile": "9000000000",
+    "country_code": "91",
+    "country_code_2": "<example>",
+    "email": "aarav@example.test",
+    "is_active": true,
+    "account_status": "ACTIVE",
+    "role": "garage_owner",
+    "created_at": "2026-10-12T10:30:00Z"
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: User Status. Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin-auth/logout
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin-auth/logout`  
+**Request headers:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:**
+
+None.
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "success": true,
+    "message": "Example response message",
+    "data": {
+      "logged_out": true
+    },
+    "errors": [],
+    "status_code": 0
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Admin logout (private). Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin-auth/mfa
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin-auth/mfa`  
+**Request headers:**
+
+```http
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "challenge_id": "13131313-1313-4131-8131-131313131313",
+  "code": "123456"
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "success": true,
+    "message": "Example response message",
+    "data": {
+      "access_token": "<example>",
+      "refresh_token": "<example>",
+      "token_type": "<example>",
+      "expires_in": 0,
+      "user": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "email": "aarav@example.test",
+        "name": "Example Auto Care",
+        "role": "GARAGE_OWNER",
+        "is_active": true,
+        "role_ids": [],
+        "permissions": [
+          "<example>"
+        ],
+        "data_scope": {
+          "type": "PLATFORM",
+          "garage_ids": []
+        }
+      }
+    },
+    "errors": [],
+    "status_code": 0
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Complete admin MFA (private). Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin-auth/refresh
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin-auth/refresh`  
+**Request headers:**
+
+```http
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "refresh_token": "{{adminRefreshTokenAtLeast32Chars}}"
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "success": true,
+    "message": "Example response message",
+    "data": {
+      "access_token": "<example>",
+      "refresh_token": "<example>",
+      "token_type": "<example>",
+      "expires_in": 0,
+      "user": {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "email": "aarav@example.test",
+        "name": "Example Auto Care",
+        "role": "GARAGE_OWNER",
+        "is_active": true,
+        "role_ids": [],
+        "permissions": [
+          "<example>"
+        ],
+        "data_scope": {
+          "type": "PLATFORM",
+          "garage_ids": []
+        }
+      }
+    },
+    "errors": [],
+    "status_code": 0
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Refresh admin session (private). Replace the sample IDs and filters with values for the target record._
+
+---
+
+### POST /api/v1/admin-auth/sign-in
+
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin-auth/sign-in`  
+**Request headers:**
+
+```http
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "email": "admin@example.test",
+  "password": "{{adminPassword}}",
+  "device_name": "Admin web"
+}
+```
+
+**Expected response: HTTP 200**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "access_token": "<access-token-from-response>",
+    "refresh_token": "<refresh-token-from-response>",
+    "token_type": "bearer",
+    "expires_in": 900,
+    "user": {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "email": "admin@example.test",
+      "name": "Example Admin",
+      "role": "ADMIN",
+      "is_active": true,
+      "role_ids": [
+        "role_operations"
+      ],
+      "permissions": [
+        "garages.read",
+        "jobs.read",
+        "support.read"
+      ],
+      "data_scope": {
+        "type": "PLATFORM",
+        "garage_ids": []
+      }
+    }
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+_Operation: Admin sign-in (private). Replace the sample IDs and filters with values for the target record._
+
+---
