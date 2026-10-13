@@ -126,3 +126,17 @@ mtime_ms = 1791869250945
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/58ad7f32-f123-480e-9d29-58d5aa948bba/8c985fb3-e477-4974-b376-204fa19169b3"
 storage_version_token = "1791869267917518"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "2wntv4Czo5DcRxQ1ROzam"
+uri = "file://artifacts/api-server/docs/GoFixCarz_Admin_API_Frontend_Contract.pdf"
+type = "pdf"
+title = "Download: GoFixCarz Admin API Endpoints"
+description = "24-page PDF handoff with all 70 endpoint URLs, request examples, response contracts, auth requirements, query parameters, and frontend notes."
+logical_id = "65d7cc4b-e66a-4484-8b4e-609547a9dafc"
+content_hash = "sha256:83ce581c59aab2db4041b615d77a7d3874126c77767c7ae4e0494fcb2eed5d45"
+size = 45151
+mtime_ms = 1791869882176
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/65d7cc4b-e66a-4484-8b4e-609547a9dafc/9daa1fc2-644d-46e8-91b9-58e033cd781e"
+storage_version_token = "1791869891163282"
+content_type = "application/pdf"
