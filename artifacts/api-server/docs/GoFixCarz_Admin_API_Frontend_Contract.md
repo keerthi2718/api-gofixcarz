@@ -351,6 +351,44 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = { menus: [{ key, label, api }] }
 
+**Request header:**
+
+```http
+Authorization: Bearer {{admin_access_token}}
+```
+
+**Request body:** None
+
+**Example response (HTTP 200):**
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "menus": [
+      {"key": "dashboard", "label": "Dashboard", "api": "/api/v1/admin/dashboard"},
+      {"key": "users", "label": "Users", "api": "/api/v1/admin/users"},
+      {"key": "garages", "label": "Garages", "api": "/api/v1/admin/garages"},
+      {"key": "jobs", "label": "Jobs", "api": "/api/v1/admin/jobs"},
+      {"key": "bookings", "label": "Bookings", "api": "/api/v1/admin/bookings"},
+      {"key": "analytics", "label": "Analytics", "api": "/api/v1/admin/analytics"},
+      {"key": "billing_issues", "label": "Billing issues", "api": "/api/v1/admin/billing/issues"},
+      {"key": "audit_logs", "label": "Audit logs", "api": "/api/v1/admin/audit-logs"},
+      {"key": "security", "label": "Security", "api": "/api/v1/admin/staff"},
+      {"key": "customers", "label": "Customers", "api": "/api/v1/admin/customers"},
+      {"key": "finance", "label": "Finance", "api": "/api/v1/admin/finance/summary"},
+      {"key": "notifications", "label": "Notifications", "api": "/api/v1/admin/notifications"},
+      {"key": "support", "label": "Support", "api": "/api/v1/admin/support/tickets"},
+      {"key": "owners", "label": "Owner performance", "api": "/api/v1/admin/garage-owner-statistics"},
+      {"key": "reports", "label": "Reports", "api": "/api/v1/admin/reports/exports"}
+    ]
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
 ### GET `https://api.gofixcarz.com/api/v1/admin/users`
 
 **Production URL:** `https://api.gofixcarz.com/api/v1/admin/users`  
