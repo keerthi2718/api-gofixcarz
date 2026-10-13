@@ -14200,18 +14200,12 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
-      "description": "Local API origin when running the backend on port 8080."
+      "url": "https://api.gofixcarz.com",
+      "description": "Production API origin supplied for this integration; operation paths include /api/v1."
     },
     {
-      "url": "https://{apiHost}",
-      "description": "Set to the reachable host for your environment; no production host is included.",
-      "variables": {
-        "apiHost": {
-          "default": "YOUR_REACHABLE_API_HOST",
-          "description": "Hostname only; replace with the frontend-accessible API host."
-        }
-      }
+      "url": "http://localhost:8080",
+      "description": "Local development only when the API is running on port 8080."
     }
   ]
 }

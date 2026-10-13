@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "d8c190d0-1bc3-4d20-9eb4-0a5fa1f607d0",
-    "name": "GoFixCarz Admin API — Postman Tests",
-    "description": "Postman collection generated from the running FastAPI OpenAPI schema. Includes 66 public admin operations and 4 private authentication operations.\n\nSet baseUrl to the API server origin (no trailing slash); set adminEmail/adminPassword in a local Postman environment. Run Sign In, then Complete MFA if challenged. Copy returned access_token and refresh_token to the adminToken/refreshToken environment variables.\n\nUse the dedicated admin token. Many write actions require a recent MFA proof. Read current records first and use their expected_version. Mutation examples are for a development/test database only. Announcement sends are IN_APP only. Replace placeholder IDs with real development record IDs. Financial/customer/review results require authentic source records.",
+    "name": "GoFixCarz Admin API — Postman Requests (PRODUCTION TARGET)",
+    "description": "PRODUCTION TARGET: this collection sends requests to https://api.gofixcarz.com/api/v1. GET requests read production data. POST/PATCH/PUT/DELETE requests may modify live accounts, garages, tickets, announcements, exports or other records; do not run the collection or send mutations as a test. Use only with production authorization and real, intended IDs.\n\nSet the local Postman variable base_url to https://api.gofixcarz.com/api/v1 (this value already includes /api/v1). Set adminEmail/adminPassword only in a private Postman environment. Run Sign In, then Complete MFA if challenged. Keep access/refresh tokens secret.\n\nProtected admin routes are appended as /admin/...; private authentication routes as /admin-auth/.... Use the dedicated admin token. Many write actions require recent MFA and expected_version. Announcement sends are IN_APP only. Financial/customer/review results depend on authentic source records.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -32,7 +32,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin-auth/sign-in",
+              "raw": "{{base_url}}/admin-auth/sign-in",
               "query": []
             },
             "body": {
@@ -62,7 +62,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin-auth/mfa",
+              "raw": "{{base_url}}/admin-auth/mfa",
               "query": []
             },
             "body": {
@@ -92,7 +92,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin-auth/refresh",
+              "raw": "{{base_url}}/admin-auth/refresh",
               "query": []
             },
             "body": {
@@ -116,7 +116,7 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin-auth/logout",
+              "raw": "{{base_url}}/admin-auth/logout",
               "query": []
             },
             "description": "Revoke the current dedicated admin session. Requires Bearer {{adminToken}}."
@@ -133,7 +133,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/menus",
+              "raw": "{{base_url}}/admin/menus",
               "query": []
             }
           }
@@ -144,7 +144,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/me",
+              "raw": "{{base_url}}/admin/me",
               "query": []
             },
             "description": "Admin identity; no owned garage is required."
@@ -156,7 +156,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/dashboard",
+              "raw": "{{base_url}}/admin/dashboard",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -199,7 +199,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/users",
+              "raw": "{{base_url}}/admin/users",
               "query": [
                 {
                   "key": "search",
@@ -244,7 +244,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/users/{{user_id}}",
+              "raw": "{{base_url}}/admin/users/{{user_id}}",
               "query": [
                 {
                   "key": "include_deleted",
@@ -268,7 +268,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/users/{{user_id}}/status",
+              "raw": "{{base_url}}/admin/users/{{user_id}}/status",
               "query": []
             },
             "body": {
@@ -289,7 +289,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garages",
+              "raw": "{{base_url}}/admin/garages",
               "query": [
                 {
                   "key": "search",
@@ -338,7 +338,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}",
+              "raw": "{{base_url}}/admin/garages/{{garage_id}}",
               "query": []
             }
           }
@@ -349,7 +349,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/jobs",
+              "raw": "{{base_url}}/admin/jobs",
               "query": [
                 {
                   "key": "status",
@@ -419,7 +419,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/jobs/{{job_id}}",
+              "raw": "{{base_url}}/admin/jobs/{{job_id}}",
               "query": []
             }
           }
@@ -430,7 +430,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/bookings",
+              "raw": "{{base_url}}/admin/bookings",
               "query": [
                 {
                   "key": "customer_id",
@@ -495,7 +495,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/analytics",
+              "raw": "{{base_url}}/admin/analytics",
               "query": [
                 {
                   "key": "period",
@@ -554,7 +554,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/billing/issues",
+              "raw": "{{base_url}}/admin/billing/issues",
               "query": [
                 {
                   "key": "garage_id",
@@ -584,7 +584,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/audit-logs",
+              "raw": "{{base_url}}/admin/audit-logs",
               "query": [
                 {
                   "key": "actor_id",
@@ -639,7 +639,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/finance/summary",
+              "raw": "{{base_url}}/admin/finance/summary",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -682,7 +682,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/finance/trends",
+              "raw": "{{base_url}}/admin/finance/trends",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -731,7 +731,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/invoices",
+              "raw": "{{base_url}}/admin/invoices",
               "query": [
                 {
                   "key": "status",
@@ -791,7 +791,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/payments",
+              "raw": "{{base_url}}/admin/payments",
               "query": [
                 {
                   "key": "status",
@@ -856,7 +856,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/refunds",
+              "raw": "{{base_url}}/admin/refunds",
               "query": [
                 {
                   "key": "status",
@@ -921,7 +921,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/disputes",
+              "raw": "{{base_url}}/admin/disputes",
               "query": [
                 {
                   "key": "status",
@@ -981,7 +981,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/invoices/{{invoice_id}}",
+              "raw": "{{base_url}}/admin/invoices/{{invoice_id}}",
               "query": []
             }
           }
@@ -992,7 +992,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/payments/{{payment_id}}",
+              "raw": "{{base_url}}/admin/payments/{{payment_id}}",
               "query": []
             }
           }
@@ -1003,7 +1003,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/disputes/{{dispute_id}}",
+              "raw": "{{base_url}}/admin/disputes/{{dispute_id}}",
               "query": []
             }
           }
@@ -1014,7 +1014,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/invoices/{{invoice_id}}/payment-attempts",
+              "raw": "{{base_url}}/admin/invoices/{{invoice_id}}/payment-attempts",
               "query": [
                 {
                   "key": "page",
@@ -1043,7 +1043,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garage-owners",
+              "raw": "{{base_url}}/admin/garage-owners",
               "query": [
                 {
                   "key": "search",
@@ -1114,7 +1114,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garage-owners/{{owner_id}}",
+              "raw": "{{base_url}}/admin/garage-owners/{{owner_id}}",
               "query": [
                 {
                   "key": "include_deleted",
@@ -1158,7 +1158,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/bookings/exception-statistics",
+              "raw": "{{base_url}}/admin/bookings/exception-statistics",
               "query": [
                 {
                   "key": "group_by",
@@ -1201,7 +1201,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/bookings/{{booking_id}}",
+              "raw": "{{base_url}}/admin/bookings/{{booking_id}}",
               "query": []
             }
           }
@@ -1212,7 +1212,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/jobs/{{job_id}}/timeline",
+              "raw": "{{base_url}}/admin/jobs/{{job_id}}/timeline",
               "query": [
                 {
                   "key": "page",
@@ -1236,7 +1236,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/audit-logs/{{audit_id}}",
+              "raw": "{{base_url}}/admin/audit-logs/{{audit_id}}",
               "query": []
             }
           }
@@ -1247,7 +1247,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/activity",
+              "raw": "{{base_url}}/admin/activity",
               "query": [
                 {
                   "key": "owner_id",
@@ -1322,7 +1322,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/activity/service-funnels/{{booking_id}}",
+              "raw": "{{base_url}}/admin/activity/service-funnels/{{booking_id}}",
               "query": [
                 {
                   "key": "page",
@@ -1357,7 +1357,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}/status",
+              "raw": "{{base_url}}/admin/garages/{{garage_id}}/status",
               "query": []
             },
             "body": {
@@ -1383,7 +1383,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}/verification",
+              "raw": "{{base_url}}/admin/garages/{{garage_id}}/verification",
               "query": []
             },
             "body": {
@@ -1403,7 +1403,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garages/{{garage_id}}/reviews",
+              "raw": "{{base_url}}/admin/garages/{{garage_id}}/reviews",
               "query": [
                 {
                   "key": "moderation_status",
@@ -1432,7 +1432,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/customers",
+              "raw": "{{base_url}}/admin/customers",
               "query": [
                 {
                   "key": "page",
@@ -1481,7 +1481,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/customers/{{customer_id}}",
+              "raw": "{{base_url}}/admin/customers/{{customer_id}}",
               "query": []
             }
           }
@@ -1492,7 +1492,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/customers/{{customer_id}}/vehicles",
+              "raw": "{{base_url}}/admin/customers/{{customer_id}}/vehicles",
               "query": [
                 {
                   "key": "page",
@@ -1516,7 +1516,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/customers/{{customer_id}}/reviews",
+              "raw": "{{base_url}}/admin/customers/{{customer_id}}/reviews",
               "query": [
                 {
                   "key": "page",
@@ -1540,7 +1540,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/jobs/delays",
+              "raw": "{{base_url}}/admin/jobs/delays",
               "query": [
                 {
                   "key": "status",
@@ -1600,7 +1600,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/alerts",
+              "raw": "{{base_url}}/admin/alerts",
               "query": [
                 {
                   "key": "type",
@@ -1661,7 +1661,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/notifications",
+              "raw": "{{base_url}}/admin/notifications",
               "query": [
                 {
                   "key": "garage_id",
@@ -1700,7 +1700,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/notifications/{{notification_id}}",
+              "raw": "{{base_url}}/admin/notifications/{{notification_id}}",
               "query": []
             }
           }
@@ -1717,7 +1717,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/announcements/preview",
+              "raw": "{{base_url}}/admin/announcements/preview",
               "query": []
             },
             "body": {
@@ -1749,7 +1749,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/announcements",
+              "raw": "{{base_url}}/admin/announcements",
               "query": []
             },
             "body": {
@@ -1769,7 +1769,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/announcements",
+              "raw": "{{base_url}}/admin/announcements",
               "query": [
                 {
                   "key": "page",
@@ -1793,7 +1793,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/announcements/{{announcement_id}}",
+              "raw": "{{base_url}}/admin/announcements/{{announcement_id}}",
               "query": []
             }
           }
@@ -1804,7 +1804,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/announcements/{{announcement_id}}/deliveries",
+              "raw": "{{base_url}}/admin/announcements/{{announcement_id}}/deliveries",
               "query": [
                 {
                   "key": "status",
@@ -1833,7 +1833,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets",
+              "raw": "{{base_url}}/admin/support/tickets",
               "query": [
                 {
                   "key": "customer_id",
@@ -1898,7 +1898,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}",
+              "raw": "{{base_url}}/admin/support/tickets/{{ticket_id}}",
               "query": []
             }
           }
@@ -1915,7 +1915,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/assignment",
+              "raw": "{{base_url}}/admin/support/tickets/{{ticket_id}}/assignment",
               "query": []
             },
             "body": {
@@ -1941,7 +1941,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/priority",
+              "raw": "{{base_url}}/admin/support/tickets/{{ticket_id}}/priority",
               "query": []
             },
             "body": {
@@ -1967,7 +1967,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/status",
+              "raw": "{{base_url}}/admin/support/tickets/{{ticket_id}}/status",
               "query": []
             },
             "body": {
@@ -1987,7 +1987,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/messages",
+              "raw": "{{base_url}}/admin/support/tickets/{{ticket_id}}/messages",
               "query": [
                 {
                   "key": "limit",
@@ -2016,7 +2016,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/support/tickets/{{ticket_id}}/messages",
+              "raw": "{{base_url}}/admin/support/tickets/{{ticket_id}}/messages",
               "query": []
             },
             "body": {
@@ -2041,7 +2041,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics",
+              "raw": "{{base_url}}/admin/garage-owner-statistics",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -2108,7 +2108,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics/summary",
+              "raw": "{{base_url}}/admin/garage-owner-statistics/summary",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -2157,7 +2157,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics/{{owner_id}}",
+              "raw": "{{base_url}}/admin/garage-owner-statistics/{{owner_id}}",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -2206,7 +2206,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/garage-owner-statistics/{{owner_id}}/trends",
+              "raw": "{{base_url}}/admin/garage-owner-statistics/{{owner_id}}/trends",
               "query": [
                 {
                   "key": "snapshot_id",
@@ -2278,7 +2278,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/reports/exports",
+              "raw": "{{base_url}}/admin/reports/exports",
               "query": []
             },
             "body": {
@@ -2298,7 +2298,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/reports/exports/{{export_id}}",
+              "raw": "{{base_url}}/admin/reports/exports/{{export_id}}",
               "query": []
             }
           }
@@ -2309,7 +2309,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/reports/exports/{{export_id}}/download",
+              "raw": "{{base_url}}/admin/reports/exports/{{export_id}}/download",
               "query": []
             }
           }
@@ -2325,7 +2325,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/permissions",
+              "raw": "{{base_url}}/admin/permissions",
               "query": []
             }
           }
@@ -2336,7 +2336,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/roles",
+              "raw": "{{base_url}}/admin/roles",
               "query": []
             }
           }
@@ -2347,7 +2347,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/staff",
+              "raw": "{{base_url}}/admin/staff",
               "query": [
                 {
                   "key": "search",
@@ -2387,7 +2387,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/admin/staff/{{admin_id}}/roles",
+              "raw": "{{base_url}}/admin/staff/{{admin_id}}/roles",
               "query": []
             },
             "body": {
@@ -2406,13 +2406,14 @@
   ],
   "variable": [
     {
-      "key": "baseUrl",
-      "value": "http://localhost:8080",
-      "type": "default"
+      "key": "base_url",
+      "value": "https://api.gofixcarz.com/api/v1",
+      "type": "default",
+      "description": "Production API base URL including /api/v1. Do not add /api/v1 again to request paths."
     },
     {
       "key": "adminEmail",
-      "value": "admin@example.com",
+      "value": "",
       "type": "default"
     },
     {

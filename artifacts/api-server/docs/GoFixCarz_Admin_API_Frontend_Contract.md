@@ -2,17 +2,19 @@
 
 Share this document and `GoFixCarz_Admin_API_OpenAPI.json` (machine-readable OpenAPI 3.1). The Postman collection is `GoFixCarz_Admin_APIs.postman_collection.json`.
 
-## API host and exact URL format
+## Production API host and URL format
 
-A stable public/production hostname has not been confirmed for this API, so this handoff does not invent one. Configure `API_BASE_URL` to the API origin reachable from the frontend (protocol + host + optional port, no trailing slash).
+Production API base URL supplied for this integration: `https://api.gofixcarz.com/api/v1`. Each endpoint below is written as a full production URL. The base URL already includes `/api/v1`; do not append that prefix twice.
 
-- Local development origin: `http://localhost:8080` (only if the backend is running on the same machine).
-- Protected endpoint URLs: `{{API_BASE_URL}}/api/v1/admin/...`.
-- Private auth endpoint URLs: `{{API_BASE_URL}}/api/v1/admin-auth/...`.
-- Concrete local example: `http://localhost:8080/api/v1/admin/me`.
-- Swagger: `{{API_BASE_URL}}/api/docs`; OpenAPI: `{{API_BASE_URL}}/api/openapi.json`.
+- Protected admin routes: `https://api.gofixcarz.com/api/v1/admin/...`.
+- Private admin authentication routes: `https://api.gofixcarz.com/api/v1/admin-auth/...`.
+- Sign-in URL: `https://api.gofixcarz.com/api/v1/admin-auth/sign-in`.
+- Admin identity URL: `https://api.gofixcarz.com/api/v1/admin/me`.
+- Swagger: `https://api.gofixcarz.com/api/docs`; OpenAPI: `https://api.gofixcarz.com/api/openapi.json`.
 
-Replace `API_BASE_URL` with the dev/staging host that the frontend can reach. The OpenAPI file includes a local server and a replaceable host variable.
+The Postman collection uses a variable named `base_url` set to `https://api.gofixcarz.com/api/v1`. The OpenAPI server uses the host origin `https://api.gofixcarz.com` because the paths in that file already include `/api/v1`. No Replit deployment or server migration was performed; this change only points the handoff and Postman requests to the production host.
+
+**Production safety:** GET requests read live production data. POST/PATCH/PUT/DELETE requests may alter real accounts, garages, tickets, notifications, reports, or other records. Treat request bodies below as examples; do not send write requests or run the collection runner as a test. Use only when authorized and when the change is intended.
 
 ## Authentication
 
@@ -39,11 +41,11 @@ Endpoint entries below describe `data`. Validation errors use the standard envel
 
 ## Endpoint URLs, request parameters, payloads and responses
 
-Total: 70 operations (66 protected admin operations and 4 private auth operations). Local URL templates use `http://localhost:8080`; replace that origin for a remote environment.
+Total: 70 operations (66 protected admin operations and 4 private auth operations). Each entry below shows its full production URL.
 
-### POST `{{API_BASE_URL}}/api/v1/admin-auth/sign-in`
+### POST `https://api.gofixcarz.com/api/v1/admin-auth/sign-in`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin-auth/sign-in`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin-auth/sign-in`  
 **Authentication:** Private auth request; no bearer token  
 **Summary:** Admin sign-in (private)
 
@@ -58,9 +60,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = MFA challenge or token pair. Challenge: challenge_id, mfa_required, mfa_method, expires_in_seconds, enrollment_required, optional provisioning_uri. Token response: access_token, refresh_token, token_type, expires_in, user { id, email, name, role, is_active, role_ids, permissions, data_scope }.
 
-### POST `{{API_BASE_URL}}/api/v1/admin-auth/mfa`
+### POST `https://api.gofixcarz.com/api/v1/admin-auth/mfa`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin-auth/mfa`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin-auth/mfa`  
 **Authentication:** Private auth request; no bearer token  
 **Summary:** Complete admin MFA (private)
 
@@ -74,9 +76,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = Token response: access_token, refresh_token, token_type, expires_in, user { id, email, name, role, is_active, role_ids, permissions, data_scope }.
 
-### POST `{{API_BASE_URL}}/api/v1/admin-auth/refresh`
+### POST `https://api.gofixcarz.com/api/v1/admin-auth/refresh`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin-auth/refresh`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin-auth/refresh`  
 **Authentication:** Private auth request; no bearer token  
 **Summary:** Refresh admin session (private)
 
@@ -89,9 +91,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = Token response: access_token, refresh_token, token_type, expires_in, user { id, email, name, role, is_active, role_ids, permissions, data_scope }.
 
-### POST `{{API_BASE_URL}}/api/v1/admin-auth/logout`
+### POST `https://api.gofixcarz.com/api/v1/admin-auth/logout`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin-auth/logout`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin-auth/logout`  
 **Authentication:** Bearer admin access token  
 **Summary:** Admin logout (private)
 
@@ -99,9 +101,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin
 
-### GET `{{API_BASE_URL}}/api/v1/admin/analytics`
+### GET `https://api.gofixcarz.com/api/v1/admin/analytics`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/analytics`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/analytics`  
 **Authentication:** Bearer admin access token  
 **Summary:** Analytics
 
@@ -118,9 +120,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Analytics summary: period, start_date, end_date, total_jobs, total_revenue, status_counts, graph_data, snapshot_id, generated_at.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/audit-logs`
+### GET `https://api.gofixcarz.com/api/v1/admin/audit-logs`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/audit-logs`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/audit-logs`  
 **Authentication:** Bearer admin access token  
 **Summary:** Audit Logs
 
@@ -135,9 +137,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_AdminAuditResponse_.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/billing/issues`
+### GET `https://api.gofixcarz.com/api/v1/admin/billing/issues`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/billing/issues`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/billing/issues`  
 **Authentication:** Bearer admin access token  
 **Summary:** Billing Issues
 
@@ -148,9 +150,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_JobResponse_.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/bookings`
+### GET `https://api.gofixcarz.com/api/v1/admin/bookings`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/bookings`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/bookings`  
 **Authentication:** Bearer admin access token  
 **Summary:** Bookings
 
@@ -168,9 +170,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_BookingResponse_.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/dashboard`
+### GET `https://api.gofixcarz.com/api/v1/admin/dashboard`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/dashboard`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/dashboard`  
 **Authentication:** Bearer admin access token  
 **Summary:** Dashboard
 
@@ -184,9 +186,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Dashboard counts/status_counts and revenue, plus snapshot_id, generated_at, extended_metrics and metric definitions.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garages`
+### GET `https://api.gofixcarz.com/api/v1/admin/garages`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garages`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garages`  
 **Authentication:** Bearer admin access token  
 **Summary:** Garages
 
@@ -201,9 +203,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_GarageResponse_.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garages/{garage_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garages/<garage_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Garage Detail
 
@@ -212,9 +214,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminGarageDetail.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/jobs`
+### GET `https://api.gofixcarz.com/api/v1/admin/jobs`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/jobs`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/jobs`  
 **Authentication:** Bearer admin access token  
 **Summary:** Jobs
 
@@ -233,9 +235,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_JobResponse_.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/jobs/{job_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/jobs/{job_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/jobs/<job_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/jobs/{job_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Job Detail
 
@@ -244,25 +246,25 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.JobDetailResponse.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/me`
+### GET `https://api.gofixcarz.com/api/v1/admin/me`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/me`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/me`  
 **Authentication:** Bearer admin access token  
 **Summary:** Admin Me
 
 **Success:** HTTP 200. `data` = Admin identity: id, email, name, role, is_active, permissions, role_ids, data_scope.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/menus`
+### GET `https://api.gofixcarz.com/api/v1/admin/menus`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/menus`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/menus`  
 **Authentication:** Bearer admin access token  
 **Summary:** Admin Menus
 
 **Success:** HTTP 200. `data` = { menus: [{ key, label, api }] }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/users`
+### GET `https://api.gofixcarz.com/api/v1/admin/users`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/users`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/users`  
 **Authentication:** Bearer admin access token  
 **Summary:** Users
 
@@ -276,9 +278,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_UserResponse_.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/users/{user_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/users/{user_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/users/<user_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/users/{user_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** User Detail
 
@@ -288,9 +290,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminUserDetail.
 
-### PATCH `{{API_BASE_URL}}/api/v1/admin/users/{user_id}/status`
+### PATCH `https://api.gofixcarz.com/api/v1/admin/users/{user_id}/status`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/users/<user_id>/status`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/users/{user_id}/status`  
 **Authentication:** Bearer admin access token  
 **Summary:** User Status
 
@@ -308,9 +310,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin Finance
 
-### GET `{{API_BASE_URL}}/api/v1/admin/disputes`
+### GET `https://api.gofixcarz.com/api/v1/admin/disputes`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/disputes`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/disputes`  
 **Authentication:** Bearer admin access token  
 **Summary:** Disputes
 
@@ -327,9 +329,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/disputes/{dispute_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/disputes/{dispute_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/disputes/<dispute_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/disputes/{dispute_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Dispute Detail
 
@@ -338,9 +340,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/finance/summary`
+### GET `https://api.gofixcarz.com/api/v1/admin/finance/summary`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/finance/summary`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/finance/summary`  
 **Authentication:** Bearer admin access token  
 **Summary:** Finance Summary
 
@@ -354,9 +356,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Finance snapshot metadata and totals in integer INR paise: gross_collected_amount, refunded_amount, net_collected_amount, captured_payments, failed_attempts, paid/issued invoice counts, invoice totals/average, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/finance/trends`
+### GET `https://api.gofixcarz.com/api/v1/admin/finance/trends`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/finance/trends`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/finance/trends`  
 **Authentication:** Bearer admin access token  
 **Summary:** Finance Trends
 
@@ -371,9 +373,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Finance snapshot metadata, period, series[] with date and gross/refund/net integer INR paise.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/invoices`
+### GET `https://api.gofixcarz.com/api/v1/admin/invoices`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/invoices`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/invoices`  
 **Authentication:** Bearer admin access token  
 **Summary:** Invoices
 
@@ -390,9 +392,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/invoices/{invoice_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/invoices/{invoice_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/invoices/<invoice_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/invoices/{invoice_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Invoice Detail
 
@@ -401,9 +403,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/invoices/{invoice_id}/payment-attempts`
+### GET `https://api.gofixcarz.com/api/v1/admin/invoices/{invoice_id}/payment-attempts`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/invoices/<invoice_id>/payment-attempts`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/invoices/{invoice_id}/payment-attempts`  
 **Authentication:** Bearer admin access token  
 **Summary:** Payment Attempts
 
@@ -414,9 +416,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/payments`
+### GET `https://api.gofixcarz.com/api/v1/admin/payments`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/payments`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/payments`  
 **Authentication:** Bearer admin access token  
 **Summary:** Payments
 
@@ -434,9 +436,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/payments/{payment_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/payments/{payment_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/payments/<payment_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/payments/{payment_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Payment Detail
 
@@ -445,9 +447,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = SourceRecord detail or paginated source records. Lists include items/total/page/page_size/pages, filters, money_unit: paise, currency: INR, source_status.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/refunds`
+### GET `https://api.gofixcarz.com/api/v1/admin/refunds`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/refunds`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/refunds`  
 **Authentication:** Bearer admin access token  
 **Summary:** Refunds
 
@@ -467,9 +469,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin Monitoring
 
-### GET `{{API_BASE_URL}}/api/v1/admin/activity`
+### GET `https://api.gofixcarz.com/api/v1/admin/activity`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/activity`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/activity`  
 **Authentication:** Bearer admin access token  
 **Summary:** Activity
 
@@ -489,9 +491,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminActivityPage.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/activity/service-funnels/{booking_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/activity/service-funnels/{booking_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/activity/service-funnels/<booking_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/activity/service-funnels/{booking_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Funnel
 
@@ -502,9 +504,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminFunnelResponse.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/audit-logs/{audit_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/audit-logs/{audit_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/audit-logs/<audit_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/audit-logs/{audit_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Audit Detail
 
@@ -513,9 +515,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminAuditResponse.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/bookings/exception-statistics`
+### GET `https://api.gofixcarz.com/api/v1/admin/bookings/exception-statistics`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/bookings/exception-statistics`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/bookings/exception-statistics`  
 **Authentication:** Bearer admin access token  
 **Summary:** Booking Exceptions
 
@@ -529,9 +531,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Exception aggregate: filters, generated_at, cohort, rejected/cancelled/expired counts, reason_counts, breakdown, availability metadata.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/bookings/{booking_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/bookings/{booking_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/bookings/<booking_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/bookings/{booking_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Booking Detail
 
@@ -540,9 +542,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminBookingDetail.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garage-owners`
+### GET `https://api.gofixcarz.com/api/v1/admin/garage-owners`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garage-owners`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garage-owners`  
 **Authentication:** Bearer admin access token  
 **Summary:** Owners
 
@@ -561,9 +563,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminOwnerPage.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garage-owners/{owner_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/garage-owners/{owner_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garage-owners/<owner_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garage-owners/{owner_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Owner Detail
 
@@ -578,9 +580,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Response data schema: components.schemas.AdminOwnerDetailResponse.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/jobs/{job_id}/timeline`
+### GET `https://api.gofixcarz.com/api/v1/admin/jobs/{job_id}/timeline`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/jobs/<job_id>/timeline`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/jobs/{job_id}/timeline`  
 **Authentication:** Bearer admin access token  
 **Summary:** Timeline
 
@@ -593,9 +595,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin Operations
 
-### GET `{{API_BASE_URL}}/api/v1/admin/alerts`
+### GET `https://api.gofixcarz.com/api/v1/admin/alerts`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/alerts`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/alerts`  
 **Authentication:** Bearer admin access token  
 **Summary:** Alerts
 
@@ -612,9 +614,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = { items: delay alerts (id, type, severity, job/state-age fields), total, page, page_size, as_of, generation }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/announcements`
+### GET `https://api.gofixcarz.com/api/v1/admin/announcements`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/announcements`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/announcements`  
 **Authentication:** Bearer admin access token  
 **Summary:** Announcements
 
@@ -624,9 +626,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Announcement: id, status, title, message, delivery_count, created_at (send returns HTTP 202).
 
-### POST `{{API_BASE_URL}}/api/v1/admin/announcements`
+### POST `https://api.gofixcarz.com/api/v1/admin/announcements`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/announcements`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/announcements`  
 **Authentication:** Bearer admin access token  
 **Summary:** Send Announcement
 
@@ -643,9 +645,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 202. `data` = Announcement: id, status, title, message, delivery_count, created_at (send returns HTTP 202).
 
-### POST `{{API_BASE_URL}}/api/v1/admin/announcements/preview`
+### POST `https://api.gofixcarz.com/api/v1/admin/announcements/preview`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/announcements/preview`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/announcements/preview`  
 **Authentication:** Bearer admin access token  
 **Summary:** Preview Announcement
 
@@ -668,9 +670,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = { preview_id, recipient_count, delivery_count, channels, expires_at }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/announcements/{announcement_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/announcements/{announcement_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/announcements/<announcement_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/announcements/{announcement_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Announcement Detail
 
@@ -679,9 +681,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Announcement/delivery records; lists use items/total/page/page_size.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/announcements/{announcement_id}/deliveries`
+### GET `https://api.gofixcarz.com/api/v1/admin/announcements/{announcement_id}/deliveries`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/announcements/<announcement_id>/deliveries`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/announcements/{announcement_id}/deliveries`  
 **Authentication:** Bearer admin access token  
 **Summary:** Announcement Deliveries
 
@@ -693,9 +695,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Announcement/delivery records; lists use items/total/page/page_size.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/customers`
+### GET `https://api.gofixcarz.com/api/v1/admin/customers`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/customers`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/customers`  
 **Authentication:** Bearer admin access token  
 **Summary:** Customers
 
@@ -710,9 +712,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Customer list: items, total, page, page_size. Rows include id/name/contact/account_status/last_activity_at/garage_ids/support and payment-risk flags/source/restricted_fields.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/customers/{customer_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/customers/{customer_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/customers/<customer_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/customers/{customer_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Customer Detail
 
@@ -721,9 +723,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Customer account object with vehicles[], reviews[], preview_limit.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/customers/{customer_id}/reviews`
+### GET `https://api.gofixcarz.com/api/v1/admin/customers/{customer_id}/reviews`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/customers/<customer_id>/reviews`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/customers/{customer_id}/reviews`  
 **Authentication:** Bearer admin access token  
 **Summary:** Customer Reviews
 
@@ -734,9 +736,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Paginated SourceRecord items: items, total, page, page_size, pages.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/customers/{customer_id}/vehicles`
+### GET `https://api.gofixcarz.com/api/v1/admin/customers/{customer_id}/vehicles`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/customers/<customer_id>/vehicles`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/customers/{customer_id}/vehicles`  
 **Authentication:** Bearer admin access token  
 **Summary:** Customer Vehicles
 
@@ -747,9 +749,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Paginated SourceRecord items: items, total, page, page_size, pages.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garages/{garage_id}/reviews`
+### GET `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}/reviews`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garages/<garage_id>/reviews`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}/reviews`  
 **Authentication:** Bearer admin access token  
 **Summary:** Garage Reviews
 
@@ -761,9 +763,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Paginated review SourceRecord items: items, total, page, page_size, pages.
 
-### PATCH `{{API_BASE_URL}}/api/v1/admin/garages/{garage_id}/status`
+### PATCH `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}/status`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garages/<garage_id>/status`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}/status`  
 **Authentication:** Bearer admin access token  
 **Summary:** Garage Status
 
@@ -781,9 +783,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = { id, operational_status, verification_status, version, new_work_allowed }
 
-### PATCH `{{API_BASE_URL}}/api/v1/admin/garages/{garage_id}/verification`
+### PATCH `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}/verification`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garages/<garage_id>/verification`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}/verification`  
 **Authentication:** Bearer admin access token  
 **Summary:** Garage Verification
 
@@ -801,9 +803,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = { id, operational_status, verification_status, version, new_work_allowed }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/jobs/delays`
+### GET `https://api.gofixcarz.com/api/v1/admin/jobs/delays`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/jobs/delays`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/jobs/delays`  
 **Authentication:** Bearer admin access token  
 **Summary:** Delays
 
@@ -820,9 +822,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = { items: [{ job_id, status, state_entered_at, state_age_hours, threshold_hours, overdue }], total, page, page_size, as_of }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/notifications`
+### GET `https://api.gofixcarz.com/api/v1/admin/notifications`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/notifications`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/notifications`  
 **Authentication:** Bearer admin access token  
 **Summary:** Notifications
 
@@ -835,9 +837,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Paginated notification/delivery data: items, total, page, page_size, pages; detail returns one notification/delivery object.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/notifications/{notification_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/notifications/{notification_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/notifications/<notification_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/notifications/{notification_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Notification Detail
 
@@ -846,9 +848,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Paginated notification/delivery data: items, total, page, page_size, pages; detail returns one notification/delivery object.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/support/tickets`
+### GET `https://api.gofixcarz.com/api/v1/admin/support/tickets`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets`  
 **Authentication:** Bearer admin access token  
 **Summary:** Tickets
 
@@ -866,9 +868,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Ticket SourceRecord or paginated ticket SourceRecord rows; mutations return updated record with incremented version.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/support/tickets/{ticket_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets/<ticket_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Ticket Detail
 
@@ -877,9 +879,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Ticket SourceRecord or paginated ticket SourceRecord rows; mutations return updated record with incremented version.
 
-### PATCH `{{API_BASE_URL}}/api/v1/admin/support/tickets/{ticket_id}/assignment`
+### PATCH `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/assignment`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets/<ticket_id>/assignment`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/assignment`  
 **Authentication:** Bearer admin access token  
 **Summary:** Ticket Assignment
 
@@ -897,9 +899,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = Ticket SourceRecord or paginated ticket SourceRecord rows; mutations return updated record with incremented version.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/support/tickets/{ticket_id}/messages`
+### GET `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/messages`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets/<ticket_id>/messages`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/messages`  
 **Authentication:** Bearer admin access token  
 **Summary:** Ticket Messages
 
@@ -910,9 +912,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = { items: [{ id, sender_role, text, created_at, client_message_id }], next_cursor }
 
-### POST `{{API_BASE_URL}}/api/v1/admin/support/tickets/{ticket_id}/messages`
+### POST `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/messages`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets/<ticket_id>/messages`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/messages`  
 **Authentication:** Bearer admin access token  
 **Summary:** Ticket Reply
 
@@ -929,9 +931,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 201. `data` = Message: id, sender_role, text, created_at, client_message_id (HTTP 201).
 
-### PATCH `{{API_BASE_URL}}/api/v1/admin/support/tickets/{ticket_id}/priority`
+### PATCH `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/priority`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets/<ticket_id>/priority`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/priority`  
 **Authentication:** Bearer admin access token  
 **Summary:** Ticket Priority
 
@@ -949,9 +951,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 200. `data` = Ticket SourceRecord or paginated ticket SourceRecord rows; mutations return updated record with incremented version.
 
-### PATCH `{{API_BASE_URL}}/api/v1/admin/support/tickets/{ticket_id}/status`
+### PATCH `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/status`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/support/tickets/<ticket_id>/status`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/support/tickets/{ticket_id}/status`  
 **Authentication:** Bearer admin access token  
 **Summary:** Ticket Status
 
@@ -970,9 +972,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin Owner Statistics
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garage-owner-statistics`
+### GET `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garage-owner-statistics`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics`  
 **Authentication:** Bearer admin access token  
 **Summary:** Owner Statistics
 
@@ -990,9 +992,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Snapshot metadata and owner metric row(s); list includes items/total/page/page_size/source_totals; trend returns series[]. Finance metrics require finance.read.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garage-owner-statistics/summary`
+### GET `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/summary`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garage-owner-statistics/summary`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/summary`  
 **Authentication:** Bearer admin access token  
 **Summary:** Owner Summary
 
@@ -1007,9 +1009,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Snapshot metadata and owner metric row(s); list includes items/total/page/page_size/source_totals; trend returns series[]. Finance metrics require finance.read.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garage-owner-statistics/{owner_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/{owner_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garage-owner-statistics/<owner_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/{owner_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Owner Detail
 
@@ -1025,9 +1027,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Snapshot metadata and owner metric row(s); list includes items/total/page/page_size/source_totals; trend returns series[]. Finance metrics require finance.read.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/garage-owner-statistics/{owner_id}/trends`
+### GET `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/{owner_id}/trends`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/garage-owner-statistics/<owner_id>/trends`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/garage-owner-statistics/{owner_id}/trends`  
 **Authentication:** Bearer admin access token  
 **Summary:** Owner Trends
 
@@ -1046,9 +1048,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin Reports
 
-### POST `{{API_BASE_URL}}/api/v1/admin/reports/exports`
+### POST `https://api.gofixcarz.com/api/v1/admin/reports/exports`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/reports/exports`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/reports/exports`  
 **Authentication:** Bearer admin access token  
 **Summary:** Request Export
 
@@ -1071,9 +1073,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 ```
 **Success:** HTTP 202. `data` = Export job: id, status, report_type, format, filters, snapshot_id, row_count, source_totals, metric_definitions, expires_at, error, download_path.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/reports/exports/{export_id}`
+### GET `https://api.gofixcarz.com/api/v1/admin/reports/exports/{export_id}`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/reports/exports/<export_id>`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/reports/exports/{export_id}`  
 **Authentication:** Bearer admin access token  
 **Summary:** Report Status
 
@@ -1082,9 +1084,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = Export job: id, status, report_type, format, filters, snapshot_id, row_count, source_totals, metric_definitions, expires_at, error, download_path.
 
-### GET `{{API_BASE_URL}}/api/v1/admin/reports/exports/{export_id}/download`
+### GET `https://api.gofixcarz.com/api/v1/admin/reports/exports/{export_id}/download`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/reports/exports/<export_id>/download`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/reports/exports/{export_id}/download`  
 **Authentication:** Bearer admin access token  
 **Summary:** Download Report
 
@@ -1095,25 +1097,25 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 ## Admin Security
 
-### GET `{{API_BASE_URL}}/api/v1/admin/permissions`
+### GET `https://api.gofixcarz.com/api/v1/admin/permissions`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/permissions`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/permissions`  
 **Authentication:** Bearer admin access token  
 **Summary:** Permissions
 
 **Success:** HTTP 200. `data` = { items: [{ code, description }] }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/roles`
+### GET `https://api.gofixcarz.com/api/v1/admin/roles`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/roles`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/roles`  
 **Authentication:** Bearer admin access token  
 **Summary:** Roles
 
 **Success:** HTTP 200. `data` = { items: [{ id, name, permissions: string[] }] }
 
-### GET `{{API_BASE_URL}}/api/v1/admin/staff`
+### GET `https://api.gofixcarz.com/api/v1/admin/staff`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/staff`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/staff`  
 **Authentication:** Bearer admin access token  
 **Summary:** Staff
 
@@ -1125,9 +1127,9 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 
 **Success:** HTTP 200. `data` = { items: AdminStaff[], total, page, page_size, pages }
 
-### PUT `{{API_BASE_URL}}/api/v1/admin/staff/{admin_id}/roles`
+### PUT `https://api.gofixcarz.com/api/v1/admin/staff/{admin_id}/roles`
 
-**Local test URL:** `http://localhost:8080/api/v1/admin/staff/<admin_id>/roles`  
+**Production URL:** `https://api.gofixcarz.com/api/v1/admin/staff/{admin_id}/roles`  
 **Authentication:** Bearer admin access token  
 **Summary:** Assign Roles
 
@@ -1158,4 +1160,4 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 - Real customer, payment/refund, review, and delivery rows require authentic source data. Empty data is not proof of no upstream transactions.
 - Announcement sends currently support IN_APP only; PUSH/SMS/EMAIL return 409. Send is a real inbox mutation and requires `Idempotency-Key`.
 - Exports are asynchronous: request -> poll status -> download when READY.
-- This is the development API contract. Do not send mutation examples to production without separate approval.
+- This handoff points to the production host provided. Write examples can alter live data; only send them when authorized and when the change is intended. No server deployment was performed.
