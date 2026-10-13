@@ -23,6 +23,20 @@ The API base URL supplied for this handoff is `https://api.gofixcarz.com/api/v1`
 
 Private admin password verification. If MFA is required, the response contains challenge_id and (on first enrollment only) provisioning_uri. Add the URI to an authenticator, then use Complete MFA. Never share the provisioning URI or tokens.
 
+**Example 401 response when credentials are rejected or the account is unavailable**
+
+The API deliberately uses the same response for both cases, so this response cannot identify whether the email, password, or account status is the cause.
+
+```json
+{
+  "success": false,
+  "message": "Invalid credentials or account unavailable.",
+  "data": null,
+  "errors": [],
+  "status_code": 401
+}
+```
+
 **Example JSON body**
 
 ```json

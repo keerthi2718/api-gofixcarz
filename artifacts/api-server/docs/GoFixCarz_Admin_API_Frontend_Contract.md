@@ -39,6 +39,89 @@ JSON success envelope:
 
 Endpoint entries below describe `data`. Validation errors use the standard envelope with `errors: [{field, message}]`; admin auth failures also use the envelope. Some business rules raise FastAPI HTTP errors in `{"detail": ...}` format. Typical statuses: 400 (invalid MFA proof), 401 (auth), 403 (permission/scope), 404 (missing/out-of-scope resource), 409 (version/idempotency/state conflict), 422 (validation), and 429 (rate limit). Export download returns CSV/XLSX bytes, not JSON.
 
+## Copyable response examples
+
+These are illustrative response bodies. Token, account, and record values are placeholders. Each endpoint below also lists its own success status and `data` shape; use the OpenAPI file for typed field definitions.
+
+### Sign-in rejected — HTTP 401
+
+This is the response returned when credentials are rejected or the account is unavailable. The API intentionally does not reveal which condition applies.
+
+```json
+{
+  "success": false,
+  "message": "Invalid credentials or account unavailable.",
+  "data": null,
+  "errors": [],
+  "status_code": 401
+}
+```
+
+### Sign-in requires MFA — HTTP 200
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "challenge_id": "<challenge-uuid>",
+    "mfa_required": true,
+    "mfa_method": "TOTP",
+    "expires_in_seconds": 300,
+    "enrollment_required": false
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+### Sign-in completed — HTTP 200
+
+```json
+{
+  "success": true,
+  "message": "Success",
+  "data": {
+    "access_token": "<access-token>",
+    "refresh_token": "<refresh-token>",
+    "token_type": "bearer",
+    "expires_in": 900,
+    "user": {
+      "id": "<admin-uuid>",
+      "email": "<admin-email>",
+      "name": "<admin-name>",
+      "role": "<admin-role>",
+      "is_active": true,
+      "role_ids": ["<role-id>"],
+      "permissions": ["<permission-code>"],
+      "data_scope": {
+        "type": "PLATFORM",
+        "garage_ids": []
+      }
+    }
+  },
+  "errors": [],
+  "status_code": 200
+}
+```
+
+### Request validation failed — HTTP 422
+
+```json
+{
+  "success": false,
+  "message": "Validation error",
+  "data": null,
+  "errors": [
+    {
+      "field": "body.password",
+      "message": "Field required"
+    }
+  ],
+  "status_code": 422
+}
+```
+
 ## Endpoint URLs, request parameters, payloads and responses
 
 Total: 70 operations (66 protected admin operations and 4 private auth operations). Each entry below shows its full production URL.
