@@ -57,6 +57,9 @@ export default defineConfig({
       prettier: true,
       override: {
         zod: {
+          // The consuming api-zod package uses Zod 3, not the generator's
+          // inferred workspace dependency. Keep emitted validators compatible.
+          version: 3,
           coerce: {
             query: ['boolean', 'number', 'string'],
             param: ['boolean', 'number', 'string'],

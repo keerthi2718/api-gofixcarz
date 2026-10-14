@@ -13,6 +13,10 @@ from app.models.refresh_token import RefreshToken
 from app.models.sms_delivery import SMSDelivery
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.admin_operations import CustomerAccount, AccountGarage, SourceRecord, SupportMessage, AdminResource
+from app.models.customer_auth import (
+    CustomerIdentity, CustomerSession, CustomerRefreshCredential,
+    CustomerOTPChallenge, CustomerAuthRateBucket,
+)
 from app.database import admin_scope  # noqa: F401 — register the administrative scope guard
 
 __all__ = [

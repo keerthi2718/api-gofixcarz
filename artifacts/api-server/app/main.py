@@ -80,6 +80,17 @@ async def _delete_expired_sms_deliveries() -> None:
         logger.exception("SMS delivery cleanup failed")
 
 
+async def _delete_expired_customer_credentials() -> None:
+    """Customer cleanup is separate so missing rollout schema cannot undo legacy cleanup."""
+    try:
+        from app.services.customer_auth_maintenance import delete_expired_customer_credentials
+        async with async_session() as session:
+            await delete_expired_customer_credentials(session)
+            await session.commit()
+    except Exception as exc:
+        logger.error("Customer credential cleanup failed ({})", type(exc).__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
@@ -113,10 +124,16 @@ async def lifespan(app: FastAPI):
         max_instances=1,
         misfire_grace_time=3600,
     )
+    scheduler.add_job(
+        _delete_expired_customer_credentials,
+        trigger="interval", hours=24, id="delete_expired_customer_credentials",
+        replace_existing=True, max_instances=1, misfire_grace_time=3600,
+    )
     scheduler.start()
     # Kick off an immediate first run so stale rows are cleared on restart too
     await _delete_expired_refresh_tokens()
     await _delete_expired_sms_deliveries()
+    await _delete_expired_customer_credentials()
 
     yield
 
@@ -159,6 +176,14 @@ from app.middleware.request_id import RequestIDMiddleware  # noqa: E402
 app.add_middleware(RequestIDMiddleware)
 
 
+@app.middleware("http")
+async def customer_response_privacy(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/api/v1/customer-app/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 # ── Exception handlers ────────────────────────────────────────────────────────
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
@@ -198,10 +223,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     signup_failure = request.url.path.rstrip("/") == "/api/v1/admin-auth/sign-up"
-    if signup_failure:
+    customer_failure = request.url.path.startswith("/api/v1/customer-app/")
+    if signup_failure or customer_failure:
         # Rich tracebacks and driver messages can expose setup/password values.
         # Keep a fixed diagnostic plus error type, never arguments or locals.
-        logger.error("Admin signup failed ({})", type(exc).__name__)
+        logger.error("Account operation failed ({})", type(exc).__name__)
     else:
         # Escape braces so loguru doesn't try to format them as template placeholders
         safe = str(exc).replace("{", "{{").replace("}", "}}")
@@ -215,7 +241,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
             "errors": [],
             "status_code": 500,
         },
-        headers={"Cache-Control": "no-store"} if signup_failure else None,
+        headers={"Cache-Control": "no-store"} if signup_failure or customer_failure else None,
     )
 
 
@@ -295,8 +321,10 @@ from app.api.v1.admin_operations import router as admin_operations_router  # noq
 from app.api.v1.admin_finance import router as admin_finance_router  # noqa: E402
 from app.api.v1.admin_owner_statistics import router as admin_owner_statistics_router  # noqa: E402
 from app.api.v1.admin_reports import router as admin_reports_router  # noqa: E402
+from app.api.v1.customer_app import router as customer_app_router  # noqa: E402
 
 v1_router = APIRouter(prefix="/api/v1")
+v1_router.include_router(customer_app_router)
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 v1_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 v1_router.include_router(customers_router, prefix="/customers", tags=["Customers"])

@@ -1,29 +1,699 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
 servers:
-  - url: /api
-    description: Base API path
+- url: /api
+  description: Base API path
 tags:
-  - name: health
-    description: Health operations
+- name: health
+  description: Health operations
+- name: Customer App
+  description: Mobile OTP customer authentication and profile APIs.
 paths:
   /healthz:
     get:
       operationId: healthCheck
-      tags: [health]
+      tags:
+      - health
       summary: Health check
       description: Returns server health status
       responses:
-        "200":
+        '200':
           description: Healthy
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthStatus"
+                $ref: '#/components/schemas/HealthStatus'
+  /v1/customer-app/auth/register:
+    post:
+      tags:
+      - Customer App
+      summary: Register
+      operationId: register_api_v1_customer_app_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_ChallengeResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/auth/otp/send:
+    post:
+      tags:
+      - Customer App
+      summary: Send
+      operationId: send_api_v1_customer_app_auth_otp_send_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginOTPRequest'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_ChallengeResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/auth/otp/resend:
+    post:
+      tags:
+      - Customer App
+      summary: Resend
+      operationId: resend_api_v1_customer_app_auth_otp_resend_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChallengeRequest'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_ChallengeResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+      - {}
+      - HTTPBearer: []
+  /v1/customer-app/auth/otp/verify:
+    post:
+      tags:
+      - Customer App
+      summary: Verify
+      operationId: verify_api_v1_customer_app_auth_otp_verify_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginVerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_TokenResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/auth/refresh:
+    post:
+      tags:
+      - Customer App
+      summary: Refresh
+      operationId: refresh_api_v1_customer_app_auth_refresh_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__schemas__customer_app__RefreshRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_TokenResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/auth/session:
+    get:
+      tags:
+      - Customer App
+      summary: Session
+      operationId: session_api_v1_customer_app_auth_session_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_SessionResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/auth/logout:
+    post:
+      tags:
+      - Customer App
+      summary: Logout
+      operationId: logout_api_v1_customer_app_auth_logout_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_LogoutResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/me:
+    get:
+      tags:
+      - Customer App
+      summary: Me
+      operationId: me_api_v1_customer_app_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__schemas__response__APIResponse_ProfileResponse___1'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+    patch:
+      tags:
+      - Customer App
+      summary: Patch
+      operationId: patch_api_v1_customer_app_me_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfilePatch'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/app__schemas__response__APIResponse_ProfileResponse___1'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/me/contact-change:
+    post:
+      tags:
+      - Customer App
+      summary: Contact Change
+      operationId: contact_change_api_v1_customer_app_me_contact_change_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactChangeRequest'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_ChallengeResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/me/contact-change/verify:
+    post:
+      tags:
+      - Customer App
+      summary: Verify Contact
+      operationId: verify_contact_api_v1_customer_app_me_contact_change_verify_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_ContactResponse_'
+        '400':
+          description: Invalid, expired or consumed OTP/challenge.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          description: Missing credentials, invalid token or revoked/expired session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '403':
+          description: Recent OTP authentication is required for contact changes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Verified mobile number is already registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid fields, unsupported email channel or terms version.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '429':
+          description: OTP attempt limit, resend cooldown or durable abuse limit exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: SMS provider did not accept the OTP submission.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
 components:
   schemas:
     HealthStatus:
@@ -32,5 +702,513 @@ components:
         status:
           type: string
       required:
-        - status
-
+      - status
+    LoginVerifyRequest:
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+          title: Challenge Id
+        otp:
+          type: string
+          pattern: ^[0-9]{6}$
+          title: Otp
+        device_name:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: Device Name
+      additionalProperties: false
+      type: object
+      required:
+      - challenge_id
+      - otp
+      title: LoginVerifyRequest
+    ProfilePatch:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 255
+            minLength: 1
+          - type: 'null'
+          title: Name
+        address:
+          anyOf:
+          - $ref: '#/components/schemas/Address'
+          - type: 'null'
+      additionalProperties: false
+      type: object
+      title: ProfilePatch
+    ContactChangeRequest:
+      properties:
+        channel:
+          type: string
+          const: mobile
+          title: Channel
+        new_identifier:
+          type: string
+          pattern: ^\+91[6-9][0-9]{9}$
+          title: New Identifier
+      additionalProperties: false
+      type: object
+      required:
+      - channel
+      - new_identifier
+      title: ContactChangeRequest
+    APIResponse:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - {}
+          - type: 'null'
+          title: Data
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse
+      description: Standard API response envelope.
+    Address:
+      properties:
+        line1:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Line1
+        line2:
+          anyOf:
+          - type: string
+            maxLength: 255
+          - type: 'null'
+          title: Line2
+        city:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: City
+        state:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: State
+        postal_code:
+          type: string
+          pattern: ^[A-Za-z0-9][A-Za-z0-9 -]{1,11}$
+          title: Postal Code
+        country:
+          type: string
+          pattern: ^[A-Z]{2}$
+          title: Country
+      additionalProperties: false
+      type: object
+      required:
+      - line1
+      - city
+      - postal_code
+      - country
+      title: Address
+    APIResponse_ChallengeResponse_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/ChallengeResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[ChallengeResponse]
+    app__schemas__response__APIResponse_ProfileResponse___1:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/app__schemas__customer_app__ProfileResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[ProfileResponse]
+    LoginOTPRequest:
+      properties:
+        channel:
+          type: string
+          const: mobile
+          title: Channel
+        identifier:
+          type: string
+          pattern: ^\+91[6-9][0-9]{9}$
+          title: Identifier
+        purpose:
+          type: string
+          const: LOGIN
+          title: Purpose
+      additionalProperties: false
+      type: object
+      required:
+      - channel
+      - identifier
+      - purpose
+      title: LoginOTPRequest
+    app__schemas__customer_app__RefreshRequest:
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 256
+          minLength: 32
+          title: Refresh Token
+      additionalProperties: false
+      type: object
+      required:
+      - refresh_token
+      title: RefreshRequest
+    RegisterRequest:
+      properties:
+        channel:
+          type: string
+          const: mobile
+          title: Channel
+        identifier:
+          type: string
+          pattern: ^\+91[6-9][0-9]{9}$
+          title: Identifier
+        name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Name
+        terms_version:
+          type: string
+          maxLength: 50
+          minLength: 1
+          title: Terms Version
+        terms_accepted:
+          type: boolean
+          const: true
+          title: Terms Accepted
+      additionalProperties: false
+      type: object
+      required:
+      - channel
+      - identifier
+      - name
+      - terms_version
+      - terms_accepted
+      title: RegisterRequest
+    ChallengeResponse:
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+          title: Challenge Id
+        purpose:
+          type: string
+          title: Purpose
+        expires_in_seconds:
+          type: integer
+          title: Expires In Seconds
+          default: 300
+        resend_after_seconds:
+          type: integer
+          title: Resend After Seconds
+          default: 30
+      type: object
+      required:
+      - challenge_id
+      - purpose
+      title: ChallengeResponse
+    APIResponse_LogoutResponse_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/LogoutResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[LogoutResponse]
+    LogoutResponse:
+      properties:
+        logged_out:
+          type: boolean
+          title: Logged Out
+          default: true
+      type: object
+      title: LogoutResponse
+    ChallengeRequest:
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+          title: Challenge Id
+      additionalProperties: false
+      type: object
+      required:
+      - challenge_id
+      title: ChallengeRequest
+    APIResponse_TokenResponse_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/TokenResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[TokenResponse]
+    TokenResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        refresh_token:
+          type: string
+          title: Refresh Token
+        token_type:
+          type: string
+          title: Token Type
+          default: Bearer
+        expires_in_seconds:
+          type: integer
+          title: Expires In Seconds
+          default: 900
+        session_id:
+          type: string
+          format: uuid
+          title: Session Id
+        customer:
+          $ref: '#/components/schemas/app__schemas__customer_app__ProfileResponse'
+      type: object
+      required:
+      - access_token
+      - refresh_token
+      - session_id
+      - customer
+      title: TokenResponse
+    VerifyRequest:
+      properties:
+        challenge_id:
+          type: string
+          format: uuid
+          title: Challenge Id
+        otp:
+          type: string
+          pattern: ^[0-9]{6}$
+          title: Otp
+      additionalProperties: false
+      type: object
+      required:
+      - challenge_id
+      - otp
+      title: VerifyRequest
+    APIResponse_SessionResponse_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/SessionResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[SessionResponse]
+    SessionResponse:
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          title: Session Id
+        customer_id:
+          type: string
+          format: uuid
+          title: Customer Id
+        authenticated:
+          type: boolean
+          title: Authenticated
+          default: true
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+      type: object
+      required:
+      - session_id
+      - customer_id
+      - expires_at
+      title: SessionResponse
+    app__schemas__customer_app__ProfileResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        mobile:
+          type: string
+          title: Mobile
+        email:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Email
+        mobile_verified:
+          type: boolean
+          title: Mobile Verified
+          default: true
+        email_verified:
+          type: boolean
+          title: Email Verified
+          default: false
+        photo:
+          type: 'null'
+          title: Photo
+        address:
+          anyOf:
+          - $ref: '#/components/schemas/Address'
+          - type: 'null'
+      type: object
+      required:
+      - id
+      - name
+      - mobile
+      title: ProfileResponse
+    APIResponse_ContactResponse_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/ContactResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[ContactResponse]
+    ContactResponse:
+      properties:
+        mobile:
+          type: string
+          title: Mobile
+        mobile_verified:
+          type: boolean
+          title: Mobile Verified
+          default: true
+      type: object
+      required:
+      - mobile
+      title: ContactResponse
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

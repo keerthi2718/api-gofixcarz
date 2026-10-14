@@ -8,3 +8,5 @@
 - [Customer API document scope](customer-api-document-scope.md) — approval documents contain customer-only contracts, excluding public browsing and other-role URL catalogues.
 - [Owner account retention](owner-account-retention.md) — user wants deletion represented by status with data retained for future retrieval; do not promise Apple approval.
 - [Admin draft approval](admin-draft-approval.md) — conservative development defaults are approved, not production changes; never substitute contacts or job amounts for identities or payments.
+- [Customer auth approval](customer-auth-approval.md) — mobile-only OTP/session defaults are approved; remaining draft policy and identity-linking decisions are separate.
+- [Validator generation](workspace-validator-version.md) — generate for the consuming Zod major; root workspace inference may produce incompatible validators.

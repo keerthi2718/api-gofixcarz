@@ -13,9 +13,9 @@ from app.database.migration_url import build_sync_url
 BASELINE = "0007_garage_logo_url"
 DELIVERY_TABLE = "0008_sms_delivery"
 DELIVERY_HEAD = "0009_sms_delivery_retention"
-# The admin-role migration follows the approved delivery target. Recognizing
+# Administrative/customer migrations follow the approved delivery target. Recognizing
 # this known head does not authorize applying it during delivery-only startup.
-REVIEWED_CODE_HEAD = "0014_admin_challenge_binding"
+REVIEWED_CODE_HEAD = "0015_customer_auth"
 # Transaction-level lock serializes concurrently starting production instances.
 MIGRATION_LOCK = 70991009
 
