@@ -91,6 +91,16 @@ async def _delete_expired_customer_credentials() -> None:
         logger.error("Customer credential cleanup failed ({})", type(exc).__name__)
 
 
+async def _expire_customer_appointments() -> None:
+    try:
+        from app.services.customer_booking_maintenance import expire_pending_bookings
+        async with async_session() as session:
+            await expire_pending_bookings(session)
+            await session.commit()
+    except Exception as exc:
+        logger.error("Customer appointment expiry failed ({})", type(exc).__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
@@ -128,6 +138,10 @@ async def lifespan(app: FastAPI):
         _delete_expired_customer_credentials,
         trigger="interval", hours=24, id="delete_expired_customer_credentials",
         replace_existing=True, max_instances=1, misfire_grace_time=3600,
+    )
+    scheduler.add_job(
+        _expire_customer_appointments, trigger="interval", seconds=60,
+        id="expire_customer_appointments", replace_existing=True, max_instances=1,
     )
     scheduler.start()
     # Kick off an immediate first run so stale rows are cleared on restart too
@@ -324,7 +338,11 @@ from app.api.v1.admin_reports import router as admin_reports_router  # noqa: E40
 from app.api.v1.customer_app import router as customer_app_router  # noqa: E402
 
 v1_router = APIRouter(prefix="/api/v1")
+from app.api.v1.customer_workspace import router as customer_workspace_router
+from app.api.v1.customer_participants import router as customer_participants_router
 v1_router.include_router(customer_app_router)
+v1_router.include_router(customer_workspace_router)
+v1_router.include_router(customer_participants_router)
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 v1_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 v1_router.include_router(customers_router, prefix="/customers", tags=["Customers"])

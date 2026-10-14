@@ -11,6 +11,7 @@ PERMISSIONS = {
     "bookings.read", "jobs.read", "finance.read", "notifications.read", "announcements.send",
     "support.read", "support.assign", "support.manage", "support.reply",
     "owner_statistics.read", "reports.export", "audit.read", "activity.read",
+    "reviews.read", "reviews.moderate",
 }
 ROLES = {
     "role_ceo": sorted(PERMISSIONS),
@@ -19,6 +20,7 @@ ROLES = {
         "customers.read", "bookings.read", "jobs.read", "notifications.read",
         "announcements.send", "support.read", "support.assign", "support.manage",
         "support.reply", "owner_statistics.read", "activity.read", "reports.export",
+        "reviews.read", "reviews.moderate",
     ],
     "role_finance": [
         "dashboard.read", "garages.read", "finance.read", "owner_statistics.read", "reports.export",

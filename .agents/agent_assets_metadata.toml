@@ -140,3 +140,17 @@ mtime_ms = 1791891079730
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/65d7cc4b-e66a-4484-8b4e-609547a9dafc/c248bcdb-a59f-4189-b0a1-831ddb53b95f"
 storage_version_token = "1791891089964013"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "AF2m9hszx-BnhEfj_nOCm"
+uri = "file://generated-artifacts/GoFixCarz_Customer_API_Reference.docx"
+type = "word_document"
+title = "GoFixCarz Customer API Reference"
+description = "Word document covering all 59 registered customer endpoints, with methods, paths, headers, payloads, parameters, response examples, errors, and the explicitly pending Razorpay checkout integration."
+logical_id = "d8df41c4-c204-4372-b202-49ea65537ec9"
+content_hash = "sha256:f7a902d098b06a0bf0dd95dd12bbea718c9c4f160d65e6b6f9e6dab35073b5a9"
+size = 58431
+mtime_ms = 1791971067001
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/d8df41c4-c204-4372-b202-49ea65537ec9/ebe41f3e-8675-4516-8a4d-5cce41ae2aee"
+storage_version_token = "1791971163368814"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

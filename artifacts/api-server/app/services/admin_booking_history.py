@@ -27,3 +27,9 @@ async def record_booking_event(session, booking, status):
         payload={"actor_id": str(garage.user_id)} if garage else {},
     ))
     await session.flush()
+    from app.models.customer_workspace import CustomerBookingLink
+    from app.services.customer_workspace_base import CustomerWorkspaceBase
+    link = await session.get(CustomerBookingLink, booking.id)
+    if link:
+        await CustomerWorkspaceBase(session, link.customer_id).notify(
+            "BOOKINGS", f"Booking status: {status}", booking.id, f"booking:{booking.id}:{status}")

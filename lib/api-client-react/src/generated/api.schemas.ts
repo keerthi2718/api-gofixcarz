@@ -72,6 +72,8 @@ export interface APIResponseChallengeResponse {
   status_code: number;
 }
 
+export type AppSchemasCustomerAppProfileResponsePhoto = { [key: string]: unknown } | null;
+
 export interface AppSchemasCustomerAppProfileResponse {
   id: string;
   name: string;
@@ -79,8 +81,7 @@ export interface AppSchemasCustomerAppProfileResponse {
   email?: string | null;
   mobile_verified?: boolean;
   email_verified?: boolean;
-  /** @nullable */
-  photo?: null;
+  photo?: AppSchemasCustomerAppProfileResponsePhoto;
   address?: Address | null;
 }
 
@@ -190,4 +191,457 @@ export interface APIResponseContactResponse {
   errors?: unknown[];
   status_code: number;
 }
+
+export interface PaymentRequest {
+  return_path?: '/payments/result' | null;
+}
+
+export type ReadAllCategory = typeof ReadAllCategory[keyof typeof ReadAllCategory] | null;
+
+
+export const ReadAllCategory = {
+  BOOKINGS: 'BOOKINGS',
+  JOBS: 'JOBS',
+  INVOICES: 'INVOICES',
+  MESSAGES: 'MESSAGES',
+  PAYMENTS: 'PAYMENTS',
+  REVIEWS: 'REVIEWS',
+  SUPPORT: 'SUPPORT',
+} as const;
+
+export interface ReadAll {
+  category?: ReadAllCategory;
+}
+
+export type TicketCreateCategory = typeof TicketCreateCategory[keyof typeof TicketCreateCategory];
+
+
+export const TicketCreateCategory = {
+  GENERAL: 'GENERAL',
+  BOOKING: 'BOOKING',
+  SERVICE: 'SERVICE',
+  PAYMENT: 'PAYMENT',
+  ACCOUNT: 'ACCOUNT',
+  TECHNICAL: 'TECHNICAL',
+} as const;
+
+export interface TicketCreate {
+  category: TicketCreateCategory;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  subject: string;
+  /**
+     * @minLength 1
+     * @maxLength 5000
+     */
+  description: string;
+  booking_id?: string | null;
+  job_id?: string | null;
+  invoice_id?: string | null;
+  payment_id?: string | null;
+  /** @maxItems 5 */
+  attachment_ids?: string[];
+}
+
+export interface TicketReply {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  client_message_id: string;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  text: string;
+  /** @maxItems 5 */
+  attachment_ids?: string[];
+}
+
+export interface QuoteRequest {
+  garage_id: string;
+  vehicle_id: string;
+  /**
+     * @minItems 1
+     * @maxItems 20
+     */
+  service_ids: string[];
+  slot_id: string;
+  notes?: string | null;
+  /** @maxItems 5 */
+  attachment_ids?: string[];
+}
+
+export interface CancelRequest {
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  reason: string;
+}
+
+export type APIResponseDictData = { [key: string]: unknown } | null;
+
+export interface APIResponseDict {
+  success: boolean;
+  message: string;
+  data?: APIResponseDictData;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export type BodyAttachmentUploadApiV1CustomerAppAttachmentsPostPurpose = typeof BodyAttachmentUploadApiV1CustomerAppAttachmentsPostPurpose[keyof typeof BodyAttachmentUploadApiV1CustomerAppAttachmentsPostPurpose];
+
+
+export const BodyAttachmentUploadApiV1CustomerAppAttachmentsPostPurpose = {
+  PROFILE_PHOTO: 'PROFILE_PHOTO',
+  BOOKING_PHOTO: 'BOOKING_PHOTO',
+  SUPPORT_ATTACHMENT: 'SUPPORT_ATTACHMENT',
+} as const;
+
+export interface BodyAttachmentUploadApiV1CustomerAppAttachmentsPost {
+  file: Blob;
+  purpose: BodyAttachmentUploadApiV1CustomerAppAttachmentsPostPurpose;
+}
+
+export interface PhotoSet {
+  attachment_id: string;
+}
+
+export interface ReadMarker {
+  last_read_message_id: string;
+}
+
+export type AppSchemasCustomerWorkspaceVehicleCreateFuelType = typeof AppSchemasCustomerWorkspaceVehicleCreateFuelType[keyof typeof AppSchemasCustomerWorkspaceVehicleCreateFuelType];
+
+
+export const AppSchemasCustomerWorkspaceVehicleCreateFuelType = {
+  PETROL: 'PETROL',
+  DIESEL: 'DIESEL',
+  CNG: 'CNG',
+  LPG: 'LPG',
+  ELECTRIC: 'ELECTRIC',
+  HYBRID: 'HYBRID',
+} as const;
+
+export interface AppSchemasCustomerWorkspaceVehicleCreate {
+  /**
+     * @minLength 4
+     * @maxLength 20
+     */
+  registration_number: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  brand: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  model: string;
+  fuel_type: AppSchemasCustomerWorkspaceVehicleCreateFuelType;
+  year?: number | null;
+  odometer_km?: number | null;
+  is_default?: boolean;
+}
+
+export type VehiclePatchFuelType = typeof VehiclePatchFuelType[keyof typeof VehiclePatchFuelType] | null;
+
+
+export const VehiclePatchFuelType = {
+  PETROL: 'PETROL',
+  DIESEL: 'DIESEL',
+  CNG: 'CNG',
+  LPG: 'LPG',
+  ELECTRIC: 'ELECTRIC',
+  HYBRID: 'HYBRID',
+} as const;
+
+export interface VehiclePatch {
+  registration_number?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  fuel_type?: VehiclePatchFuelType;
+  year?: number | null;
+  odometer_km?: number | null;
+}
+
+export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
+
+
+export const BookingStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  CONVERTED: 'CONVERTED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+export interface BookingSubmit {
+  quote_id: string;
+}
+
+export interface ReviewPatch {
+  rating?: number | null;
+  comment?: string | null;
+}
+
+export interface MessageSend {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  client_message_id: string;
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  text: string;
+}
+
+export interface ReviewCreate {
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  rating: number;
+  comment?: string | null;
+}
+
+export type DeviceRequestPlatform = typeof DeviceRequestPlatform[keyof typeof DeviceRequestPlatform];
+
+
+export const DeviceRequestPlatform = {
+  ANDROID: 'ANDROID',
+  IOS: 'IOS',
+} as const;
+
+export interface DeviceRequest {
+  platform: DeviceRequestPlatform;
+  /**
+     * @minLength 1
+     * @maxLength 4096
+     */
+  push_token: string;
+}
+
+export type JobStatus = typeof JobStatus[keyof typeof JobStatus];
+
+
+export const JobStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  WAITING_FOR_PARTS: 'WAITING_FOR_PARTS',
+  QUALITY_CHECK: 'QUALITY_CHECK',
+  READY: 'READY',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export const NotificationReadValue = {
+  is_read: true,
+} as const;
+export type NotificationRead = typeof NotificationReadValue;
+
+export interface ConversationStart {
+  booking_id?: string | null;
+  job_id?: string | null;
+}
+
+export type VehiclesApiV1CustomerAppVehiclesGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams = {
+date: string;
+/**
+ * @minItems 1
+ * @maxItems 20
+ */
+service_ids: string[];
+};
+
+export type BookingsApiV1CustomerAppBookingsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+status?: BookingStatus | null;
+vehicle_id?: string | null;
+garage_id?: string | null;
+linked_job_status?: JobStatus | null;
+};
+
+export type JobsApiV1CustomerAppJobsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+status?: JobStatus | null;
+vehicle_id?: string | null;
+};
+
+export type InvoicesApiV1CustomerAppInvoicesGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+payment_status?: InvoicesApiV1CustomerAppInvoicesGetPaymentStatus;
+job_id?: string | null;
+vehicle_id?: string | null;
+};
+
+export type InvoicesApiV1CustomerAppInvoicesGetPaymentStatus = typeof InvoicesApiV1CustomerAppInvoicesGetPaymentStatus[keyof typeof InvoicesApiV1CustomerAppInvoicesGetPaymentStatus] | null;
+
+
+export const InvoicesApiV1CustomerAppInvoicesGetPaymentStatus = {
+  UNPAID: 'UNPAID',
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+} as const;
+
+export type PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type NotificationsApiV1CustomerAppNotificationsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+category?: NotificationsApiV1CustomerAppNotificationsGetCategory;
+};
+
+export type NotificationsApiV1CustomerAppNotificationsGetCategory = typeof NotificationsApiV1CustomerAppNotificationsGetCategory[keyof typeof NotificationsApiV1CustomerAppNotificationsGetCategory] | null;
+
+
+export const NotificationsApiV1CustomerAppNotificationsGetCategory = {
+  BOOKINGS: 'BOOKINGS',
+  JOBS: 'JOBS',
+  INVOICES: 'INVOICES',
+  MESSAGES: 'MESSAGES',
+  PAYMENTS: 'PAYMENTS',
+  REVIEWS: 'REVIEWS',
+  SUPPORT: 'SUPPORT',
+} as const;
+
+export type ConversationsApiV1CustomerAppConversationsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams = {
+cursor?: string | null;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
+
+export type ReviewsApiV1CustomerAppMeReviewsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+};
+
+export type TicketsApiV1CustomerAppSupportTicketsGetParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+status?: TicketsApiV1CustomerAppSupportTicketsGetStatus;
+};
+
+export type TicketsApiV1CustomerAppSupportTicketsGetStatus = typeof TicketsApiV1CustomerAppSupportTicketsGetStatus[keyof typeof TicketsApiV1CustomerAppSupportTicketsGetStatus] | null;
+
+
+export const TicketsApiV1CustomerAppSupportTicketsGetStatus = {
+  OPEN: 'OPEN',
+  IN_PROGRESS: 'IN_PROGRESS',
+  WAITING_FOR_CUSTOMER: 'WAITING_FOR_CUSTOMER',
+  RESOLVED: 'RESOLVED',
+  CLOSED: 'CLOSED',
+} as const;
+
+export type TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams = {
+cursor?: string | null;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
+};
 

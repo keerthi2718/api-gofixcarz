@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { Address } from './address';
+import type { AppSchemasCustomerAppProfileResponsePhoto } from './appSchemasCustomerAppProfileResponsePhoto';
 
 export interface AppSchemasCustomerAppProfileResponse {
   id: string;
@@ -14,7 +15,6 @@ export interface AppSchemasCustomerAppProfileResponse {
   email?: string | null;
   mobile_verified?: boolean;
   email_verified?: boolean;
-  /** @nullable */
-  photo?: null;
+  photo?: AppSchemasCustomerAppProfileResponsePhoto;
   address?: Address | null;
 }

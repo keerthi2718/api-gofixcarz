@@ -23,18 +23,50 @@ import type {
   APIResponse,
   APIResponseChallengeResponse,
   APIResponseContactResponse,
+  APIResponseDict,
   APIResponseLogoutResponse,
   APIResponseSessionResponse,
   APIResponseTokenResponse,
   AppSchemasCustomerAppRefreshRequest,
+  AppSchemasCustomerWorkspaceVehicleCreate,
   AppSchemasResponseAPIResponseProfileResponse1,
+  AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams,
+  BodyAttachmentUploadApiV1CustomerAppAttachmentsPost,
+  BookingSubmit,
+  BookingsApiV1CustomerAppBookingsGetParams,
+  CancelRequest,
   ChallengeRequest,
   ContactChangeRequest,
+  ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams,
+  ConversationStart,
+  ConversationsApiV1CustomerAppConversationsGetParams,
+  DeviceRequest,
   HealthStatus,
+  InvoicesApiV1CustomerAppInvoicesGetParams,
+  JobsApiV1CustomerAppJobsGetParams,
   LoginOTPRequest,
   LoginVerifyRequest,
+  MessageSend,
+  NotificationRead,
+  NotificationsApiV1CustomerAppNotificationsGetParams,
+  PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams,
+  PaymentRequest,
+  PhotoSet,
   ProfilePatch,
+  QuoteRequest,
+  ReadAll,
+  ReadMarker,
   RegisterRequest,
+  ReviewCreate,
+  ReviewPatch,
+  ReviewsApiV1CustomerAppMeReviewsGetParams,
+  TicketCreate,
+  TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams,
+  TicketReply,
+  TicketsApiV1CustomerAppSupportTicketsGetParams,
+  VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams,
+  VehiclePatch,
+  VehiclesApiV1CustomerAppVehiclesGetParams,
   VerifyRequest
 } from './api.schemas';
 
@@ -934,5 +966,3706 @@ export const useVerifyContactApiV1CustomerAppMeContactChangeVerifyPost = <TError
         TContext
       > => {
       return useMutation(getVerifyContactApiV1CustomerAppMeContactChangeVerifyPostMutationOptions(options));
+    }
+
+export const getVehicleCreateApiV1CustomerAppVehiclesPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/vehicles`
+}
+
+/**
+ * @summary Vehicle Create
+ */
+export const vehicleCreateApiV1CustomerAppVehiclesPost = async (appSchemasCustomerWorkspaceVehicleCreate: AppSchemasCustomerWorkspaceVehicleCreate, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getVehicleCreateApiV1CustomerAppVehiclesPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(appSchemasCustomerWorkspaceVehicleCreate)
+  }
+);}
+
+
+
+
+
+export const getVehicleCreateApiV1CustomerAppVehiclesPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vehicleCreateApiV1CustomerAppVehiclesPost>>, TError,{data: BodyType<AppSchemasCustomerWorkspaceVehicleCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof vehicleCreateApiV1CustomerAppVehiclesPost>>, TError,{data: BodyType<AppSchemasCustomerWorkspaceVehicleCreate>}, TContext> => {
+
+const mutationKey = ['vehicleCreateApiV1CustomerAppVehiclesPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof vehicleCreateApiV1CustomerAppVehiclesPost>>, {data: BodyType<AppSchemasCustomerWorkspaceVehicleCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  vehicleCreateApiV1CustomerAppVehiclesPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VehicleCreateApiV1CustomerAppVehiclesPostMutationResult = NonNullable<Awaited<ReturnType<typeof vehicleCreateApiV1CustomerAppVehiclesPost>>>
+    export type VehicleCreateApiV1CustomerAppVehiclesPostMutationBody = BodyType<AppSchemasCustomerWorkspaceVehicleCreate>
+    export type VehicleCreateApiV1CustomerAppVehiclesPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Vehicle Create
+ */
+export const useVehicleCreateApiV1CustomerAppVehiclesPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vehicleCreateApiV1CustomerAppVehiclesPost>>, TError,{data: BodyType<AppSchemasCustomerWorkspaceVehicleCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof vehicleCreateApiV1CustomerAppVehiclesPost>>,
+        TError,
+        {data: BodyType<AppSchemasCustomerWorkspaceVehicleCreate>},
+        TContext
+      > => {
+      return useMutation(getVehicleCreateApiV1CustomerAppVehiclesPostMutationOptions(options));
+    }
+
+export const getVehiclesApiV1CustomerAppVehiclesGetUrl = (params?: VehiclesApiV1CustomerAppVehiclesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/vehicles?${stringifiedParams}` : `/api/v1/customer-app/vehicles`
+}
+
+/**
+ * @summary Vehicles
+ */
+export const vehiclesApiV1CustomerAppVehiclesGet = async (params?: VehiclesApiV1CustomerAppVehiclesGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getVehiclesApiV1CustomerAppVehiclesGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVehiclesApiV1CustomerAppVehiclesGetQueryKey = (params?: VehiclesApiV1CustomerAppVehiclesGetParams,) => {
+    return [
+    `/api/v1/customer-app/vehicles`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getVehiclesApiV1CustomerAppVehiclesGetQueryOptions = <TData = Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>, TError = ErrorType<APIResponse>>(params?: VehiclesApiV1CustomerAppVehiclesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVehiclesApiV1CustomerAppVehiclesGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>> = ({ signal }) => vehiclesApiV1CustomerAppVehiclesGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VehiclesApiV1CustomerAppVehiclesGetQueryResult = NonNullable<Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>>
+export type VehiclesApiV1CustomerAppVehiclesGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Vehicles
+ */
+
+export function useVehiclesApiV1CustomerAppVehiclesGet<TData = Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>, TError = ErrorType<APIResponse>>(
+ params?: VehiclesApiV1CustomerAppVehiclesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof vehiclesApiV1CustomerAppVehiclesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVehiclesApiV1CustomerAppVehiclesGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getVehicleDetailApiV1CustomerAppVehiclesVehicleIdGetUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/vehicles/${vehicleId}`
+}
+
+/**
+ * @summary Vehicle Detail
+ */
+export const vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet = async (vehicleId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getVehicleDetailApiV1CustomerAppVehiclesVehicleIdGetUrl(vehicleId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVehicleDetailApiV1CustomerAppVehiclesVehicleIdGetQueryKey = (vehicleId: string,) => {
+    return [
+    `/api/v1/customer-app/vehicles/${vehicleId}`
+    ] as const;
+    }
+
+
+export const getVehicleDetailApiV1CustomerAppVehiclesVehicleIdGetQueryOptions = <TData = Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>, TError = ErrorType<APIResponse>>(vehicleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVehicleDetailApiV1CustomerAppVehiclesVehicleIdGetQueryKey(vehicleId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>> = ({ signal }) => vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet(vehicleId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VehicleDetailApiV1CustomerAppVehiclesVehicleIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>>
+export type VehicleDetailApiV1CustomerAppVehiclesVehicleIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Vehicle Detail
+ */
+
+export function useVehicleDetailApiV1CustomerAppVehiclesVehicleIdGet<TData = Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>, TError = ErrorType<APIResponse>>(
+ vehicleId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof vehicleDetailApiV1CustomerAppVehiclesVehicleIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVehicleDetailApiV1CustomerAppVehiclesVehicleIdGetQueryOptions(vehicleId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getVehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/vehicles/${vehicleId}`
+}
+
+/**
+ * @summary Vehicle Patch
+ */
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch = async (vehicleId: string,
+    vehiclePatch: VehiclePatch, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getVehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchUrl(vehicleId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(vehiclePatch)
+  }
+);}
+
+
+
+
+
+export const getVehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch>>, TError,{vehicleId: string;data: BodyType<VehiclePatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch>>, TError,{vehicleId: string;data: BodyType<VehiclePatch>}, TContext> => {
+
+const mutationKey = ['vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch>>, {vehicleId: string;data: BodyType<VehiclePatch>}> = (props) => {
+          const {vehicleId,data} = props ?? {};
+
+          return  vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch(vehicleId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch>>>
+    export type VehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchMutationBody = BodyType<VehiclePatch>
+    export type VehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Vehicle Patch
+ */
+export const useVehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch>>, TError,{vehicleId: string;data: BodyType<VehiclePatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatch>>,
+        TError,
+        {vehicleId: string;data: BodyType<VehiclePatch>},
+        TContext
+      > => {
+      return useMutation(getVehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchMutationOptions(options));
+    }
+
+export const getVehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/vehicles/${vehicleId}`
+}
+
+/**
+ * @summary Vehicle Delete
+ */
+export const vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete = async (vehicleId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getVehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteUrl(vehicleId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getVehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete>>, TError,{vehicleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete>>, TError,{vehicleId: string}, TContext> => {
+
+const mutationKey = ['vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete>>, {vehicleId: string}> = (props) => {
+          const {vehicleId} = props ?? {};
+
+          return  vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete(vehicleId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete>>>
+
+    export type VehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Vehicle Delete
+ */
+export const useVehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete>>, TError,{vehicleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDelete>>,
+        TError,
+        {vehicleId: string},
+        TContext
+      > => {
+      return useMutation(getVehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteMutationOptions(options));
+    }
+
+export const getDefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutUrl = (vehicleId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/vehicles/${vehicleId}/default`
+}
+
+/**
+ * @summary Default Vehicle
+ */
+export const defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut = async (vehicleId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getDefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutUrl(vehicleId),
+  {
+    ...options,
+    method: 'PUT'
+
+
+  }
+);}
+
+
+
+
+
+export const getDefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut>>, TError,{vehicleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut>>, TError,{vehicleId: string}, TContext> => {
+
+const mutationKey = ['defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut>>, {vehicleId: string}> = (props) => {
+          const {vehicleId} = props ?? {};
+
+          return  defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut(vehicleId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutMutationResult = NonNullable<Awaited<ReturnType<typeof defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut>>>
+
+    export type DefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Default Vehicle
+ */
+export const useDefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut>>, TError,{vehicleId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPut>>,
+        TError,
+        {vehicleId: string},
+        TContext
+      > => {
+      return useMutation(getDefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutMutationOptions(options));
+    }
+
+export const getVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetUrl = (vehicleId: string,
+    params?: VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/vehicles/${vehicleId}/service-history?${stringifiedParams}` : `/api/v1/customer-app/vehicles/${vehicleId}/service-history`
+}
+
+/**
+ * @summary Vehicle History
+ */
+export const vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet = async (vehicleId: string,
+    params?: VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetUrl(vehicleId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryKey = (vehicleId: string,
+    params?: VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams,) => {
+    return [
+    `/api/v1/customer-app/vehicles/${vehicleId}/service-history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryOptions = <TData = Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>, TError = ErrorType<APIResponse>>(vehicleId: string,
+    params?: VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryKey(vehicleId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>> = ({ signal }) => vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet(vehicleId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: vehicleId !== null && vehicleId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryResult = NonNullable<Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>>
+export type VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Vehicle History
+ */
+
+export function useVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet<TData = Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>, TError = ErrorType<APIResponse>>(
+ vehicleId: string,
+    params?: VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getVehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryOptions(vehicleId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAttachmentUploadApiV1CustomerAppAttachmentsPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/attachments`
+}
+
+/**
+ * @summary Attachment Upload
+ */
+export const attachmentUploadApiV1CustomerAppAttachmentsPost = async (bodyAttachmentUploadApiV1CustomerAppAttachmentsPost: BodyAttachmentUploadApiV1CustomerAppAttachmentsPost, options?: RequestInit): Promise<APIResponseDict> => {
+    const formData = new FormData();
+formData.append(`file`, bodyAttachmentUploadApiV1CustomerAppAttachmentsPost.file);
+formData.append(`purpose`, bodyAttachmentUploadApiV1CustomerAppAttachmentsPost.purpose);
+
+  return customFetch<APIResponseDict>(getAttachmentUploadApiV1CustomerAppAttachmentsPostUrl(),
+  {
+    ...options,
+    method: 'POST'
+    ,
+    body: formData
+  }
+);}
+
+
+
+
+
+export const getAttachmentUploadApiV1CustomerAppAttachmentsPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachmentUploadApiV1CustomerAppAttachmentsPost>>, TError,{data: BodyType<BodyAttachmentUploadApiV1CustomerAppAttachmentsPost>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof attachmentUploadApiV1CustomerAppAttachmentsPost>>, TError,{data: BodyType<BodyAttachmentUploadApiV1CustomerAppAttachmentsPost>}, TContext> => {
+
+const mutationKey = ['attachmentUploadApiV1CustomerAppAttachmentsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof attachmentUploadApiV1CustomerAppAttachmentsPost>>, {data: BodyType<BodyAttachmentUploadApiV1CustomerAppAttachmentsPost>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  attachmentUploadApiV1CustomerAppAttachmentsPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AttachmentUploadApiV1CustomerAppAttachmentsPostMutationResult = NonNullable<Awaited<ReturnType<typeof attachmentUploadApiV1CustomerAppAttachmentsPost>>>
+    export type AttachmentUploadApiV1CustomerAppAttachmentsPostMutationBody = BodyType<BodyAttachmentUploadApiV1CustomerAppAttachmentsPost>
+    export type AttachmentUploadApiV1CustomerAppAttachmentsPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Attachment Upload
+ */
+export const useAttachmentUploadApiV1CustomerAppAttachmentsPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachmentUploadApiV1CustomerAppAttachmentsPost>>, TError,{data: BodyType<BodyAttachmentUploadApiV1CustomerAppAttachmentsPost>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof attachmentUploadApiV1CustomerAppAttachmentsPost>>,
+        TError,
+        {data: BodyType<BodyAttachmentUploadApiV1CustomerAppAttachmentsPost>},
+        TContext
+      > => {
+      return useMutation(getAttachmentUploadApiV1CustomerAppAttachmentsPostMutationOptions(options));
+    }
+
+export const getAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetUrl = (attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/attachments/${attachmentId}/download`
+}
+
+/**
+ * @summary Attachment Download
+ */
+export const attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet = async (attachmentId: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetUrl(attachmentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetQueryKey = (attachmentId: string,) => {
+    return [
+    `/api/v1/customer-app/attachments/${attachmentId}/download`
+    ] as const;
+    }
+
+
+export const getAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetQueryOptions = <TData = Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>, TError = ErrorType<APIResponse>>(attachmentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetQueryKey(attachmentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>> = ({ signal }) => attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet(attachmentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: attachmentId !== null && attachmentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetQueryResult = NonNullable<Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>>
+export type AttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Attachment Download
+ */
+
+export function useAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet<TData = Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>, TError = ErrorType<APIResponse>>(
+ attachmentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof attachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetQueryOptions(attachmentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteUrl = (attachmentId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/attachments/${attachmentId}`
+}
+
+/**
+ * @summary Attachment Delete
+ */
+export const attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete = async (attachmentId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getAttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteUrl(attachmentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getAttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete>>, TError,{attachmentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete>>, TError,{attachmentId: string}, TContext> => {
+
+const mutationKey = ['attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete>>, {attachmentId: string}> = (props) => {
+          const {attachmentId} = props ?? {};
+
+          return  attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete(attachmentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete>>>
+
+    export type AttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Attachment Delete
+ */
+export const useAttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete>>, TError,{attachmentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDelete>>,
+        TError,
+        {attachmentId: string},
+        TContext
+      > => {
+      return useMutation(getAttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteMutationOptions(options));
+    }
+
+export const getPhotoSetApiV1CustomerAppMePhotoPutUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/me/photo`
+}
+
+/**
+ * @summary Photo Set
+ */
+export const photoSetApiV1CustomerAppMePhotoPut = async (photoSet: PhotoSet, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getPhotoSetApiV1CustomerAppMePhotoPutUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(photoSet)
+  }
+);}
+
+
+
+
+
+export const getPhotoSetApiV1CustomerAppMePhotoPutMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoSetApiV1CustomerAppMePhotoPut>>, TError,{data: BodyType<PhotoSet>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof photoSetApiV1CustomerAppMePhotoPut>>, TError,{data: BodyType<PhotoSet>}, TContext> => {
+
+const mutationKey = ['photoSetApiV1CustomerAppMePhotoPut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof photoSetApiV1CustomerAppMePhotoPut>>, {data: BodyType<PhotoSet>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  photoSetApiV1CustomerAppMePhotoPut(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PhotoSetApiV1CustomerAppMePhotoPutMutationResult = NonNullable<Awaited<ReturnType<typeof photoSetApiV1CustomerAppMePhotoPut>>>
+    export type PhotoSetApiV1CustomerAppMePhotoPutMutationBody = BodyType<PhotoSet>
+    export type PhotoSetApiV1CustomerAppMePhotoPutMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Photo Set
+ */
+export const usePhotoSetApiV1CustomerAppMePhotoPut = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoSetApiV1CustomerAppMePhotoPut>>, TError,{data: BodyType<PhotoSet>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof photoSetApiV1CustomerAppMePhotoPut>>,
+        TError,
+        {data: BodyType<PhotoSet>},
+        TContext
+      > => {
+      return useMutation(getPhotoSetApiV1CustomerAppMePhotoPutMutationOptions(options));
+    }
+
+export const getPhotoDeleteApiV1CustomerAppMePhotoDeleteUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/me/photo`
+}
+
+/**
+ * @summary Photo Delete
+ */
+export const photoDeleteApiV1CustomerAppMePhotoDelete = async ( options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getPhotoDeleteApiV1CustomerAppMePhotoDeleteUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getPhotoDeleteApiV1CustomerAppMePhotoDeleteMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoDeleteApiV1CustomerAppMePhotoDelete>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof photoDeleteApiV1CustomerAppMePhotoDelete>>, TError,void, TContext> => {
+
+const mutationKey = ['photoDeleteApiV1CustomerAppMePhotoDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof photoDeleteApiV1CustomerAppMePhotoDelete>>, void> = () => {
+
+
+          return  photoDeleteApiV1CustomerAppMePhotoDelete(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PhotoDeleteApiV1CustomerAppMePhotoDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof photoDeleteApiV1CustomerAppMePhotoDelete>>>
+
+    export type PhotoDeleteApiV1CustomerAppMePhotoDeleteMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Photo Delete
+ */
+export const usePhotoDeleteApiV1CustomerAppMePhotoDelete = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof photoDeleteApiV1CustomerAppMePhotoDelete>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof photoDeleteApiV1CustomerAppMePhotoDelete>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getPhotoDeleteApiV1CustomerAppMePhotoDeleteMutationOptions(options));
+    }
+
+export const getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetUrl = (garageId: string,
+    params: AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["service_ids"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? 'null' : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/garages/${garageId}/availability?${stringifiedParams}` : `/api/v1/customer-app/garages/${garageId}/availability`
+}
+
+/**
+ * @summary Availability
+ */
+export const availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet = async (garageId: string,
+    params: AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetUrl(garageId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryKey = (garageId: string,
+    params?: AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams,) => {
+    return [
+    `/api/v1/customer-app/garages/${garageId}/availability`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryOptions = <TData = Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>, TError = ErrorType<APIResponse>>(garageId: string,
+    params: AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryKey(garageId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>> = ({ signal }) => availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet(garageId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: garageId !== null && garageId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryResult = NonNullable<Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>>
+export type AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Availability
+ */
+
+export function useAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet<TData = Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>, TError = ErrorType<APIResponse>>(
+ garageId: string,
+    params: AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryOptions(garageId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getQuoteApiV1CustomerAppBookingsQuotePostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/bookings/quote`
+}
+
+/**
+ * @summary Quote
+ */
+export const quoteApiV1CustomerAppBookingsQuotePost = async (quoteRequest: QuoteRequest, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getQuoteApiV1CustomerAppBookingsQuotePostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(quoteRequest)
+  }
+);}
+
+
+
+
+
+export const getQuoteApiV1CustomerAppBookingsQuotePostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, TError,{data: BodyType<QuoteRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, TError,{data: BodyType<QuoteRequest>}, TContext> => {
+
+const mutationKey = ['quoteApiV1CustomerAppBookingsQuotePost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, {data: BodyType<QuoteRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  quoteApiV1CustomerAppBookingsQuotePost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type QuoteApiV1CustomerAppBookingsQuotePostMutationResult = NonNullable<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>>
+    export type QuoteApiV1CustomerAppBookingsQuotePostMutationBody = BodyType<QuoteRequest>
+    export type QuoteApiV1CustomerAppBookingsQuotePostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Quote
+ */
+export const useQuoteApiV1CustomerAppBookingsQuotePost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, TError,{data: BodyType<QuoteRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>,
+        TError,
+        {data: BodyType<QuoteRequest>},
+        TContext
+      > => {
+      return useMutation(getQuoteApiV1CustomerAppBookingsQuotePostMutationOptions(options));
+    }
+
+export const getSubmitApiV1CustomerAppBookingsPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/bookings`
+}
+
+/**
+ * @summary Submit
+ */
+export const submitApiV1CustomerAppBookingsPost = async (bookingSubmit: BookingSubmit, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getSubmitApiV1CustomerAppBookingsPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(bookingSubmit)
+  }
+);}
+
+
+
+
+
+export const getSubmitApiV1CustomerAppBookingsPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitApiV1CustomerAppBookingsPost>>, TError,{data: BodyType<BookingSubmit>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitApiV1CustomerAppBookingsPost>>, TError,{data: BodyType<BookingSubmit>}, TContext> => {
+
+const mutationKey = ['submitApiV1CustomerAppBookingsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitApiV1CustomerAppBookingsPost>>, {data: BodyType<BookingSubmit>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  submitApiV1CustomerAppBookingsPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitApiV1CustomerAppBookingsPostMutationResult = NonNullable<Awaited<ReturnType<typeof submitApiV1CustomerAppBookingsPost>>>
+    export type SubmitApiV1CustomerAppBookingsPostMutationBody = BodyType<BookingSubmit>
+    export type SubmitApiV1CustomerAppBookingsPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Submit
+ */
+export const useSubmitApiV1CustomerAppBookingsPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitApiV1CustomerAppBookingsPost>>, TError,{data: BodyType<BookingSubmit>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitApiV1CustomerAppBookingsPost>>,
+        TError,
+        {data: BodyType<BookingSubmit>},
+        TContext
+      > => {
+      return useMutation(getSubmitApiV1CustomerAppBookingsPostMutationOptions(options));
+    }
+
+export const getBookingsApiV1CustomerAppBookingsGetUrl = (params?: BookingsApiV1CustomerAppBookingsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/bookings?${stringifiedParams}` : `/api/v1/customer-app/bookings`
+}
+
+/**
+ * @summary Bookings
+ */
+export const bookingsApiV1CustomerAppBookingsGet = async (params?: BookingsApiV1CustomerAppBookingsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getBookingsApiV1CustomerAppBookingsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getBookingsApiV1CustomerAppBookingsGetQueryKey = (params?: BookingsApiV1CustomerAppBookingsGetParams,) => {
+    return [
+    `/api/v1/customer-app/bookings`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getBookingsApiV1CustomerAppBookingsGetQueryOptions = <TData = Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>, TError = ErrorType<APIResponse>>(params?: BookingsApiV1CustomerAppBookingsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBookingsApiV1CustomerAppBookingsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>> = ({ signal }) => bookingsApiV1CustomerAppBookingsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type BookingsApiV1CustomerAppBookingsGetQueryResult = NonNullable<Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>>
+export type BookingsApiV1CustomerAppBookingsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Bookings
+ */
+
+export function useBookingsApiV1CustomerAppBookingsGet<TData = Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>, TError = ErrorType<APIResponse>>(
+ params?: BookingsApiV1CustomerAppBookingsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof bookingsApiV1CustomerAppBookingsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getBookingsApiV1CustomerAppBookingsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl = (bookingId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/bookings/${bookingId}`
+}
+
+/**
+ * @summary Booking Detail
+ */
+export const bookingDetailApiV1CustomerAppBookingsBookingIdGet = async (bookingId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl(bookingId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getBookingDetailApiV1CustomerAppBookingsBookingIdGetQueryKey = (bookingId: string,) => {
+    return [
+    `/api/v1/customer-app/bookings/${bookingId}`
+    ] as const;
+    }
+
+
+export const getBookingDetailApiV1CustomerAppBookingsBookingIdGetQueryOptions = <TData = Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>, TError = ErrorType<APIResponse>>(bookingId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBookingDetailApiV1CustomerAppBookingsBookingIdGetQueryKey(bookingId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>> = ({ signal }) => bookingDetailApiV1CustomerAppBookingsBookingIdGet(bookingId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: bookingId !== null && bookingId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type BookingDetailApiV1CustomerAppBookingsBookingIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>>
+export type BookingDetailApiV1CustomerAppBookingsBookingIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Booking Detail
+ */
+
+export function useBookingDetailApiV1CustomerAppBookingsBookingIdGet<TData = Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>, TError = ErrorType<APIResponse>>(
+ bookingId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof bookingDetailApiV1CustomerAppBookingsBookingIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getBookingDetailApiV1CustomerAppBookingsBookingIdGetQueryOptions(bookingId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetUrl = (bookingId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/bookings/${bookingId}/timeline`
+}
+
+/**
+ * @summary Booking Timeline
+ */
+export const bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet = async (bookingId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetUrl(bookingId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetQueryKey = (bookingId: string,) => {
+    return [
+    `/api/v1/customer-app/bookings/${bookingId}/timeline`
+    ] as const;
+    }
+
+
+export const getBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetQueryOptions = <TData = Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>, TError = ErrorType<APIResponse>>(bookingId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetQueryKey(bookingId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>> = ({ signal }) => bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet(bookingId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: bookingId !== null && bookingId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type BookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetQueryResult = NonNullable<Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>>
+export type BookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Booking Timeline
+ */
+
+export function useBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet<TData = Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>, TError = ErrorType<APIResponse>>(
+ bookingId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getBookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetQueryOptions(bookingId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getBookingCancelApiV1CustomerAppBookingsBookingIdCancelPostUrl = (bookingId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/bookings/${bookingId}/cancel`
+}
+
+/**
+ * @summary Booking Cancel
+ */
+export const bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost = async (bookingId: string,
+    cancelRequest: CancelRequest, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getBookingCancelApiV1CustomerAppBookingsBookingIdCancelPostUrl(bookingId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(cancelRequest)
+  }
+);}
+
+
+
+
+
+export const getBookingCancelApiV1CustomerAppBookingsBookingIdCancelPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost>>, TError,{bookingId: string;data: BodyType<CancelRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost>>, TError,{bookingId: string;data: BodyType<CancelRequest>}, TContext> => {
+
+const mutationKey = ['bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost>>, {bookingId: string;data: BodyType<CancelRequest>}> = (props) => {
+          const {bookingId,data} = props ?? {};
+
+          return  bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost(bookingId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type BookingCancelApiV1CustomerAppBookingsBookingIdCancelPostMutationResult = NonNullable<Awaited<ReturnType<typeof bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost>>>
+    export type BookingCancelApiV1CustomerAppBookingsBookingIdCancelPostMutationBody = BodyType<CancelRequest>
+    export type BookingCancelApiV1CustomerAppBookingsBookingIdCancelPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Booking Cancel
+ */
+export const useBookingCancelApiV1CustomerAppBookingsBookingIdCancelPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost>>, TError,{bookingId: string;data: BodyType<CancelRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof bookingCancelApiV1CustomerAppBookingsBookingIdCancelPost>>,
+        TError,
+        {bookingId: string;data: BodyType<CancelRequest>},
+        TContext
+      > => {
+      return useMutation(getBookingCancelApiV1CustomerAppBookingsBookingIdCancelPostMutationOptions(options));
+    }
+
+export const getJobsApiV1CustomerAppJobsGetUrl = (params?: JobsApiV1CustomerAppJobsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/jobs?${stringifiedParams}` : `/api/v1/customer-app/jobs`
+}
+
+/**
+ * @summary Jobs
+ */
+export const jobsApiV1CustomerAppJobsGet = async (params?: JobsApiV1CustomerAppJobsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getJobsApiV1CustomerAppJobsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getJobsApiV1CustomerAppJobsGetQueryKey = (params?: JobsApiV1CustomerAppJobsGetParams,) => {
+    return [
+    `/api/v1/customer-app/jobs`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getJobsApiV1CustomerAppJobsGetQueryOptions = <TData = Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>, TError = ErrorType<APIResponse>>(params?: JobsApiV1CustomerAppJobsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getJobsApiV1CustomerAppJobsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>> = ({ signal }) => jobsApiV1CustomerAppJobsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type JobsApiV1CustomerAppJobsGetQueryResult = NonNullable<Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>>
+export type JobsApiV1CustomerAppJobsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Jobs
+ */
+
+export function useJobsApiV1CustomerAppJobsGet<TData = Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>, TError = ErrorType<APIResponse>>(
+ params?: JobsApiV1CustomerAppJobsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobsApiV1CustomerAppJobsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getJobsApiV1CustomerAppJobsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getJobDetailApiV1CustomerAppJobsJobIdGetUrl = (jobId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/jobs/${jobId}`
+}
+
+/**
+ * @summary Job Detail
+ */
+export const jobDetailApiV1CustomerAppJobsJobIdGet = async (jobId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getJobDetailApiV1CustomerAppJobsJobIdGetUrl(jobId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getJobDetailApiV1CustomerAppJobsJobIdGetQueryKey = (jobId: string,) => {
+    return [
+    `/api/v1/customer-app/jobs/${jobId}`
+    ] as const;
+    }
+
+
+export const getJobDetailApiV1CustomerAppJobsJobIdGetQueryOptions = <TData = Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>, TError = ErrorType<APIResponse>>(jobId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getJobDetailApiV1CustomerAppJobsJobIdGetQueryKey(jobId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>> = ({ signal }) => jobDetailApiV1CustomerAppJobsJobIdGet(jobId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: jobId !== null && jobId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type JobDetailApiV1CustomerAppJobsJobIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>>
+export type JobDetailApiV1CustomerAppJobsJobIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Job Detail
+ */
+
+export function useJobDetailApiV1CustomerAppJobsJobIdGet<TData = Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>, TError = ErrorType<APIResponse>>(
+ jobId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobDetailApiV1CustomerAppJobsJobIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getJobDetailApiV1CustomerAppJobsJobIdGetQueryOptions(jobId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getJobTimelineApiV1CustomerAppJobsJobIdTimelineGetUrl = (jobId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/jobs/${jobId}/timeline`
+}
+
+/**
+ * @summary Job Timeline
+ */
+export const jobTimelineApiV1CustomerAppJobsJobIdTimelineGet = async (jobId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getJobTimelineApiV1CustomerAppJobsJobIdTimelineGetUrl(jobId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getJobTimelineApiV1CustomerAppJobsJobIdTimelineGetQueryKey = (jobId: string,) => {
+    return [
+    `/api/v1/customer-app/jobs/${jobId}/timeline`
+    ] as const;
+    }
+
+
+export const getJobTimelineApiV1CustomerAppJobsJobIdTimelineGetQueryOptions = <TData = Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>, TError = ErrorType<APIResponse>>(jobId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getJobTimelineApiV1CustomerAppJobsJobIdTimelineGetQueryKey(jobId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>> = ({ signal }) => jobTimelineApiV1CustomerAppJobsJobIdTimelineGet(jobId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: jobId !== null && jobId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type JobTimelineApiV1CustomerAppJobsJobIdTimelineGetQueryResult = NonNullable<Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>>
+export type JobTimelineApiV1CustomerAppJobsJobIdTimelineGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Job Timeline
+ */
+
+export function useJobTimelineApiV1CustomerAppJobsJobIdTimelineGet<TData = Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>, TError = ErrorType<APIResponse>>(
+ jobId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobTimelineApiV1CustomerAppJobsJobIdTimelineGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getJobTimelineApiV1CustomerAppJobsJobIdTimelineGetQueryOptions(jobId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetUrl = (jobId: string,
+    photoIndex: number,) => {
+
+
+
+
+  return `/api/v1/customer-app/jobs/${jobId}/photos/${photoIndex}`
+}
+
+/**
+ * @summary Job Photo
+ */
+export const jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet = async (jobId: string,
+    photoIndex: number, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetUrl(jobId,photoIndex),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetQueryKey = (jobId: string,
+    photoIndex: number,) => {
+    return [
+    `/api/v1/customer-app/jobs/${jobId}/photos/${photoIndex}`
+    ] as const;
+    }
+
+
+export const getJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetQueryOptions = <TData = Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>, TError = ErrorType<APIResponse>>(jobId: string,
+    photoIndex: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetQueryKey(jobId,photoIndex);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>> = ({ signal }) => jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet(jobId,photoIndex, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: jobId !== null && jobId !== undefined && photoIndex !== null && photoIndex !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type JobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetQueryResult = NonNullable<Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>>
+export type JobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Job Photo
+ */
+
+export function useJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet<TData = Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>, TError = ErrorType<APIResponse>>(
+ jobId: string,
+    photoIndex: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getJobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetQueryOptions(jobId,photoIndex,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInvoicesApiV1CustomerAppInvoicesGetUrl = (params?: InvoicesApiV1CustomerAppInvoicesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/invoices?${stringifiedParams}` : `/api/v1/customer-app/invoices`
+}
+
+/**
+ * @summary Invoices
+ */
+export const invoicesApiV1CustomerAppInvoicesGet = async (params?: InvoicesApiV1CustomerAppInvoicesGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getInvoicesApiV1CustomerAppInvoicesGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getInvoicesApiV1CustomerAppInvoicesGetQueryKey = (params?: InvoicesApiV1CustomerAppInvoicesGetParams,) => {
+    return [
+    `/api/v1/customer-app/invoices`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getInvoicesApiV1CustomerAppInvoicesGetQueryOptions = <TData = Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>, TError = ErrorType<APIResponse>>(params?: InvoicesApiV1CustomerAppInvoicesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getInvoicesApiV1CustomerAppInvoicesGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>> = ({ signal }) => invoicesApiV1CustomerAppInvoicesGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type InvoicesApiV1CustomerAppInvoicesGetQueryResult = NonNullable<Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>>
+export type InvoicesApiV1CustomerAppInvoicesGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Invoices
+ */
+
+export function useInvoicesApiV1CustomerAppInvoicesGet<TData = Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>, TError = ErrorType<APIResponse>>(
+ params?: InvoicesApiV1CustomerAppInvoicesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof invoicesApiV1CustomerAppInvoicesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getInvoicesApiV1CustomerAppInvoicesGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetUrl = (invoiceId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/invoices/${invoiceId}`
+}
+
+/**
+ * @summary Invoice Detail
+ */
+export const invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet = async (invoiceId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetUrl(invoiceId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetQueryKey = (invoiceId: string,) => {
+    return [
+    `/api/v1/customer-app/invoices/${invoiceId}`
+    ] as const;
+    }
+
+
+export const getInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetQueryOptions = <TData = Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>, TError = ErrorType<APIResponse>>(invoiceId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetQueryKey(invoiceId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>> = ({ signal }) => invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet(invoiceId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: invoiceId !== null && invoiceId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type InvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>>
+export type InvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Invoice Detail
+ */
+
+export function useInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet<TData = Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>, TError = ErrorType<APIResponse>>(
+ invoiceId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getInvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetQueryOptions(invoiceId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetUrl = (invoiceId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/invoices/${invoiceId}/pdf`
+}
+
+/**
+ * @summary Invoice Pdf
+ */
+export const invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet = async (invoiceId: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetUrl(invoiceId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetQueryKey = (invoiceId: string,) => {
+    return [
+    `/api/v1/customer-app/invoices/${invoiceId}/pdf`
+    ] as const;
+    }
+
+
+export const getInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetQueryOptions = <TData = Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>, TError = ErrorType<APIResponse>>(invoiceId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetQueryKey(invoiceId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>> = ({ signal }) => invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet(invoiceId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: invoiceId !== null && invoiceId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type InvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetQueryResult = NonNullable<Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>>
+export type InvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Invoice Pdf
+ */
+
+export function useInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet<TData = Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>, TError = ErrorType<APIResponse>>(
+ invoiceId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof invoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getInvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetQueryOptions(invoiceId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostUrl = (invoiceId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/invoices/${invoiceId}/payment-attempts`
+}
+
+/**
+ * Razorpay pending by customer choice. Always returns 503 after invoice ownership validation; no checkout/order is created.
+ * @summary Payment Create
+ */
+export const paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost = async (invoiceId: string,
+    paymentRequest: PaymentRequest, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getPaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostUrl(invoiceId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(paymentRequest)
+  }
+);}
+
+
+
+
+
+export const getPaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost>>, TError,{invoiceId: string;data: BodyType<PaymentRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost>>, TError,{invoiceId: string;data: BodyType<PaymentRequest>}, TContext> => {
+
+const mutationKey = ['paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost>>, {invoiceId: string;data: BodyType<PaymentRequest>}> = (props) => {
+          const {invoiceId,data} = props ?? {};
+
+          return  paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost(invoiceId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostMutationResult = NonNullable<Awaited<ReturnType<typeof paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost>>>
+    export type PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostMutationBody = BodyType<PaymentRequest>
+    export type PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Payment Create
+ */
+export const usePaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost>>, TError,{invoiceId: string;data: BodyType<PaymentRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPost>>,
+        TError,
+        {invoiceId: string;data: BodyType<PaymentRequest>},
+        TContext
+      > => {
+      return useMutation(getPaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostMutationOptions(options));
+    }
+
+export const getPaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetUrl = (invoiceId: string,
+    params?: PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/invoices/${invoiceId}/payment-attempts?${stringifiedParams}` : `/api/v1/customer-app/invoices/${invoiceId}/payment-attempts`
+}
+
+/**
+ * @summary Payment Attempts
+ */
+export const paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet = async (invoiceId: string,
+    params?: PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getPaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetUrl(invoiceId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryKey = (invoiceId: string,
+    params?: PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams,) => {
+    return [
+    `/api/v1/customer-app/invoices/${invoiceId}/payment-attempts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getPaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryOptions = <TData = Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>, TError = ErrorType<APIResponse>>(invoiceId: string,
+    params?: PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryKey(invoiceId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>> = ({ signal }) => paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet(invoiceId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: invoiceId !== null && invoiceId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryResult = NonNullable<Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>>
+export type PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Payment Attempts
+ */
+
+export function usePaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet<TData = Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>, TError = ErrorType<APIResponse>>(
+ invoiceId: string,
+    params?: PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryOptions(invoiceId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPaymentDetailApiV1CustomerAppPaymentsPaymentIdGetUrl = (paymentId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/payments/${paymentId}`
+}
+
+/**
+ * @summary Payment Detail
+ */
+export const paymentDetailApiV1CustomerAppPaymentsPaymentIdGet = async (paymentId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getPaymentDetailApiV1CustomerAppPaymentsPaymentIdGetUrl(paymentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPaymentDetailApiV1CustomerAppPaymentsPaymentIdGetQueryKey = (paymentId: string,) => {
+    return [
+    `/api/v1/customer-app/payments/${paymentId}`
+    ] as const;
+    }
+
+
+export const getPaymentDetailApiV1CustomerAppPaymentsPaymentIdGetQueryOptions = <TData = Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>, TError = ErrorType<APIResponse>>(paymentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentDetailApiV1CustomerAppPaymentsPaymentIdGetQueryKey(paymentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>> = ({ signal }) => paymentDetailApiV1CustomerAppPaymentsPaymentIdGet(paymentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: paymentId !== null && paymentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PaymentDetailApiV1CustomerAppPaymentsPaymentIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>>
+export type PaymentDetailApiV1CustomerAppPaymentsPaymentIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Payment Detail
+ */
+
+export function usePaymentDetailApiV1CustomerAppPaymentsPaymentIdGet<TData = Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>, TError = ErrorType<APIResponse>>(
+ paymentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof paymentDetailApiV1CustomerAppPaymentsPaymentIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPaymentDetailApiV1CustomerAppPaymentsPaymentIdGetQueryOptions(paymentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetUrl = (paymentId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/payments/${paymentId}/receipt`
+}
+
+/**
+ * @summary Payment Receipt
+ */
+export const paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet = async (paymentId: string, options?: RequestInit): Promise<Blob> => {
+
+  return customFetch<Blob>(getPaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetUrl(paymentId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetQueryKey = (paymentId: string,) => {
+    return [
+    `/api/v1/customer-app/payments/${paymentId}/receipt`
+    ] as const;
+    }
+
+
+export const getPaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetQueryOptions = <TData = Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>, TError = ErrorType<APIResponse>>(paymentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetQueryKey(paymentId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>> = ({ signal }) => paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet(paymentId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: paymentId !== null && paymentId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetQueryResult = NonNullable<Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>>
+export type PaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Payment Receipt
+ */
+
+export function usePaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet<TData = Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>, TError = ErrorType<APIResponse>>(
+ paymentId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof paymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetQueryOptions(paymentId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeviceApiV1CustomerAppDevicesInstallationIdPutUrl = (installationId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/devices/${installationId}`
+}
+
+/**
+ * @summary Device
+ */
+export const deviceApiV1CustomerAppDevicesInstallationIdPut = async (installationId: string,
+    deviceRequest: DeviceRequest, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getDeviceApiV1CustomerAppDevicesInstallationIdPutUrl(installationId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(deviceRequest)
+  }
+);}
+
+
+
+
+
+export const getDeviceApiV1CustomerAppDevicesInstallationIdPutMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deviceApiV1CustomerAppDevicesInstallationIdPut>>, TError,{installationId: string;data: BodyType<DeviceRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deviceApiV1CustomerAppDevicesInstallationIdPut>>, TError,{installationId: string;data: BodyType<DeviceRequest>}, TContext> => {
+
+const mutationKey = ['deviceApiV1CustomerAppDevicesInstallationIdPut'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deviceApiV1CustomerAppDevicesInstallationIdPut>>, {installationId: string;data: BodyType<DeviceRequest>}> = (props) => {
+          const {installationId,data} = props ?? {};
+
+          return  deviceApiV1CustomerAppDevicesInstallationIdPut(installationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeviceApiV1CustomerAppDevicesInstallationIdPutMutationResult = NonNullable<Awaited<ReturnType<typeof deviceApiV1CustomerAppDevicesInstallationIdPut>>>
+    export type DeviceApiV1CustomerAppDevicesInstallationIdPutMutationBody = BodyType<DeviceRequest>
+    export type DeviceApiV1CustomerAppDevicesInstallationIdPutMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Device
+ */
+export const useDeviceApiV1CustomerAppDevicesInstallationIdPut = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deviceApiV1CustomerAppDevicesInstallationIdPut>>, TError,{installationId: string;data: BodyType<DeviceRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deviceApiV1CustomerAppDevicesInstallationIdPut>>,
+        TError,
+        {installationId: string;data: BodyType<DeviceRequest>},
+        TContext
+      > => {
+      return useMutation(getDeviceApiV1CustomerAppDevicesInstallationIdPutMutationOptions(options));
+    }
+
+export const getDeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteUrl = (installationId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/devices/${installationId}`
+}
+
+/**
+ * @summary Device Delete
+ */
+export const deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete = async (installationId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getDeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteUrl(installationId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getDeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete>>, TError,{installationId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete>>, TError,{installationId: string}, TContext> => {
+
+const mutationKey = ['deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete>>, {installationId: string}> = (props) => {
+          const {installationId} = props ?? {};
+
+          return  deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete(installationId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete>>>
+
+    export type DeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Device Delete
+ */
+export const useDeviceDeleteApiV1CustomerAppDevicesInstallationIdDelete = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete>>, TError,{installationId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deviceDeleteApiV1CustomerAppDevicesInstallationIdDelete>>,
+        TError,
+        {installationId: string},
+        TContext
+      > => {
+      return useMutation(getDeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteMutationOptions(options));
+    }
+
+export const getNotificationsApiV1CustomerAppNotificationsGetUrl = (params?: NotificationsApiV1CustomerAppNotificationsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/notifications?${stringifiedParams}` : `/api/v1/customer-app/notifications`
+}
+
+/**
+ * @summary Notifications
+ */
+export const notificationsApiV1CustomerAppNotificationsGet = async (params?: NotificationsApiV1CustomerAppNotificationsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getNotificationsApiV1CustomerAppNotificationsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getNotificationsApiV1CustomerAppNotificationsGetQueryKey = (params?: NotificationsApiV1CustomerAppNotificationsGetParams,) => {
+    return [
+    `/api/v1/customer-app/notifications`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getNotificationsApiV1CustomerAppNotificationsGetQueryOptions = <TData = Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>, TError = ErrorType<APIResponse>>(params?: NotificationsApiV1CustomerAppNotificationsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getNotificationsApiV1CustomerAppNotificationsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>> = ({ signal }) => notificationsApiV1CustomerAppNotificationsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type NotificationsApiV1CustomerAppNotificationsGetQueryResult = NonNullable<Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>>
+export type NotificationsApiV1CustomerAppNotificationsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Notifications
+ */
+
+export function useNotificationsApiV1CustomerAppNotificationsGet<TData = Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>, TError = ErrorType<APIResponse>>(
+ params?: NotificationsApiV1CustomerAppNotificationsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof notificationsApiV1CustomerAppNotificationsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getNotificationsApiV1CustomerAppNotificationsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getNotificationReadApiV1CustomerAppNotificationsNotificationIdPatchUrl = (notificationId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/notifications/${notificationId}`
+}
+
+/**
+ * @summary Notification Read
+ */
+export const notificationReadApiV1CustomerAppNotificationsNotificationIdPatch = async (notificationId: string,
+    notificationRead: NotificationRead, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getNotificationReadApiV1CustomerAppNotificationsNotificationIdPatchUrl(notificationId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(notificationRead)
+  }
+);}
+
+
+
+
+
+export const getNotificationReadApiV1CustomerAppNotificationsNotificationIdPatchMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notificationReadApiV1CustomerAppNotificationsNotificationIdPatch>>, TError,{notificationId: string;data: BodyType<NotificationRead>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof notificationReadApiV1CustomerAppNotificationsNotificationIdPatch>>, TError,{notificationId: string;data: BodyType<NotificationRead>}, TContext> => {
+
+const mutationKey = ['notificationReadApiV1CustomerAppNotificationsNotificationIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof notificationReadApiV1CustomerAppNotificationsNotificationIdPatch>>, {notificationId: string;data: BodyType<NotificationRead>}> = (props) => {
+          const {notificationId,data} = props ?? {};
+
+          return  notificationReadApiV1CustomerAppNotificationsNotificationIdPatch(notificationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NotificationReadApiV1CustomerAppNotificationsNotificationIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof notificationReadApiV1CustomerAppNotificationsNotificationIdPatch>>>
+    export type NotificationReadApiV1CustomerAppNotificationsNotificationIdPatchMutationBody = BodyType<NotificationRead>
+    export type NotificationReadApiV1CustomerAppNotificationsNotificationIdPatchMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Notification Read
+ */
+export const useNotificationReadApiV1CustomerAppNotificationsNotificationIdPatch = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notificationReadApiV1CustomerAppNotificationsNotificationIdPatch>>, TError,{notificationId: string;data: BodyType<NotificationRead>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof notificationReadApiV1CustomerAppNotificationsNotificationIdPatch>>,
+        TError,
+        {notificationId: string;data: BodyType<NotificationRead>},
+        TContext
+      > => {
+      return useMutation(getNotificationReadApiV1CustomerAppNotificationsNotificationIdPatchMutationOptions(options));
+    }
+
+export const getNotificationsReadAllApiV1CustomerAppNotificationsReadAllPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/notifications/read-all`
+}
+
+/**
+ * @summary Notifications Read All
+ */
+export const notificationsReadAllApiV1CustomerAppNotificationsReadAllPost = async (readAll: ReadAll, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getNotificationsReadAllApiV1CustomerAppNotificationsReadAllPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(readAll)
+  }
+);}
+
+
+
+
+
+export const getNotificationsReadAllApiV1CustomerAppNotificationsReadAllPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notificationsReadAllApiV1CustomerAppNotificationsReadAllPost>>, TError,{data: BodyType<ReadAll>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof notificationsReadAllApiV1CustomerAppNotificationsReadAllPost>>, TError,{data: BodyType<ReadAll>}, TContext> => {
+
+const mutationKey = ['notificationsReadAllApiV1CustomerAppNotificationsReadAllPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof notificationsReadAllApiV1CustomerAppNotificationsReadAllPost>>, {data: BodyType<ReadAll>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  notificationsReadAllApiV1CustomerAppNotificationsReadAllPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type NotificationsReadAllApiV1CustomerAppNotificationsReadAllPostMutationResult = NonNullable<Awaited<ReturnType<typeof notificationsReadAllApiV1CustomerAppNotificationsReadAllPost>>>
+    export type NotificationsReadAllApiV1CustomerAppNotificationsReadAllPostMutationBody = BodyType<ReadAll>
+    export type NotificationsReadAllApiV1CustomerAppNotificationsReadAllPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Notifications Read All
+ */
+export const useNotificationsReadAllApiV1CustomerAppNotificationsReadAllPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof notificationsReadAllApiV1CustomerAppNotificationsReadAllPost>>, TError,{data: BodyType<ReadAll>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof notificationsReadAllApiV1CustomerAppNotificationsReadAllPost>>,
+        TError,
+        {data: BodyType<ReadAll>},
+        TContext
+      > => {
+      return useMutation(getNotificationsReadAllApiV1CustomerAppNotificationsReadAllPostMutationOptions(options));
+    }
+
+export const getConversationCreateApiV1CustomerAppConversationsPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/conversations`
+}
+
+/**
+ * @summary Conversation Create
+ */
+export const conversationCreateApiV1CustomerAppConversationsPost = async (conversationStart: ConversationStart, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getConversationCreateApiV1CustomerAppConversationsPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(conversationStart)
+  }
+);}
+
+
+
+
+
+export const getConversationCreateApiV1CustomerAppConversationsPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof conversationCreateApiV1CustomerAppConversationsPost>>, TError,{data: BodyType<ConversationStart>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof conversationCreateApiV1CustomerAppConversationsPost>>, TError,{data: BodyType<ConversationStart>}, TContext> => {
+
+const mutationKey = ['conversationCreateApiV1CustomerAppConversationsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof conversationCreateApiV1CustomerAppConversationsPost>>, {data: BodyType<ConversationStart>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  conversationCreateApiV1CustomerAppConversationsPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConversationCreateApiV1CustomerAppConversationsPostMutationResult = NonNullable<Awaited<ReturnType<typeof conversationCreateApiV1CustomerAppConversationsPost>>>
+    export type ConversationCreateApiV1CustomerAppConversationsPostMutationBody = BodyType<ConversationStart>
+    export type ConversationCreateApiV1CustomerAppConversationsPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Conversation Create
+ */
+export const useConversationCreateApiV1CustomerAppConversationsPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof conversationCreateApiV1CustomerAppConversationsPost>>, TError,{data: BodyType<ConversationStart>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof conversationCreateApiV1CustomerAppConversationsPost>>,
+        TError,
+        {data: BodyType<ConversationStart>},
+        TContext
+      > => {
+      return useMutation(getConversationCreateApiV1CustomerAppConversationsPostMutationOptions(options));
+    }
+
+export const getConversationsApiV1CustomerAppConversationsGetUrl = (params?: ConversationsApiV1CustomerAppConversationsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/conversations?${stringifiedParams}` : `/api/v1/customer-app/conversations`
+}
+
+/**
+ * @summary Conversations
+ */
+export const conversationsApiV1CustomerAppConversationsGet = async (params?: ConversationsApiV1CustomerAppConversationsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getConversationsApiV1CustomerAppConversationsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getConversationsApiV1CustomerAppConversationsGetQueryKey = (params?: ConversationsApiV1CustomerAppConversationsGetParams,) => {
+    return [
+    `/api/v1/customer-app/conversations`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getConversationsApiV1CustomerAppConversationsGetQueryOptions = <TData = Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>, TError = ErrorType<APIResponse>>(params?: ConversationsApiV1CustomerAppConversationsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getConversationsApiV1CustomerAppConversationsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>> = ({ signal }) => conversationsApiV1CustomerAppConversationsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ConversationsApiV1CustomerAppConversationsGetQueryResult = NonNullable<Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>>
+export type ConversationsApiV1CustomerAppConversationsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Conversations
+ */
+
+export function useConversationsApiV1CustomerAppConversationsGet<TData = Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>, TError = ErrorType<APIResponse>>(
+ params?: ConversationsApiV1CustomerAppConversationsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof conversationsApiV1CustomerAppConversationsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getConversationsApiV1CustomerAppConversationsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetUrl = (conversationId: string,
+    params?: ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/conversations/${conversationId}/messages?${stringifiedParams}` : `/api/v1/customer-app/conversations/${conversationId}/messages`
+}
+
+/**
+ * @summary Conversation Messages
+ */
+export const conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet = async (conversationId: string,
+    params?: ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetUrl(conversationId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryKey = (conversationId: string,
+    params?: ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams,) => {
+    return [
+    `/api/v1/customer-app/conversations/${conversationId}/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryOptions = <TData = Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>, TError = ErrorType<APIResponse>>(conversationId: string,
+    params?: ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryKey(conversationId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>> = ({ signal }) => conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet(conversationId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: conversationId !== null && conversationId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryResult = NonNullable<Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>>
+export type ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Conversation Messages
+ */
+
+export function useConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet<TData = Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>, TError = ErrorType<APIResponse>>(
+ conversationId: string,
+    params?: ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryOptions(conversationId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getMessageSendApiV1CustomerAppConversationsConversationIdMessagesPostUrl = (conversationId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/conversations/${conversationId}/messages`
+}
+
+/**
+ * @summary Message Send
+ */
+export const messageSendApiV1CustomerAppConversationsConversationIdMessagesPost = async (conversationId: string,
+    messageSend: MessageSend, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getMessageSendApiV1CustomerAppConversationsConversationIdMessagesPostUrl(conversationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(messageSend)
+  }
+);}
+
+
+
+
+
+export const getMessageSendApiV1CustomerAppConversationsConversationIdMessagesPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof messageSendApiV1CustomerAppConversationsConversationIdMessagesPost>>, TError,{conversationId: string;data: BodyType<MessageSend>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof messageSendApiV1CustomerAppConversationsConversationIdMessagesPost>>, TError,{conversationId: string;data: BodyType<MessageSend>}, TContext> => {
+
+const mutationKey = ['messageSendApiV1CustomerAppConversationsConversationIdMessagesPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof messageSendApiV1CustomerAppConversationsConversationIdMessagesPost>>, {conversationId: string;data: BodyType<MessageSend>}> = (props) => {
+          const {conversationId,data} = props ?? {};
+
+          return  messageSendApiV1CustomerAppConversationsConversationIdMessagesPost(conversationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type MessageSendApiV1CustomerAppConversationsConversationIdMessagesPostMutationResult = NonNullable<Awaited<ReturnType<typeof messageSendApiV1CustomerAppConversationsConversationIdMessagesPost>>>
+    export type MessageSendApiV1CustomerAppConversationsConversationIdMessagesPostMutationBody = BodyType<MessageSend>
+    export type MessageSendApiV1CustomerAppConversationsConversationIdMessagesPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Message Send
+ */
+export const useMessageSendApiV1CustomerAppConversationsConversationIdMessagesPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof messageSendApiV1CustomerAppConversationsConversationIdMessagesPost>>, TError,{conversationId: string;data: BodyType<MessageSend>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof messageSendApiV1CustomerAppConversationsConversationIdMessagesPost>>,
+        TError,
+        {conversationId: string;data: BodyType<MessageSend>},
+        TContext
+      > => {
+      return useMutation(getMessageSendApiV1CustomerAppConversationsConversationIdMessagesPostMutationOptions(options));
+    }
+
+export const getConversationReadApiV1CustomerAppConversationsConversationIdReadPostUrl = (conversationId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/conversations/${conversationId}/read`
+}
+
+/**
+ * @summary Conversation Read
+ */
+export const conversationReadApiV1CustomerAppConversationsConversationIdReadPost = async (conversationId: string,
+    readMarker: ReadMarker, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getConversationReadApiV1CustomerAppConversationsConversationIdReadPostUrl(conversationId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(readMarker)
+  }
+);}
+
+
+
+
+
+export const getConversationReadApiV1CustomerAppConversationsConversationIdReadPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof conversationReadApiV1CustomerAppConversationsConversationIdReadPost>>, TError,{conversationId: string;data: BodyType<ReadMarker>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof conversationReadApiV1CustomerAppConversationsConversationIdReadPost>>, TError,{conversationId: string;data: BodyType<ReadMarker>}, TContext> => {
+
+const mutationKey = ['conversationReadApiV1CustomerAppConversationsConversationIdReadPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof conversationReadApiV1CustomerAppConversationsConversationIdReadPost>>, {conversationId: string;data: BodyType<ReadMarker>}> = (props) => {
+          const {conversationId,data} = props ?? {};
+
+          return  conversationReadApiV1CustomerAppConversationsConversationIdReadPost(conversationId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConversationReadApiV1CustomerAppConversationsConversationIdReadPostMutationResult = NonNullable<Awaited<ReturnType<typeof conversationReadApiV1CustomerAppConversationsConversationIdReadPost>>>
+    export type ConversationReadApiV1CustomerAppConversationsConversationIdReadPostMutationBody = BodyType<ReadMarker>
+    export type ConversationReadApiV1CustomerAppConversationsConversationIdReadPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Conversation Read
+ */
+export const useConversationReadApiV1CustomerAppConversationsConversationIdReadPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof conversationReadApiV1CustomerAppConversationsConversationIdReadPost>>, TError,{conversationId: string;data: BodyType<ReadMarker>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof conversationReadApiV1CustomerAppConversationsConversationIdReadPost>>,
+        TError,
+        {conversationId: string;data: BodyType<ReadMarker>},
+        TContext
+      > => {
+      return useMutation(getConversationReadApiV1CustomerAppConversationsConversationIdReadPostMutationOptions(options));
+    }
+
+export const getReviewCreateApiV1CustomerAppJobsJobIdReviewPostUrl = (jobId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/jobs/${jobId}/review`
+}
+
+/**
+ * @summary Review Create
+ */
+export const reviewCreateApiV1CustomerAppJobsJobIdReviewPost = async (jobId: string,
+    reviewCreate: ReviewCreate, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getReviewCreateApiV1CustomerAppJobsJobIdReviewPostUrl(jobId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(reviewCreate)
+  }
+);}
+
+
+
+
+
+export const getReviewCreateApiV1CustomerAppJobsJobIdReviewPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewCreateApiV1CustomerAppJobsJobIdReviewPost>>, TError,{jobId: string;data: BodyType<ReviewCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewCreateApiV1CustomerAppJobsJobIdReviewPost>>, TError,{jobId: string;data: BodyType<ReviewCreate>}, TContext> => {
+
+const mutationKey = ['reviewCreateApiV1CustomerAppJobsJobIdReviewPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewCreateApiV1CustomerAppJobsJobIdReviewPost>>, {jobId: string;data: BodyType<ReviewCreate>}> = (props) => {
+          const {jobId,data} = props ?? {};
+
+          return  reviewCreateApiV1CustomerAppJobsJobIdReviewPost(jobId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewCreateApiV1CustomerAppJobsJobIdReviewPostMutationResult = NonNullable<Awaited<ReturnType<typeof reviewCreateApiV1CustomerAppJobsJobIdReviewPost>>>
+    export type ReviewCreateApiV1CustomerAppJobsJobIdReviewPostMutationBody = BodyType<ReviewCreate>
+    export type ReviewCreateApiV1CustomerAppJobsJobIdReviewPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Review Create
+ */
+export const useReviewCreateApiV1CustomerAppJobsJobIdReviewPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewCreateApiV1CustomerAppJobsJobIdReviewPost>>, TError,{jobId: string;data: BodyType<ReviewCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewCreateApiV1CustomerAppJobsJobIdReviewPost>>,
+        TError,
+        {jobId: string;data: BodyType<ReviewCreate>},
+        TContext
+      > => {
+      return useMutation(getReviewCreateApiV1CustomerAppJobsJobIdReviewPostMutationOptions(options));
+    }
+
+export const getReviewsApiV1CustomerAppMeReviewsGetUrl = (params?: ReviewsApiV1CustomerAppMeReviewsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/me/reviews?${stringifiedParams}` : `/api/v1/customer-app/me/reviews`
+}
+
+/**
+ * @summary Reviews
+ */
+export const reviewsApiV1CustomerAppMeReviewsGet = async (params?: ReviewsApiV1CustomerAppMeReviewsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getReviewsApiV1CustomerAppMeReviewsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getReviewsApiV1CustomerAppMeReviewsGetQueryKey = (params?: ReviewsApiV1CustomerAppMeReviewsGetParams,) => {
+    return [
+    `/api/v1/customer-app/me/reviews`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getReviewsApiV1CustomerAppMeReviewsGetQueryOptions = <TData = Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>, TError = ErrorType<APIResponse>>(params?: ReviewsApiV1CustomerAppMeReviewsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReviewsApiV1CustomerAppMeReviewsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>> = ({ signal }) => reviewsApiV1CustomerAppMeReviewsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ReviewsApiV1CustomerAppMeReviewsGetQueryResult = NonNullable<Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>>
+export type ReviewsApiV1CustomerAppMeReviewsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Reviews
+ */
+
+export function useReviewsApiV1CustomerAppMeReviewsGet<TData = Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>, TError = ErrorType<APIResponse>>(
+ params?: ReviewsApiV1CustomerAppMeReviewsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof reviewsApiV1CustomerAppMeReviewsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getReviewsApiV1CustomerAppMeReviewsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewEditApiV1CustomerAppReviewsReviewIdPatchUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/reviews/${reviewId}`
+}
+
+/**
+ * @summary Review Edit
+ */
+export const reviewEditApiV1CustomerAppReviewsReviewIdPatch = async (reviewId: string,
+    reviewPatch: ReviewPatch, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getReviewEditApiV1CustomerAppReviewsReviewIdPatchUrl(reviewId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(reviewPatch)
+  }
+);}
+
+
+
+
+
+export const getReviewEditApiV1CustomerAppReviewsReviewIdPatchMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewEditApiV1CustomerAppReviewsReviewIdPatch>>, TError,{reviewId: string;data: BodyType<ReviewPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewEditApiV1CustomerAppReviewsReviewIdPatch>>, TError,{reviewId: string;data: BodyType<ReviewPatch>}, TContext> => {
+
+const mutationKey = ['reviewEditApiV1CustomerAppReviewsReviewIdPatch'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewEditApiV1CustomerAppReviewsReviewIdPatch>>, {reviewId: string;data: BodyType<ReviewPatch>}> = (props) => {
+          const {reviewId,data} = props ?? {};
+
+          return  reviewEditApiV1CustomerAppReviewsReviewIdPatch(reviewId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewEditApiV1CustomerAppReviewsReviewIdPatchMutationResult = NonNullable<Awaited<ReturnType<typeof reviewEditApiV1CustomerAppReviewsReviewIdPatch>>>
+    export type ReviewEditApiV1CustomerAppReviewsReviewIdPatchMutationBody = BodyType<ReviewPatch>
+    export type ReviewEditApiV1CustomerAppReviewsReviewIdPatchMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Review Edit
+ */
+export const useReviewEditApiV1CustomerAppReviewsReviewIdPatch = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewEditApiV1CustomerAppReviewsReviewIdPatch>>, TError,{reviewId: string;data: BodyType<ReviewPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewEditApiV1CustomerAppReviewsReviewIdPatch>>,
+        TError,
+        {reviewId: string;data: BodyType<ReviewPatch>},
+        TContext
+      > => {
+      return useMutation(getReviewEditApiV1CustomerAppReviewsReviewIdPatchMutationOptions(options));
+    }
+
+export const getTicketCreateApiV1CustomerAppSupportTicketsPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/support/tickets`
+}
+
+/**
+ * @summary Ticket Create
+ */
+export const ticketCreateApiV1CustomerAppSupportTicketsPost = async (ticketCreate: TicketCreate, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getTicketCreateApiV1CustomerAppSupportTicketsPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(ticketCreate)
+  }
+);}
+
+
+
+
+
+export const getTicketCreateApiV1CustomerAppSupportTicketsPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketCreateApiV1CustomerAppSupportTicketsPost>>, TError,{data: BodyType<TicketCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketCreateApiV1CustomerAppSupportTicketsPost>>, TError,{data: BodyType<TicketCreate>}, TContext> => {
+
+const mutationKey = ['ticketCreateApiV1CustomerAppSupportTicketsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketCreateApiV1CustomerAppSupportTicketsPost>>, {data: BodyType<TicketCreate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  ticketCreateApiV1CustomerAppSupportTicketsPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketCreateApiV1CustomerAppSupportTicketsPostMutationResult = NonNullable<Awaited<ReturnType<typeof ticketCreateApiV1CustomerAppSupportTicketsPost>>>
+    export type TicketCreateApiV1CustomerAppSupportTicketsPostMutationBody = BodyType<TicketCreate>
+    export type TicketCreateApiV1CustomerAppSupportTicketsPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Ticket Create
+ */
+export const useTicketCreateApiV1CustomerAppSupportTicketsPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketCreateApiV1CustomerAppSupportTicketsPost>>, TError,{data: BodyType<TicketCreate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof ticketCreateApiV1CustomerAppSupportTicketsPost>>,
+        TError,
+        {data: BodyType<TicketCreate>},
+        TContext
+      > => {
+      return useMutation(getTicketCreateApiV1CustomerAppSupportTicketsPostMutationOptions(options));
+    }
+
+export const getTicketsApiV1CustomerAppSupportTicketsGetUrl = (params?: TicketsApiV1CustomerAppSupportTicketsGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/support/tickets?${stringifiedParams}` : `/api/v1/customer-app/support/tickets`
+}
+
+/**
+ * @summary Tickets
+ */
+export const ticketsApiV1CustomerAppSupportTicketsGet = async (params?: TicketsApiV1CustomerAppSupportTicketsGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getTicketsApiV1CustomerAppSupportTicketsGetUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketsApiV1CustomerAppSupportTicketsGetQueryKey = (params?: TicketsApiV1CustomerAppSupportTicketsGetParams,) => {
+    return [
+    `/api/v1/customer-app/support/tickets`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTicketsApiV1CustomerAppSupportTicketsGetQueryOptions = <TData = Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>, TError = ErrorType<APIResponse>>(params?: TicketsApiV1CustomerAppSupportTicketsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTicketsApiV1CustomerAppSupportTicketsGetQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>> = ({ signal }) => ticketsApiV1CustomerAppSupportTicketsGet(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type TicketsApiV1CustomerAppSupportTicketsGetQueryResult = NonNullable<Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>>
+export type TicketsApiV1CustomerAppSupportTicketsGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Tickets
+ */
+
+export function useTicketsApiV1CustomerAppSupportTicketsGet<TData = Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>, TError = ErrorType<APIResponse>>(
+ params?: TicketsApiV1CustomerAppSupportTicketsGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ticketsApiV1CustomerAppSupportTicketsGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getTicketsApiV1CustomerAppSupportTicketsGetQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTicketDetailApiV1CustomerAppSupportTicketsTicketIdGetUrl = (ticketId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/support/tickets/${ticketId}`
+}
+
+/**
+ * @summary Ticket Detail
+ */
+export const ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet = async (ticketId: string, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getTicketDetailApiV1CustomerAppSupportTicketsTicketIdGetUrl(ticketId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketDetailApiV1CustomerAppSupportTicketsTicketIdGetQueryKey = (ticketId: string,) => {
+    return [
+    `/api/v1/customer-app/support/tickets/${ticketId}`
+    ] as const;
+    }
+
+
+export const getTicketDetailApiV1CustomerAppSupportTicketsTicketIdGetQueryOptions = <TData = Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>, TError = ErrorType<APIResponse>>(ticketId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTicketDetailApiV1CustomerAppSupportTicketsTicketIdGetQueryKey(ticketId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>> = ({ signal }) => ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet(ticketId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: ticketId !== null && ticketId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type TicketDetailApiV1CustomerAppSupportTicketsTicketIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>>
+export type TicketDetailApiV1CustomerAppSupportTicketsTicketIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Ticket Detail
+ */
+
+export function useTicketDetailApiV1CustomerAppSupportTicketsTicketIdGet<TData = Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>, TError = ErrorType<APIResponse>>(
+ ticketId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ticketDetailApiV1CustomerAppSupportTicketsTicketIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getTicketDetailApiV1CustomerAppSupportTicketsTicketIdGetQueryOptions(ticketId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetUrl = (ticketId: string,
+    params?: TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/support/tickets/${ticketId}/messages?${stringifiedParams}` : `/api/v1/customer-app/support/tickets/${ticketId}/messages`
+}
+
+/**
+ * @summary Ticket Messages
+ */
+export const ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet = async (ticketId: string,
+    params?: TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetUrl(ticketId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryKey = (ticketId: string,
+    params?: TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams,) => {
+    return [
+    `/api/v1/customer-app/support/tickets/${ticketId}/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryOptions = <TData = Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>, TError = ErrorType<APIResponse>>(ticketId: string,
+    params?: TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryKey(ticketId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>> = ({ signal }) => ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet(ticketId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: ticketId !== null && ticketId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryResult = NonNullable<Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>>
+export type TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Ticket Messages
+ */
+
+export function useTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet<TData = Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>, TError = ErrorType<APIResponse>>(
+ ticketId: string,
+    params?: TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getTicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryOptions(ticketId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostUrl = (ticketId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/support/tickets/${ticketId}/messages`
+}
+
+/**
+ * @summary Ticket Reply
+ */
+export const ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost = async (ticketId: string,
+    ticketReply: TicketReply, options?: RequestInit): Promise<APIResponseDict> => {
+
+  return customFetch<APIResponseDict>(getTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostUrl(ticketId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(ticketReply)
+  }
+);}
+
+
+
+
+
+export const getTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost>>, TError,{ticketId: string;data: BodyType<TicketReply>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost>>, TError,{ticketId: string;data: BodyType<TicketReply>}, TContext> => {
+
+const mutationKey = ['ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost>>, {ticketId: string;data: BodyType<TicketReply>}> = (props) => {
+          const {ticketId,data} = props ?? {};
+
+          return  ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost(ticketId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostMutationResult = NonNullable<Awaited<ReturnType<typeof ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost>>>
+    export type TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostMutationBody = BodyType<TicketReply>
+    export type TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Ticket Reply
+ */
+export const useTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost>>, TError,{ticketId: string;data: BodyType<TicketReply>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost>>,
+        TError,
+        {ticketId: string;data: BodyType<TicketReply>},
+        TContext
+      > => {
+      return useMutation(getTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostMutationOptions(options));
     }
 

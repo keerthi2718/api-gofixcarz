@@ -82,7 +82,7 @@ class ProfileResponse(BaseModel):
     email: str | None = None
     mobile_verified: bool = True
     email_verified: bool = False
-    photo: None = None
+    photo: dict | None = None
     address: Address | None = None
 
 

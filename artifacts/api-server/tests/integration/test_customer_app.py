@@ -476,8 +476,15 @@ async def test_garage_imported_customer_records_are_not_auto_linked(customer_api
         CustomerAccount.mobile == number))).scalar_one() == 2
 
 
-def test_openapi_has_only_approved_first_phase_operations():
+def test_openapi_has_approved_customer_operations_without_password_routes():
     spec = app.openapi()
     paths = {path: value for path, value in spec["paths"].items() if path.startswith(BASE)}
-    assert sum(len(value) for value in paths.values()) == 11
+    import json
+    from pathlib import Path
+    inventory = json.loads((Path(__file__).resolve().parents[4] /
+                            "documents/customer-only-api-specification-source.json").read_text())
+    expected = {(BASE + e["path"], e["method"].lower()) for group in inventory
+                for e in group["endpoints"] if e["id"] not in {"API-08", "API-09", "API-10", "API-11"}}
+    actual = {(path, method) for path, operations in paths.items() for method in operations}
+    assert actual == expected | {(BASE + "/jobs/{job_id}/photos/{photo_index}", "get")}
     assert spec["components"]["schemas"]["RegisterRequest"]["additionalProperties"] is False

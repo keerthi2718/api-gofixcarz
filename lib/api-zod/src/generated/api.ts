@@ -154,7 +154,7 @@ export const VerifyApiV1CustomerAppAuthOtpVerifyPostResponse = zod.object({
   "email": zod.union([zod.string(),zod.null()]).optional(),
   "mobile_verified": zod.boolean().default(verifyApiV1CustomerAppAuthOtpVerifyPostResponseDataOneCustomerMobileVerifiedDefault),
   "email_verified": zod.boolean().default(verifyApiV1CustomerAppAuthOtpVerifyPostResponseDataOneCustomerEmailVerifiedDefault),
-  "photo": zod.null().optional(),
+  "photo": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "address": zod.union([zod.object({
   "line1": zod.string().min(1).max(verifyApiV1CustomerAppAuthOtpVerifyPostResponseDataOneCustomerAddressOneLine1Max),
   "line2": zod.union([zod.string().max(verifyApiV1CustomerAppAuthOtpVerifyPostResponseDataOneCustomerAddressOneLine2OneMax),zod.null()]).optional(),
@@ -214,7 +214,7 @@ export const RefreshApiV1CustomerAppAuthRefreshPostResponse = zod.object({
   "email": zod.union([zod.string(),zod.null()]).optional(),
   "mobile_verified": zod.boolean().default(refreshApiV1CustomerAppAuthRefreshPostResponseDataOneCustomerMobileVerifiedDefault),
   "email_verified": zod.boolean().default(refreshApiV1CustomerAppAuthRefreshPostResponseDataOneCustomerEmailVerifiedDefault),
-  "photo": zod.null().optional(),
+  "photo": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "address": zod.union([zod.object({
   "line1": zod.string().min(1).max(refreshApiV1CustomerAppAuthRefreshPostResponseDataOneCustomerAddressOneLine1Max),
   "line2": zod.union([zod.string().max(refreshApiV1CustomerAppAuthRefreshPostResponseDataOneCustomerAddressOneLine2OneMax),zod.null()]).optional(),
@@ -294,7 +294,7 @@ export const MeApiV1CustomerAppMeGetResponse = zod.object({
   "email": zod.union([zod.string(),zod.null()]).optional(),
   "mobile_verified": zod.boolean().default(meApiV1CustomerAppMeGetResponseDataOneMobileVerifiedDefault),
   "email_verified": zod.boolean().default(meApiV1CustomerAppMeGetResponseDataOneEmailVerifiedDefault),
-  "photo": zod.null().optional(),
+  "photo": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "address": zod.union([zod.object({
   "line1": zod.string().min(1).max(meApiV1CustomerAppMeGetResponseDataOneAddressOneLine1Max),
   "line2": zod.union([zod.string().max(meApiV1CustomerAppMeGetResponseDataOneAddressOneLine2OneMax),zod.null()]).optional(),
@@ -362,7 +362,7 @@ export const PatchApiV1CustomerAppMePatchResponse = zod.object({
   "email": zod.union([zod.string(),zod.null()]).optional(),
   "mobile_verified": zod.boolean().default(patchApiV1CustomerAppMePatchResponseDataOneMobileVerifiedDefault),
   "email_verified": zod.boolean().default(patchApiV1CustomerAppMePatchResponseDataOneEmailVerifiedDefault),
-  "photo": zod.null().optional(),
+  "photo": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "address": zod.union([zod.object({
   "line1": zod.string().min(1).max(patchApiV1CustomerAppMePatchResponseDataOneAddressOneLine1Max),
   "line2": zod.union([zod.string().max(patchApiV1CustomerAppMePatchResponseDataOneAddressOneLine2OneMax),zod.null()]).optional(),
@@ -428,6 +428,1140 @@ export const VerifyContactApiV1CustomerAppMeContactChangeVerifyPostResponse = zo
   "mobile_verified": zod.boolean().default(verifyContactApiV1CustomerAppMeContactChangeVerifyPostResponseDataOneMobileVerifiedDefault)
 }),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(verifyContactApiV1CustomerAppMeContactChangeVerifyPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Vehicle Create
+ */
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyRegistrationNumberMin = 4;
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyRegistrationNumberMax = 20;
+
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyBrandMax = 100;
+
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyModelMax = 100;
+
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyYearOneMin = 1950;
+
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyOdometerKmOneMin = 0;
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyOdometerKmOneMax = 10000000;
+
+export const vehicleCreateApiV1CustomerAppVehiclesPostBodyIsDefaultDefault = false;
+
+export const VehicleCreateApiV1CustomerAppVehiclesPostBody = zod.object({
+  "registration_number": zod.string().min(vehicleCreateApiV1CustomerAppVehiclesPostBodyRegistrationNumberMin).max(vehicleCreateApiV1CustomerAppVehiclesPostBodyRegistrationNumberMax),
+  "brand": zod.string().min(1).max(vehicleCreateApiV1CustomerAppVehiclesPostBodyBrandMax),
+  "model": zod.string().min(1).max(vehicleCreateApiV1CustomerAppVehiclesPostBodyModelMax),
+  "fuel_type": zod.enum(['PETROL', 'DIESEL', 'CNG', 'LPG', 'ELECTRIC', 'HYBRID']),
+  "year": zod.union([zod.number().min(vehicleCreateApiV1CustomerAppVehiclesPostBodyYearOneMin),zod.null()]).optional(),
+  "odometer_km": zod.union([zod.number().min(vehicleCreateApiV1CustomerAppVehiclesPostBodyOdometerKmOneMin).max(vehicleCreateApiV1CustomerAppVehiclesPostBodyOdometerKmOneMax),zod.null()]).optional(),
+  "is_default": zod.boolean().default(vehicleCreateApiV1CustomerAppVehiclesPostBodyIsDefaultDefault)
+})
+
+export const vehicleCreateApiV1CustomerAppVehiclesPostResponseErrorsDefault = [];
+
+export const VehicleCreateApiV1CustomerAppVehiclesPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(vehicleCreateApiV1CustomerAppVehiclesPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Vehicles
+ */
+export const vehiclesApiV1CustomerAppVehiclesGetQueryPageDefault = 1;
+
+export const vehiclesApiV1CustomerAppVehiclesGetQueryPageSizeDefault = 20;
+export const vehiclesApiV1CustomerAppVehiclesGetQueryPageSizeMax = 100;
+
+
+
+export const VehiclesApiV1CustomerAppVehiclesGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(vehiclesApiV1CustomerAppVehiclesGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(vehiclesApiV1CustomerAppVehiclesGetQueryPageSizeMax).default(vehiclesApiV1CustomerAppVehiclesGetQueryPageSizeDefault)
+})
+
+export const vehiclesApiV1CustomerAppVehiclesGetResponseErrorsDefault = [];
+
+export const VehiclesApiV1CustomerAppVehiclesGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(vehiclesApiV1CustomerAppVehiclesGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Vehicle Detail
+ */
+export const VehicleDetailApiV1CustomerAppVehiclesVehicleIdGetParams = zod.object({
+  "vehicle_id": zod.coerce.string().uuid()
+})
+
+export const vehicleDetailApiV1CustomerAppVehiclesVehicleIdGetResponseErrorsDefault = [];
+
+export const VehicleDetailApiV1CustomerAppVehiclesVehicleIdGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(vehicleDetailApiV1CustomerAppVehiclesVehicleIdGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Vehicle Patch
+ */
+export const VehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchParams = zod.object({
+  "vehicle_id": zod.coerce.string().uuid()
+})
+
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyRegistrationNumberOneMin = 4;
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyRegistrationNumberOneMax = 20;
+
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyBrandOneMax = 100;
+
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyModelOneMax = 100;
+
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyYearOneMin = 1950;
+
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyOdometerKmOneMin = 0;
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyOdometerKmOneMax = 10000000;
+
+
+
+export const VehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBody = zod.object({
+  "registration_number": zod.union([zod.string().min(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyRegistrationNumberOneMin).max(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyRegistrationNumberOneMax),zod.null()]).optional(),
+  "brand": zod.union([zod.string().min(1).max(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyBrandOneMax),zod.null()]).optional(),
+  "model": zod.union([zod.string().min(1).max(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyModelOneMax),zod.null()]).optional(),
+  "fuel_type": zod.union([zod.enum(['PETROL', 'DIESEL', 'CNG', 'LPG', 'ELECTRIC', 'HYBRID']),zod.null()]).optional(),
+  "year": zod.union([zod.number().min(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyYearOneMin),zod.null()]).optional(),
+  "odometer_km": zod.union([zod.number().min(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyOdometerKmOneMin).max(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchBodyOdometerKmOneMax),zod.null()]).optional()
+})
+
+export const vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchResponseErrorsDefault = [];
+
+export const VehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(vehiclePatchApiV1CustomerAppVehiclesVehicleIdPatchResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Vehicle Delete
+ */
+export const VehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteParams = zod.object({
+  "vehicle_id": zod.coerce.string().uuid()
+})
+
+export const vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteResponseErrorsDefault = [];
+
+export const VehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(vehicleDeleteApiV1CustomerAppVehiclesVehicleIdDeleteResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Default Vehicle
+ */
+export const DefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutParams = zod.object({
+  "vehicle_id": zod.coerce.string().uuid()
+})
+
+export const defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutResponseErrorsDefault = [];
+
+export const DefaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(defaultVehicleApiV1CustomerAppVehiclesVehicleIdDefaultPutResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Vehicle History
+ */
+export const VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetParams = zod.object({
+  "vehicle_id": zod.coerce.string().uuid()
+})
+
+export const vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryPageDefault = 1;
+
+export const vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryPageSizeDefault = 20;
+export const vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryPageSizeMax = 100;
+
+
+
+export const VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryPageSizeMax).default(vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetQueryPageSizeDefault)
+})
+
+export const vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetResponseErrorsDefault = [];
+
+export const VehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(vehicleHistoryApiV1CustomerAppVehiclesVehicleIdServiceHistoryGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Attachment Upload
+ */
+export const AttachmentUploadApiV1CustomerAppAttachmentsPostBody = zod.object({
+  "file": zod.instanceof(File),
+  "purpose": zod.enum(['PROFILE_PHOTO', 'BOOKING_PHOTO', 'SUPPORT_ATTACHMENT'])
+})
+
+export const attachmentUploadApiV1CustomerAppAttachmentsPostResponseErrorsDefault = [];
+
+export const AttachmentUploadApiV1CustomerAppAttachmentsPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(attachmentUploadApiV1CustomerAppAttachmentsPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Attachment Download
+ */
+export const AttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetParams = zod.object({
+  "attachment_id": zod.coerce.string().uuid()
+})
+
+export const AttachmentDownloadApiV1CustomerAppAttachmentsAttachmentIdDownloadGetResponse = zod.unknown()
+
+
+/**
+ * @summary Attachment Delete
+ */
+export const AttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteParams = zod.object({
+  "attachment_id": zod.coerce.string().uuid()
+})
+
+export const attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteResponseErrorsDefault = [];
+
+export const AttachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(attachmentDeleteApiV1CustomerAppAttachmentsAttachmentIdDeleteResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Photo Set
+ */
+export const PhotoSetApiV1CustomerAppMePhotoPutBody = zod.object({
+  "attachment_id": zod.string().uuid()
+})
+
+export const photoSetApiV1CustomerAppMePhotoPutResponseErrorsDefault = [];
+
+export const PhotoSetApiV1CustomerAppMePhotoPutResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(photoSetApiV1CustomerAppMePhotoPutResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Photo Delete
+ */
+export const photoDeleteApiV1CustomerAppMePhotoDeleteResponseErrorsDefault = [];
+
+export const PhotoDeleteApiV1CustomerAppMePhotoDeleteResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(photoDeleteApiV1CustomerAppMePhotoDeleteResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Availability
+ */
+export const AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams = zod.object({
+  "garage_id": zod.coerce.string().uuid()
+})
+
+export const availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryServiceIdsMax = 20;
+
+
+
+export const AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryParams = zod.object({
+  "date": zod.date(),
+  "service_ids": zod.array(zod.coerce.string().uuid()).min(1).max(availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryServiceIdsMax)
+})
+
+export const availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetResponseErrorsDefault = [];
+
+export const AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Quote
+ */
+export const quoteApiV1CustomerAppBookingsQuotePostBodyServiceIdsMax = 20;
+
+export const quoteApiV1CustomerAppBookingsQuotePostBodyNotesOneMax = 2000;
+
+export const quoteApiV1CustomerAppBookingsQuotePostBodyAttachmentIdsMax = 5;
+
+
+
+export const QuoteApiV1CustomerAppBookingsQuotePostBody = zod.object({
+  "garage_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "service_ids": zod.array(zod.string().uuid()).min(1).max(quoteApiV1CustomerAppBookingsQuotePostBodyServiceIdsMax),
+  "slot_id": zod.string().uuid(),
+  "notes": zod.union([zod.string().max(quoteApiV1CustomerAppBookingsQuotePostBodyNotesOneMax),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()).max(quoteApiV1CustomerAppBookingsQuotePostBodyAttachmentIdsMax).optional()
+})
+
+export const quoteApiV1CustomerAppBookingsQuotePostResponseErrorsDefault = [];
+
+export const QuoteApiV1CustomerAppBookingsQuotePostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(quoteApiV1CustomerAppBookingsQuotePostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Submit
+ */
+export const submitApiV1CustomerAppBookingsPostHeaderIdempotencyKeyMax = 100;
+
+
+
+export const SubmitApiV1CustomerAppBookingsPostHeader = zod.object({
+  "Idempotency-Key": zod.string().min(1).max(submitApiV1CustomerAppBookingsPostHeaderIdempotencyKeyMax)
+})
+
+export const SubmitApiV1CustomerAppBookingsPostBody = zod.object({
+  "quote_id": zod.string().uuid()
+})
+
+export const submitApiV1CustomerAppBookingsPostResponseErrorsDefault = [];
+
+export const SubmitApiV1CustomerAppBookingsPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(submitApiV1CustomerAppBookingsPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Bookings
+ */
+export const bookingsApiV1CustomerAppBookingsGetQueryPageDefault = 1;
+
+export const bookingsApiV1CustomerAppBookingsGetQueryPageSizeDefault = 20;
+export const bookingsApiV1CustomerAppBookingsGetQueryPageSizeMax = 100;
+
+
+
+export const BookingsApiV1CustomerAppBookingsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(bookingsApiV1CustomerAppBookingsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(bookingsApiV1CustomerAppBookingsGetQueryPageSizeMax).default(bookingsApiV1CustomerAppBookingsGetQueryPageSizeDefault),
+  "status": zod.union([zod.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CONVERTED', 'CANCELLED', 'EXPIRED']),zod.null()]).optional(),
+  "vehicle_id": zod.union([zod.coerce.string().uuid(),zod.null()]).optional(),
+  "garage_id": zod.union([zod.coerce.string().uuid(),zod.null()]).optional(),
+  "linked_job_status": zod.union([zod.enum(['OPEN', 'IN_PROGRESS', 'WAITING_FOR_PARTS', 'QUALITY_CHECK', 'READY', 'COMPLETED', 'CANCELLED']),zod.null()]).optional()
+})
+
+export const bookingsApiV1CustomerAppBookingsGetResponseErrorsDefault = [];
+
+export const BookingsApiV1CustomerAppBookingsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(bookingsApiV1CustomerAppBookingsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Booking Detail
+ */
+export const BookingDetailApiV1CustomerAppBookingsBookingIdGetParams = zod.object({
+  "booking_id": zod.coerce.string().uuid()
+})
+
+export const bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseErrorsDefault = [];
+
+export const BookingDetailApiV1CustomerAppBookingsBookingIdGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Booking Timeline
+ */
+export const BookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetParams = zod.object({
+  "booking_id": zod.coerce.string().uuid()
+})
+
+export const bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetResponseErrorsDefault = [];
+
+export const BookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(bookingTimelineApiV1CustomerAppBookingsBookingIdTimelineGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Booking Cancel
+ */
+export const BookingCancelApiV1CustomerAppBookingsBookingIdCancelPostParams = zod.object({
+  "booking_id": zod.coerce.string().uuid()
+})
+
+export const bookingCancelApiV1CustomerAppBookingsBookingIdCancelPostBodyReasonMax = 500;
+
+
+
+export const BookingCancelApiV1CustomerAppBookingsBookingIdCancelPostBody = zod.object({
+  "reason": zod.string().min(1).max(bookingCancelApiV1CustomerAppBookingsBookingIdCancelPostBodyReasonMax)
+})
+
+export const bookingCancelApiV1CustomerAppBookingsBookingIdCancelPostResponseErrorsDefault = [];
+
+export const BookingCancelApiV1CustomerAppBookingsBookingIdCancelPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(bookingCancelApiV1CustomerAppBookingsBookingIdCancelPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Jobs
+ */
+export const jobsApiV1CustomerAppJobsGetQueryPageDefault = 1;
+
+export const jobsApiV1CustomerAppJobsGetQueryPageSizeDefault = 20;
+export const jobsApiV1CustomerAppJobsGetQueryPageSizeMax = 100;
+
+
+
+export const JobsApiV1CustomerAppJobsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(jobsApiV1CustomerAppJobsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(jobsApiV1CustomerAppJobsGetQueryPageSizeMax).default(jobsApiV1CustomerAppJobsGetQueryPageSizeDefault),
+  "status": zod.union([zod.enum(['OPEN', 'IN_PROGRESS', 'WAITING_FOR_PARTS', 'QUALITY_CHECK', 'READY', 'COMPLETED', 'CANCELLED']),zod.null()]).optional(),
+  "vehicle_id": zod.union([zod.coerce.string().uuid(),zod.null()]).optional()
+})
+
+export const jobsApiV1CustomerAppJobsGetResponseErrorsDefault = [];
+
+export const JobsApiV1CustomerAppJobsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(jobsApiV1CustomerAppJobsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Job Detail
+ */
+export const JobDetailApiV1CustomerAppJobsJobIdGetParams = zod.object({
+  "job_id": zod.coerce.string().uuid()
+})
+
+export const jobDetailApiV1CustomerAppJobsJobIdGetResponseErrorsDefault = [];
+
+export const JobDetailApiV1CustomerAppJobsJobIdGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(jobDetailApiV1CustomerAppJobsJobIdGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Job Timeline
+ */
+export const JobTimelineApiV1CustomerAppJobsJobIdTimelineGetParams = zod.object({
+  "job_id": zod.coerce.string().uuid()
+})
+
+export const jobTimelineApiV1CustomerAppJobsJobIdTimelineGetResponseErrorsDefault = [];
+
+export const JobTimelineApiV1CustomerAppJobsJobIdTimelineGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(jobTimelineApiV1CustomerAppJobsJobIdTimelineGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Job Photo
+ */
+export const jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetPathPhotoIndexMin = 0;
+export const jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetPathPhotoIndexMax = 4;
+
+
+
+export const JobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetParams = zod.object({
+  "job_id": zod.coerce.string().uuid(),
+  "photo_index": zod.coerce.number().min(jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetPathPhotoIndexMin).max(jobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetPathPhotoIndexMax)
+})
+
+export const JobPhotoApiV1CustomerAppJobsJobIdPhotosPhotoIndexGetResponse = zod.unknown()
+
+
+/**
+ * @summary Invoices
+ */
+export const invoicesApiV1CustomerAppInvoicesGetQueryPageDefault = 1;
+
+export const invoicesApiV1CustomerAppInvoicesGetQueryPageSizeDefault = 20;
+export const invoicesApiV1CustomerAppInvoicesGetQueryPageSizeMax = 100;
+
+
+
+export const InvoicesApiV1CustomerAppInvoicesGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(invoicesApiV1CustomerAppInvoicesGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(invoicesApiV1CustomerAppInvoicesGetQueryPageSizeMax).default(invoicesApiV1CustomerAppInvoicesGetQueryPageSizeDefault),
+  "payment_status": zod.union([zod.enum(['UNPAID', 'PENDING', 'PAID', 'FAILED', 'REFUNDED']),zod.null()]).optional(),
+  "job_id": zod.union([zod.coerce.string().uuid(),zod.null()]).optional(),
+  "vehicle_id": zod.union([zod.coerce.string().uuid(),zod.null()]).optional()
+})
+
+export const invoicesApiV1CustomerAppInvoicesGetResponseErrorsDefault = [];
+
+export const InvoicesApiV1CustomerAppInvoicesGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(invoicesApiV1CustomerAppInvoicesGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Invoice Detail
+ */
+export const InvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetParams = zod.object({
+  "invoice_id": zod.coerce.string().uuid()
+})
+
+export const invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetResponseErrorsDefault = [];
+
+export const InvoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(invoiceDetailApiV1CustomerAppInvoicesInvoiceIdGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Invoice Pdf
+ */
+export const InvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetParams = zod.object({
+  "invoice_id": zod.coerce.string().uuid()
+})
+
+export const InvoicePdfApiV1CustomerAppInvoicesInvoiceIdPdfGetResponse = zod.unknown()
+
+
+/**
+ * Razorpay pending by customer choice. Always returns 503 after invoice ownership validation; no checkout/order is created.
+ * @summary Payment Create
+ */
+export const PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostParams = zod.object({
+  "invoice_id": zod.coerce.string().uuid()
+})
+
+export const paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostHeaderIdempotencyKeyMax = 100;
+
+
+
+export const PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostHeader = zod.object({
+  "Idempotency-Key": zod.string().min(1).max(paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostHeaderIdempotencyKeyMax)
+})
+
+export const PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostBody = zod.object({
+  "return_path": zod.union([zod.literal("/payments/result"),zod.null()]).optional()
+})
+
+export const paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostResponseErrorsDefault = [];
+
+export const PaymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(paymentCreateApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Payment Attempts
+ */
+export const PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetParams = zod.object({
+  "invoice_id": zod.coerce.string().uuid()
+})
+
+export const paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryPageDefault = 1;
+
+export const paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryPageSizeDefault = 20;
+export const paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryPageSizeMax = 100;
+
+
+
+export const PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryPageSizeMax).default(paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetQueryPageSizeDefault)
+})
+
+export const paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetResponseErrorsDefault = [];
+
+export const PaymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(paymentAttemptsApiV1CustomerAppInvoicesInvoiceIdPaymentAttemptsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Payment Detail
+ */
+export const PaymentDetailApiV1CustomerAppPaymentsPaymentIdGetParams = zod.object({
+  "payment_id": zod.coerce.string().uuid()
+})
+
+export const paymentDetailApiV1CustomerAppPaymentsPaymentIdGetResponseErrorsDefault = [];
+
+export const PaymentDetailApiV1CustomerAppPaymentsPaymentIdGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(paymentDetailApiV1CustomerAppPaymentsPaymentIdGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Payment Receipt
+ */
+export const PaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetParams = zod.object({
+  "payment_id": zod.coerce.string().uuid()
+})
+
+export const PaymentReceiptApiV1CustomerAppPaymentsPaymentIdReceiptGetResponse = zod.unknown()
+
+
+/**
+ * @summary Device
+ */
+export const deviceApiV1CustomerAppDevicesInstallationIdPutPathInstallationIdRegExp = new RegExp('^[A-Za-z0-9_-]{1,100}$');
+
+
+export const DeviceApiV1CustomerAppDevicesInstallationIdPutParams = zod.object({
+  "installation_id": zod.coerce.string().regex(deviceApiV1CustomerAppDevicesInstallationIdPutPathInstallationIdRegExp)
+})
+
+export const deviceApiV1CustomerAppDevicesInstallationIdPutBodyPushTokenMax = 4096;
+
+
+
+export const DeviceApiV1CustomerAppDevicesInstallationIdPutBody = zod.object({
+  "platform": zod.enum(['ANDROID', 'IOS']),
+  "push_token": zod.string().min(1).max(deviceApiV1CustomerAppDevicesInstallationIdPutBodyPushTokenMax)
+})
+
+export const deviceApiV1CustomerAppDevicesInstallationIdPutResponseErrorsDefault = [];
+
+export const DeviceApiV1CustomerAppDevicesInstallationIdPutResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(deviceApiV1CustomerAppDevicesInstallationIdPutResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Device Delete
+ */
+export const deviceDeleteApiV1CustomerAppDevicesInstallationIdDeletePathInstallationIdRegExp = new RegExp('^[A-Za-z0-9_-]{1,100}$');
+
+
+export const DeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteParams = zod.object({
+  "installation_id": zod.coerce.string().regex(deviceDeleteApiV1CustomerAppDevicesInstallationIdDeletePathInstallationIdRegExp)
+})
+
+export const deviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteResponseErrorsDefault = [];
+
+export const DeviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(deviceDeleteApiV1CustomerAppDevicesInstallationIdDeleteResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Notifications
+ */
+export const notificationsApiV1CustomerAppNotificationsGetQueryPageDefault = 1;
+
+export const notificationsApiV1CustomerAppNotificationsGetQueryPageSizeDefault = 20;
+export const notificationsApiV1CustomerAppNotificationsGetQueryPageSizeMax = 100;
+
+
+
+export const NotificationsApiV1CustomerAppNotificationsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(notificationsApiV1CustomerAppNotificationsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(notificationsApiV1CustomerAppNotificationsGetQueryPageSizeMax).default(notificationsApiV1CustomerAppNotificationsGetQueryPageSizeDefault),
+  "category": zod.union([zod.enum(['BOOKINGS', 'JOBS', 'INVOICES', 'MESSAGES', 'PAYMENTS', 'REVIEWS', 'SUPPORT']),zod.null()]).optional()
+})
+
+export const notificationsApiV1CustomerAppNotificationsGetResponseErrorsDefault = [];
+
+export const NotificationsApiV1CustomerAppNotificationsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(notificationsApiV1CustomerAppNotificationsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Notification Read
+ */
+export const NotificationReadApiV1CustomerAppNotificationsNotificationIdPatchParams = zod.object({
+  "notification_id": zod.coerce.string().uuid()
+})
+
+export const NotificationReadApiV1CustomerAppNotificationsNotificationIdPatchBody = zod.object({
+  "is_read": zod.boolean()
+})
+
+export const notificationReadApiV1CustomerAppNotificationsNotificationIdPatchResponseErrorsDefault = [];
+
+export const NotificationReadApiV1CustomerAppNotificationsNotificationIdPatchResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(notificationReadApiV1CustomerAppNotificationsNotificationIdPatchResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Notifications Read All
+ */
+export const NotificationsReadAllApiV1CustomerAppNotificationsReadAllPostBody = zod.object({
+  "category": zod.union([zod.enum(['BOOKINGS', 'JOBS', 'INVOICES', 'MESSAGES', 'PAYMENTS', 'REVIEWS', 'SUPPORT']),zod.null()]).optional()
+})
+
+export const notificationsReadAllApiV1CustomerAppNotificationsReadAllPostResponseErrorsDefault = [];
+
+export const NotificationsReadAllApiV1CustomerAppNotificationsReadAllPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(notificationsReadAllApiV1CustomerAppNotificationsReadAllPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Conversation Create
+ */
+export const ConversationCreateApiV1CustomerAppConversationsPostBody = zod.object({
+  "booking_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
+  "job_id": zod.union([zod.string().uuid(),zod.null()]).optional()
+})
+
+export const conversationCreateApiV1CustomerAppConversationsPostResponseErrorsDefault = [];
+
+export const ConversationCreateApiV1CustomerAppConversationsPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(conversationCreateApiV1CustomerAppConversationsPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Conversations
+ */
+export const conversationsApiV1CustomerAppConversationsGetQueryPageDefault = 1;
+
+export const conversationsApiV1CustomerAppConversationsGetQueryPageSizeDefault = 20;
+export const conversationsApiV1CustomerAppConversationsGetQueryPageSizeMax = 100;
+
+
+
+export const ConversationsApiV1CustomerAppConversationsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(conversationsApiV1CustomerAppConversationsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(conversationsApiV1CustomerAppConversationsGetQueryPageSizeMax).default(conversationsApiV1CustomerAppConversationsGetQueryPageSizeDefault)
+})
+
+export const conversationsApiV1CustomerAppConversationsGetResponseErrorsDefault = [];
+
+export const ConversationsApiV1CustomerAppConversationsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(conversationsApiV1CustomerAppConversationsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Conversation Messages
+ */
+export const ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetParams = zod.object({
+  "conversation_id": zod.coerce.string().uuid()
+})
+
+export const conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryLimitDefault = 50;
+export const conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryLimitMax = 100;
+
+
+
+export const ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryParams = zod.object({
+  "cursor": zod.union([zod.coerce.string().uuid(),zod.null()]).optional(),
+  "limit": zod.coerce.number().min(1).max(conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryLimitMax).default(conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetQueryLimitDefault)
+})
+
+export const conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetResponseErrorsDefault = [];
+
+export const ConversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(conversationMessagesApiV1CustomerAppConversationsConversationIdMessagesGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Message Send
+ */
+export const MessageSendApiV1CustomerAppConversationsConversationIdMessagesPostParams = zod.object({
+  "conversation_id": zod.coerce.string().uuid()
+})
+
+export const messageSendApiV1CustomerAppConversationsConversationIdMessagesPostBodyClientMessageIdMax = 100;
+
+export const messageSendApiV1CustomerAppConversationsConversationIdMessagesPostBodyTextMax = 2000;
+
+
+
+export const MessageSendApiV1CustomerAppConversationsConversationIdMessagesPostBody = zod.object({
+  "client_message_id": zod.string().min(1).max(messageSendApiV1CustomerAppConversationsConversationIdMessagesPostBodyClientMessageIdMax),
+  "text": zod.string().min(1).max(messageSendApiV1CustomerAppConversationsConversationIdMessagesPostBodyTextMax)
+})
+
+export const messageSendApiV1CustomerAppConversationsConversationIdMessagesPostResponseErrorsDefault = [];
+
+export const MessageSendApiV1CustomerAppConversationsConversationIdMessagesPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(messageSendApiV1CustomerAppConversationsConversationIdMessagesPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Conversation Read
+ */
+export const ConversationReadApiV1CustomerAppConversationsConversationIdReadPostParams = zod.object({
+  "conversation_id": zod.coerce.string().uuid()
+})
+
+export const ConversationReadApiV1CustomerAppConversationsConversationIdReadPostBody = zod.object({
+  "last_read_message_id": zod.string().uuid()
+})
+
+export const conversationReadApiV1CustomerAppConversationsConversationIdReadPostResponseErrorsDefault = [];
+
+export const ConversationReadApiV1CustomerAppConversationsConversationIdReadPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(conversationReadApiV1CustomerAppConversationsConversationIdReadPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Review Create
+ */
+export const ReviewCreateApiV1CustomerAppJobsJobIdReviewPostParams = zod.object({
+  "job_id": zod.coerce.string().uuid()
+})
+
+export const reviewCreateApiV1CustomerAppJobsJobIdReviewPostBodyRatingMax = 5;
+
+export const reviewCreateApiV1CustomerAppJobsJobIdReviewPostBodyCommentOneMax = 2000;
+
+
+
+export const ReviewCreateApiV1CustomerAppJobsJobIdReviewPostBody = zod.object({
+  "rating": zod.number().min(1).max(reviewCreateApiV1CustomerAppJobsJobIdReviewPostBodyRatingMax),
+  "comment": zod.union([zod.string().max(reviewCreateApiV1CustomerAppJobsJobIdReviewPostBodyCommentOneMax),zod.null()]).optional()
+})
+
+export const reviewCreateApiV1CustomerAppJobsJobIdReviewPostResponseErrorsDefault = [];
+
+export const ReviewCreateApiV1CustomerAppJobsJobIdReviewPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(reviewCreateApiV1CustomerAppJobsJobIdReviewPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Reviews
+ */
+export const reviewsApiV1CustomerAppMeReviewsGetQueryPageDefault = 1;
+
+export const reviewsApiV1CustomerAppMeReviewsGetQueryPageSizeDefault = 20;
+export const reviewsApiV1CustomerAppMeReviewsGetQueryPageSizeMax = 100;
+
+
+
+export const ReviewsApiV1CustomerAppMeReviewsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(reviewsApiV1CustomerAppMeReviewsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(reviewsApiV1CustomerAppMeReviewsGetQueryPageSizeMax).default(reviewsApiV1CustomerAppMeReviewsGetQueryPageSizeDefault)
+})
+
+export const reviewsApiV1CustomerAppMeReviewsGetResponseErrorsDefault = [];
+
+export const ReviewsApiV1CustomerAppMeReviewsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(reviewsApiV1CustomerAppMeReviewsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Review Edit
+ */
+export const ReviewEditApiV1CustomerAppReviewsReviewIdPatchParams = zod.object({
+  "review_id": zod.coerce.string().uuid()
+})
+
+export const reviewEditApiV1CustomerAppReviewsReviewIdPatchBodyRatingOneMax = 5;
+
+export const reviewEditApiV1CustomerAppReviewsReviewIdPatchBodyCommentOneMax = 2000;
+
+
+
+export const ReviewEditApiV1CustomerAppReviewsReviewIdPatchBody = zod.object({
+  "rating": zod.union([zod.number().min(1).max(reviewEditApiV1CustomerAppReviewsReviewIdPatchBodyRatingOneMax),zod.null()]).optional(),
+  "comment": zod.union([zod.string().max(reviewEditApiV1CustomerAppReviewsReviewIdPatchBodyCommentOneMax),zod.null()]).optional()
+})
+
+export const reviewEditApiV1CustomerAppReviewsReviewIdPatchResponseErrorsDefault = [];
+
+export const ReviewEditApiV1CustomerAppReviewsReviewIdPatchResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(reviewEditApiV1CustomerAppReviewsReviewIdPatchResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Ticket Create
+ */
+export const ticketCreateApiV1CustomerAppSupportTicketsPostBodySubjectMax = 200;
+
+export const ticketCreateApiV1CustomerAppSupportTicketsPostBodyDescriptionMax = 5000;
+
+export const ticketCreateApiV1CustomerAppSupportTicketsPostBodyAttachmentIdsMax = 5;
+
+
+
+export const TicketCreateApiV1CustomerAppSupportTicketsPostBody = zod.object({
+  "category": zod.enum(['GENERAL', 'BOOKING', 'SERVICE', 'PAYMENT', 'ACCOUNT', 'TECHNICAL']),
+  "subject": zod.string().min(1).max(ticketCreateApiV1CustomerAppSupportTicketsPostBodySubjectMax),
+  "description": zod.string().min(1).max(ticketCreateApiV1CustomerAppSupportTicketsPostBodyDescriptionMax),
+  "booking_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
+  "job_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
+  "invoice_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
+  "payment_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()).max(ticketCreateApiV1CustomerAppSupportTicketsPostBodyAttachmentIdsMax).optional()
+})
+
+export const ticketCreateApiV1CustomerAppSupportTicketsPostResponseErrorsDefault = [];
+
+export const TicketCreateApiV1CustomerAppSupportTicketsPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(ticketCreateApiV1CustomerAppSupportTicketsPostResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Tickets
+ */
+export const ticketsApiV1CustomerAppSupportTicketsGetQueryPageDefault = 1;
+
+export const ticketsApiV1CustomerAppSupportTicketsGetQueryPageSizeDefault = 20;
+export const ticketsApiV1CustomerAppSupportTicketsGetQueryPageSizeMax = 100;
+
+
+
+export const TicketsApiV1CustomerAppSupportTicketsGetQueryParams = zod.object({
+  "page": zod.coerce.number().min(1).default(ticketsApiV1CustomerAppSupportTicketsGetQueryPageDefault),
+  "page_size": zod.coerce.number().min(1).max(ticketsApiV1CustomerAppSupportTicketsGetQueryPageSizeMax).default(ticketsApiV1CustomerAppSupportTicketsGetQueryPageSizeDefault),
+  "status": zod.union([zod.enum(['OPEN', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'RESOLVED', 'CLOSED']),zod.null()]).optional()
+})
+
+export const ticketsApiV1CustomerAppSupportTicketsGetResponseErrorsDefault = [];
+
+export const TicketsApiV1CustomerAppSupportTicketsGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(ticketsApiV1CustomerAppSupportTicketsGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Ticket Detail
+ */
+export const TicketDetailApiV1CustomerAppSupportTicketsTicketIdGetParams = zod.object({
+  "ticket_id": zod.coerce.string().uuid()
+})
+
+export const ticketDetailApiV1CustomerAppSupportTicketsTicketIdGetResponseErrorsDefault = [];
+
+export const TicketDetailApiV1CustomerAppSupportTicketsTicketIdGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(ticketDetailApiV1CustomerAppSupportTicketsTicketIdGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Ticket Messages
+ */
+export const TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams = zod.object({
+  "ticket_id": zod.coerce.string().uuid()
+})
+
+export const ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryLimitDefault = 50;
+export const ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryLimitMax = 100;
+
+
+
+export const TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryParams = zod.object({
+  "cursor": zod.union([zod.coerce.string().uuid(),zod.null()]).optional(),
+  "limit": zod.coerce.number().min(1).max(ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryLimitMax).default(ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetQueryLimitDefault)
+})
+
+export const ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetResponseErrorsDefault = [];
+
+export const TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(ticketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetResponseErrorsDefault),
+  "status_code": zod.number()
+})
+
+
+/**
+ * @summary Ticket Reply
+ */
+export const TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostParams = zod.object({
+  "ticket_id": zod.coerce.string().uuid()
+})
+
+export const ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBodyClientMessageIdMax = 100;
+
+export const ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBodyTextMax = 2000;
+
+export const ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBodyAttachmentIdsMax = 5;
+
+
+
+export const TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBody = zod.object({
+  "client_message_id": zod.string().min(1).max(ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBodyClientMessageIdMax),
+  "text": zod.string().min(1).max(ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBodyTextMax),
+  "attachment_ids": zod.array(zod.string().uuid()).max(ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostBodyAttachmentIdsMax).optional()
+})
+
+export const ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostResponseErrorsDefault = [];
+
+export const TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostResponseErrorsDefault),
   "status_code": zod.number()
 })
 

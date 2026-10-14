@@ -1,4 +1,5 @@
 # Import all models to register them on Base.metadata
+from app.models.customer_workspace import CustomerVehicle, CustomerAttachment, CustomerResource, AppointmentSlot, CustomerBookingLink
 from app.models.admin_account import AdminAccount, AdminSession, AdminMfaChallenge, AdminRevokedFamily
 from app.models.user import User
 from app.models.garage import Garage

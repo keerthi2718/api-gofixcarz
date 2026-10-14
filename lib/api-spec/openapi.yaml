@@ -694,6 +694,2895 @@ paths:
                 $ref: '#/components/schemas/APIResponse'
       security:
       - HTTPBearer: []
+  /v1/customer-app/vehicles:
+    post:
+      tags:
+      - Customer App
+      summary: Vehicle Create
+      operationId: vehicle_create_api_v1_customer_app_vehicles_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/app__schemas__customer_workspace__VehicleCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    get:
+      tags:
+      - Customer App
+      summary: Vehicles
+      operationId: vehicles_api_v1_customer_app_vehicles_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/vehicles/{vehicle_id}:
+    get:
+      tags:
+      - Customer App
+      summary: Vehicle Detail
+      operationId: vehicle_detail_api_v1_customer_app_vehicles__vehicle_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: vehicle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Vehicle Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    patch:
+      tags:
+      - Customer App
+      summary: Vehicle Patch
+      operationId: vehicle_patch_api_v1_customer_app_vehicles__vehicle_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: vehicle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Vehicle Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    delete:
+      tags:
+      - Customer App
+      summary: Vehicle Delete
+      operationId: vehicle_delete_api_v1_customer_app_vehicles__vehicle_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: vehicle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Vehicle Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/vehicles/{vehicle_id}/default:
+    put:
+      tags:
+      - Customer App
+      summary: Default Vehicle
+      operationId: default_vehicle_api_v1_customer_app_vehicles__vehicle_id__default_put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: vehicle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Vehicle Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/vehicles/{vehicle_id}/service-history:
+    get:
+      tags:
+      - Customer App
+      summary: Vehicle History
+      operationId: vehicle_history_api_v1_customer_app_vehicles__vehicle_id__service_history_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: vehicle_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Vehicle Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/attachments:
+    post:
+      tags:
+      - Customer App
+      summary: Attachment Upload
+      operationId: attachment_upload_api_v1_customer_app_attachments_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_attachment_upload_api_v1_customer_app_attachments_post'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/attachments/{attachment_id}/download:
+    get:
+      tags:
+      - Customer App
+      summary: Attachment Download
+      operationId: attachment_download_api_v1_customer_app_attachments__attachment_id__download_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: attachment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Attachment Id
+      responses:
+        '200':
+          description: Private validated image bytes
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/attachments/{attachment_id}:
+    delete:
+      tags:
+      - Customer App
+      summary: Attachment Delete
+      operationId: attachment_delete_api_v1_customer_app_attachments__attachment_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: attachment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Attachment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/me/photo:
+    put:
+      tags:
+      - Customer App
+      summary: Photo Set
+      operationId: photo_set_api_v1_customer_app_me_photo_put
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PhotoSet'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+    delete:
+      tags:
+      - Customer App
+      summary: Photo Delete
+      operationId: photo_delete_api_v1_customer_app_me_photo_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/garages/{garage_id}/availability:
+    get:
+      tags:
+      - Customer App
+      summary: Availability
+      operationId: availability_api_v1_customer_app_garages__garage_id__availability_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: garage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Garage Id
+      - name: date
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+          title: Date
+      - name: service_ids
+        in: query
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          maxItems: 20
+          title: Service Ids
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/bookings/quote:
+    post:
+      tags:
+      - Customer App
+      summary: Quote
+      operationId: quote_api_v1_customer_app_bookings_quote_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/bookings:
+    post:
+      tags:
+      - Customer App
+      summary: Submit
+      operationId: submit_api_v1_customer_app_bookings_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 100
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingSubmit'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    get:
+      tags:
+      - Customer App
+      summary: Bookings
+      operationId: bookings_api_v1_customer_app_bookings_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/BookingStatus'
+          - type: 'null'
+          title: Status
+      - name: vehicle_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Vehicle Id
+      - name: garage_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Garage Id
+      - name: linked_job_status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/JobStatus'
+          - type: 'null'
+          title: Linked Job Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/bookings/{booking_id}:
+    get:
+      tags:
+      - Customer App
+      summary: Booking Detail
+      operationId: booking_detail_api_v1_customer_app_bookings__booking_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Booking Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/bookings/{booking_id}/timeline:
+    get:
+      tags:
+      - Customer App
+      summary: Booking Timeline
+      operationId: booking_timeline_api_v1_customer_app_bookings__booking_id__timeline_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Booking Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/bookings/{booking_id}/cancel:
+    post:
+      tags:
+      - Customer App
+      summary: Booking Cancel
+      operationId: booking_cancel_api_v1_customer_app_bookings__booking_id__cancel_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: booking_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Booking Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/jobs:
+    get:
+      tags:
+      - Customer App
+      summary: Jobs
+      operationId: jobs_api_v1_customer_app_jobs_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/JobStatus'
+          - type: 'null'
+          title: Status
+      - name: vehicle_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Vehicle Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/jobs/{job_id}:
+    get:
+      tags:
+      - Customer App
+      summary: Job Detail
+      operationId: job_detail_api_v1_customer_app_jobs__job_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Job Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/jobs/{job_id}/timeline:
+    get:
+      tags:
+      - Customer App
+      summary: Job Timeline
+      operationId: job_timeline_api_v1_customer_app_jobs__job_id__timeline_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Job Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/jobs/{job_id}/photos/{photo_index}:
+    get:
+      tags:
+      - Customer App
+      summary: Job Photo
+      operationId: job_photo_api_v1_customer_app_jobs__job_id__photos__photo_index__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Job Id
+      - name: photo_index
+        in: path
+        required: true
+        schema:
+          type: integer
+          maximum: 4
+          minimum: 0
+          title: Photo Index
+      responses:
+        '200':
+          description: Authorized published garage photo bytes
+          content:
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/invoices:
+    get:
+      tags:
+      - Customer App
+      summary: Invoices
+      operationId: invoices_api_v1_customer_app_invoices_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: payment_status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - UNPAID
+            - PENDING
+            - PAID
+            - FAILED
+            - REFUNDED
+            type: string
+          - type: 'null'
+          title: Payment Status
+      - name: job_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Job Id
+      - name: vehicle_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Vehicle Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/invoices/{invoice_id}:
+    get:
+      tags:
+      - Customer App
+      summary: Invoice Detail
+      operationId: invoice_detail_api_v1_customer_app_invoices__invoice_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: invoice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Invoice Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/invoices/{invoice_id}/pdf:
+    get:
+      tags:
+      - Customer App
+      summary: Invoice Pdf
+      operationId: invoice_pdf_api_v1_customer_app_invoices__invoice_id__pdf_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: invoice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Invoice Id
+      responses:
+        '200':
+          description: Authenticated PDF download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/invoices/{invoice_id}/payment-attempts:
+    post:
+      tags:
+      - Customer App
+      summary: Payment Create
+      description: Razorpay pending by customer choice. Always returns 503 after invoice
+        ownership validation; no checkout/order is created.
+      operationId: payment_create_api_v1_customer_app_invoices__invoice_id__payment_attempts_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: invoice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Invoice Id
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 100
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    get:
+      tags:
+      - Customer App
+      summary: Payment Attempts
+      operationId: payment_attempts_api_v1_customer_app_invoices__invoice_id__payment_attempts_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: invoice_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Invoice Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/payments/{payment_id}:
+    get:
+      tags:
+      - Customer App
+      summary: Payment Detail
+      operationId: payment_detail_api_v1_customer_app_payments__payment_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: payment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Payment Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/payments/{payment_id}/receipt:
+    get:
+      tags:
+      - Customer App
+      summary: Payment Receipt
+      operationId: payment_receipt_api_v1_customer_app_payments__payment_id__receipt_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: payment_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Payment Id
+      responses:
+        '200':
+          description: Authenticated PDF download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/devices/{installation_id}:
+    put:
+      tags:
+      - Customer App
+      summary: Device
+      operationId: device_api_v1_customer_app_devices__installation_id__put
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: installation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{1,100}$
+          title: Installation Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    delete:
+      tags:
+      - Customer App
+      summary: Device Delete
+      operationId: device_delete_api_v1_customer_app_devices__installation_id__delete
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: installation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          pattern: ^[A-Za-z0-9_-]{1,100}$
+          title: Installation Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/notifications:
+    get:
+      tags:
+      - Customer App
+      summary: Notifications
+      operationId: notifications_api_v1_customer_app_notifications_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: category
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - BOOKINGS
+            - JOBS
+            - INVOICES
+            - MESSAGES
+            - PAYMENTS
+            - REVIEWS
+            - SUPPORT
+            type: string
+          - type: 'null'
+          title: Category
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/notifications/{notification_id}:
+    patch:
+      tags:
+      - Customer App
+      summary: Notification Read
+      operationId: notification_read_api_v1_customer_app_notifications__notification_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Notification Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationRead'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/notifications/read-all:
+    post:
+      tags:
+      - Customer App
+      summary: Notifications Read All
+      operationId: notifications_read_all_api_v1_customer_app_notifications_read_all_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadAll'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/conversations:
+    post:
+      tags:
+      - Customer App
+      summary: Conversation Create
+      operationId: conversation_create_api_v1_customer_app_conversations_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationStart'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    get:
+      tags:
+      - Customer App
+      summary: Conversations
+      operationId: conversations_api_v1_customer_app_conversations_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/conversations/{conversation_id}/messages:
+    get:
+      tags:
+      - Customer App
+      summary: Conversation Messages
+      operationId: conversation_messages_api_v1_customer_app_conversations__conversation_id__messages_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: conversation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Conversation Id
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Cursor
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    post:
+      tags:
+      - Customer App
+      summary: Message Send
+      operationId: message_send_api_v1_customer_app_conversations__conversation_id__messages_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: conversation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Conversation Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageSend'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/conversations/{conversation_id}/read:
+    post:
+      tags:
+      - Customer App
+      summary: Conversation Read
+      operationId: conversation_read_api_v1_customer_app_conversations__conversation_id__read_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: conversation_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Conversation Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadMarker'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/jobs/{job_id}/review:
+    post:
+      tags:
+      - Customer App
+      summary: Review Create
+      operationId: review_create_api_v1_customer_app_jobs__job_id__review_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Job Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/me/reviews:
+    get:
+      tags:
+      - Customer App
+      summary: Reviews
+      operationId: reviews_api_v1_customer_app_me_reviews_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/reviews/{review_id}:
+    patch:
+      tags:
+      - Customer App
+      summary: Review Edit
+      operationId: review_edit_api_v1_customer_app_reviews__review_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: review_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Review Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/support/tickets:
+    post:
+      tags:
+      - Customer App
+      summary: Ticket Create
+      operationId: ticket_create_api_v1_customer_app_support_tickets_post
+      security:
+      - HTTPBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreate'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    get:
+      tags:
+      - Customer App
+      summary: Tickets
+      operationId: tickets_api_v1_customer_app_support_tickets_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - enum:
+            - OPEN
+            - IN_PROGRESS
+            - WAITING_FOR_CUSTOMER
+            - RESOLVED
+            - CLOSED
+            type: string
+          - type: 'null'
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/support/tickets/{ticket_id}:
+    get:
+      tags:
+      - Customer App
+      summary: Ticket Detail
+      operationId: ticket_detail_api_v1_customer_app_support_tickets__ticket_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Ticket Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/support/tickets/{ticket_id}/messages:
+    get:
+      tags:
+      - Customer App
+      summary: Ticket Messages
+      operationId: ticket_messages_api_v1_customer_app_support_tickets__ticket_id__messages_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Ticket Id
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Cursor
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 50
+          title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+    post:
+      tags:
+      - Customer App
+      summary: Ticket Reply
+      operationId: ticket_reply_api_v1_customer_app_support_tickets__ticket_id__messages_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: ticket_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Ticket Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketReply'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_dict_'
+        '401':
+          description: Customer authentication/session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Missing or non-owned resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '409':
+          description: Workflow, capacity, ownership or idempotency conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid request fields
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '503':
+          description: Required external service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
 components:
   schemas:
     HealthStatus:
@@ -1157,7 +4046,10 @@ components:
           title: Email Verified
           default: false
         photo:
-          type: 'null'
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
           title: Photo
         address:
           anyOf:
@@ -1208,6 +4100,479 @@ components:
       required:
       - mobile
       title: ContactResponse
+    PaymentRequest:
+      properties:
+        return_path:
+          anyOf:
+          - type: string
+            const: /payments/result
+          - type: 'null'
+          title: Return Path
+      additionalProperties: false
+      type: object
+      title: PaymentRequest
+    ReadAll:
+      properties:
+        category:
+          anyOf:
+          - type: string
+            enum:
+            - BOOKINGS
+            - JOBS
+            - INVOICES
+            - MESSAGES
+            - PAYMENTS
+            - REVIEWS
+            - SUPPORT
+          - type: 'null'
+          title: Category
+      additionalProperties: false
+      type: object
+      title: ReadAll
+    TicketCreate:
+      properties:
+        category:
+          type: string
+          enum:
+          - GENERAL
+          - BOOKING
+          - SERVICE
+          - PAYMENT
+          - ACCOUNT
+          - TECHNICAL
+          title: Category
+        subject:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Subject
+        description:
+          type: string
+          maxLength: 5000
+          minLength: 1
+          title: Description
+        booking_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Booking Id
+        job_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Job Id
+        invoice_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Invoice Id
+        payment_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Payment Id
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 5
+          title: Attachment Ids
+      additionalProperties: false
+      type: object
+      required:
+      - category
+      - subject
+      - description
+      title: TicketCreate
+    TicketReply:
+      properties:
+        client_message_id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Client Message Id
+        text:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Text
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 5
+          title: Attachment Ids
+      additionalProperties: false
+      type: object
+      required:
+      - client_message_id
+      - text
+      title: TicketReply
+    QuoteRequest:
+      properties:
+        garage_id:
+          type: string
+          format: uuid
+          title: Garage Id
+        vehicle_id:
+          type: string
+          format: uuid
+          title: Vehicle Id
+        service_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 20
+          minItems: 1
+          title: Service Ids
+        slot_id:
+          type: string
+          format: uuid
+          title: Slot Id
+        notes:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Notes
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 5
+          title: Attachment Ids
+      additionalProperties: false
+      type: object
+      required:
+      - garage_id
+      - vehicle_id
+      - service_ids
+      - slot_id
+      title: QuoteRequest
+    CancelRequest:
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+      additionalProperties: false
+      type: object
+      required:
+      - reason
+      title: CancelRequest
+    APIResponse_dict_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Data
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[dict]
+    Body_attachment_upload_api_v1_customer_app_attachments_post:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+        purpose:
+          type: string
+          enum:
+          - PROFILE_PHOTO
+          - BOOKING_PHOTO
+          - SUPPORT_ATTACHMENT
+          title: Purpose
+      type: object
+      required:
+      - file
+      - purpose
+      title: Body_attachment_upload_api_v1_customer_app_attachments_post
+    PhotoSet:
+      properties:
+        attachment_id:
+          type: string
+          format: uuid
+          title: Attachment Id
+      additionalProperties: false
+      type: object
+      required:
+      - attachment_id
+      title: PhotoSet
+    ReadMarker:
+      properties:
+        last_read_message_id:
+          type: string
+          format: uuid
+          title: Last Read Message Id
+      additionalProperties: false
+      type: object
+      required:
+      - last_read_message_id
+      title: ReadMarker
+    app__schemas__customer_workspace__VehicleCreate:
+      properties:
+        registration_number:
+          type: string
+          maxLength: 20
+          minLength: 4
+          title: Registration Number
+        brand:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Brand
+        model:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Model
+        fuel_type:
+          type: string
+          enum:
+          - PETROL
+          - DIESEL
+          - CNG
+          - LPG
+          - ELECTRIC
+          - HYBRID
+          title: Fuel Type
+        year:
+          anyOf:
+          - type: integer
+            minimum: 1950.0
+          - type: 'null'
+          title: Year
+        odometer_km:
+          anyOf:
+          - type: integer
+            maximum: 10000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Odometer Km
+        is_default:
+          type: boolean
+          title: Is Default
+          default: false
+      additionalProperties: false
+      type: object
+      required:
+      - registration_number
+      - brand
+      - model
+      - fuel_type
+      title: VehicleCreate
+    VehiclePatch:
+      properties:
+        registration_number:
+          anyOf:
+          - type: string
+            maxLength: 20
+            minLength: 4
+          - type: 'null'
+          title: Registration Number
+        brand:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Brand
+        model:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 1
+          - type: 'null'
+          title: Model
+        fuel_type:
+          anyOf:
+          - type: string
+            enum:
+            - PETROL
+            - DIESEL
+            - CNG
+            - LPG
+            - ELECTRIC
+            - HYBRID
+          - type: 'null'
+          title: Fuel Type
+        year:
+          anyOf:
+          - type: integer
+            minimum: 1950.0
+          - type: 'null'
+          title: Year
+        odometer_km:
+          anyOf:
+          - type: integer
+            maximum: 10000000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Odometer Km
+      additionalProperties: false
+      type: object
+      title: VehiclePatch
+    BookingStatus:
+      type: string
+      enum:
+      - PENDING
+      - ACCEPTED
+      - REJECTED
+      - CONVERTED
+      - CANCELLED
+      - EXPIRED
+      title: BookingStatus
+    BookingSubmit:
+      properties:
+        quote_id:
+          type: string
+          format: uuid
+          title: Quote Id
+      additionalProperties: false
+      type: object
+      required:
+      - quote_id
+      title: BookingSubmit
+    ReviewPatch:
+      properties:
+        rating:
+          anyOf:
+          - type: integer
+            maximum: 5.0
+            minimum: 1.0
+          - type: 'null'
+          title: Rating
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Comment
+      additionalProperties: false
+      type: object
+      title: ReviewPatch
+    MessageSend:
+      properties:
+        client_message_id:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Client Message Id
+        text:
+          type: string
+          maxLength: 2000
+          minLength: 1
+          title: Text
+      additionalProperties: false
+      type: object
+      required:
+      - client_message_id
+      - text
+      title: MessageSend
+    ReviewCreate:
+      properties:
+        rating:
+          type: integer
+          maximum: 5.0
+          minimum: 1.0
+          title: Rating
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Comment
+      additionalProperties: false
+      type: object
+      required:
+      - rating
+      title: ReviewCreate
+    DeviceRequest:
+      properties:
+        platform:
+          type: string
+          enum:
+          - ANDROID
+          - IOS
+          title: Platform
+        push_token:
+          type: string
+          maxLength: 4096
+          minLength: 1
+          title: Push Token
+      additionalProperties: false
+      type: object
+      required:
+      - platform
+      - push_token
+      title: DeviceRequest
+    JobStatus:
+      type: string
+      enum:
+      - OPEN
+      - IN_PROGRESS
+      - WAITING_FOR_PARTS
+      - QUALITY_CHECK
+      - READY
+      - COMPLETED
+      - CANCELLED
+      title: JobStatus
+    NotificationRead:
+      properties:
+        is_read:
+          type: boolean
+          const: true
+          title: Is Read
+      additionalProperties: false
+      type: object
+      required:
+      - is_read
+      title: NotificationRead
+    ConversationStart:
+      properties:
+        booking_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Booking Id
+        job_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Job Id
+      additionalProperties: false
+      type: object
+      title: ConversationStart
   securitySchemes:
     HTTPBearer:
       type: http

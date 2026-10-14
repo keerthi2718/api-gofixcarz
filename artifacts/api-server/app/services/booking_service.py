@@ -49,6 +49,8 @@ class BookingService:
             raise NotFoundException("Booking not found")
         if booking.status != BookingStatus.PENDING:
             raise BadRequestException(f"Only PENDING bookings can be accepted (current: {booking.status.value})")
+        from app.services.customer_booking_guards import validate_customer_appointment
+        await validate_customer_appointment(self.repo.session, booking)
         updated = await self.repo.update_status(booking, BookingStatus.ACCEPTED)
         await record_booking_event(self.repo.session, updated, "ACCEPTED")
         return BookingResponse.model_validate(updated)
@@ -75,13 +77,13 @@ class BookingService:
         booking = await self.repo.get_by_id(booking_id, garage_id, load_relations=True)
         if not booking:
             raise NotFoundException("Booking not found")
-        if booking.status == BookingStatus.CONVERTED:
-            raise BadRequestException("Booking has already been converted to a job")
-        if booking.status == BookingStatus.REJECTED:
-            raise BadRequestException("Cannot convert a rejected booking to a job")
+        if booking.status not in (BookingStatus.PENDING, BookingStatus.ACCEPTED):
+            raise BadRequestException("Only PENDING or ACCEPTED bookings may be converted to jobs")
         # Conversion of previously accepted work remains allowed while suspended.
         if booking.status == BookingStatus.PENDING:
             await ensure_new_work(self.repo.session, garage_id)
+            from app.services.customer_booking_guards import validate_customer_appointment
+            await validate_customer_appointment(self.repo.session, booking)
         if not booking.customer_id or not booking.vehicle_id:
             raise BadRequestException(
                 "Booking must have a linked customer and vehicle to create a job"
@@ -100,5 +102,7 @@ class BookingService:
         await self.repo.update_status(booking, BookingStatus.CONVERTED)
         from app.services.admin_booking_history import record_booking_event
         await record_booking_event(self.repo.session, booking, "CONVERTED")
+        from app.services.customer_events import customer_job_event
+        await customer_job_event(self.repo.session, job)
 
         return JobResponse.model_validate(job)

@@ -1,5 +1,8 @@
 # Customer app APIs — first implemented phase
 
+Historical first-phase scope. See `customer-app-workflows.md` for the expanded
+implementation and the explicitly pending Razorpay checkout endpoint.
+
 Base path: `/api/v1/customer-app`. Interactive contracts: `/api/docs`.
 The customer approval PDF remains a draft inventory, not a claim that all 62
 operations are implemented.

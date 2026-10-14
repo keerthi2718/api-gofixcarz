@@ -173,6 +173,8 @@ class JobService:
                 f"Allowed: {', '.join(s.value for s in allowed) or 'none'}."
             )
         updated = await self.repo.change_status(job, data.status, data.notes)
+        from app.services.customer_events import customer_job_event
+        await customer_job_event(self.repo.session, updated)
         return _with_photo_urls(JobResponse.model_validate(updated))
 
     async def complete(
@@ -186,6 +188,8 @@ class JobService:
         if job.status == JobStatus.CANCELLED:
             raise BadRequestException("Cannot complete a cancelled job.")
         updated = await self.repo.complete(job, data.notes)
+        from app.services.customer_events import customer_job_event
+        await customer_job_event(self.repo.session, updated)
         return _with_photo_urls(JobResponse.model_validate(updated))
 
     async def delete(self, garage_id: uuid.UUID, job_id: uuid.UUID) -> None:

@@ -48,11 +48,20 @@ class CustomerAuthService(CustomerOTPService):
             token_hash=hash_refresh_token(raw), session_id=login_session.id,
         ))
         return {
-            "customer": self.profile(account, identity),
+            "customer": await self.profile_with_photo(account, identity),
             "access_token": access_token(account.id, login_session.id),
             "refresh_token": raw, "token_type": "Bearer", "expires_in_seconds": 900,
             "session_id": login_session.id,
         }
+
+    async def profile_with_photo(self, account, identity):
+        from app.models.customer_workspace import CustomerResource
+        result = self.profile(account, identity)
+        photo = (await self.db.execute(select(CustomerResource).where(
+            CustomerResource.customer_id == account.id, CustomerResource.kind == "PHOTO",
+            CustomerResource.status == "ACTIVE"))).scalar_one_or_none()
+        result["photo"] = photo.payload if photo else None
+        return result
 
     async def complete_login(self, data):
         challenge = await self.verify(data, {"REGISTER", "LOGIN"})
@@ -120,7 +129,7 @@ class CustomerAuthService(CustomerOTPService):
             account.name = data.name
         if "address" in data.model_fields_set:
             identity.address = data.address.model_dump(exclude_none=True) if data.address else None
-        return self.profile(account, identity)
+        return await self.profile_with_photo(account, identity)
 
     async def start_contact_change(self, data, principal):
         self.require_recent(principal)

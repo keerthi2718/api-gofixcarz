@@ -15,6 +15,8 @@ class BookingStatus(str, enum.Enum):
     ACCEPTED = "ACCEPTED"
     REJECTED = "REJECTED"
     CONVERTED = "CONVERTED"
+    CANCELLED = "CANCELLED"
+    EXPIRED = "EXPIRED"
 
 
 class Booking(Base, SoftDeleteMixin):

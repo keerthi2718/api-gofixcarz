@@ -102,12 +102,18 @@ async def logout(svc: Service, credentials: Credentials):
     who = await svc.principal(credentials.credentials, allow_revoked=True)
     if who[2].revoked_at is None:
         who[2].revoked_at = now()
+    from sqlalchemy import update
+    from app.models.customer_workspace import CustomerResource
+    await svc.db.execute(update(CustomerResource).where(
+        CustomerResource.customer_id == who[0].id, CustomerResource.kind == "DEVICE",
+        CustomerResource.payload["session_id"].astext == str(who[2].id)
+    ).values(status="DETACHED", payload={}))
     return APIResponse.ok({"logged_out": True})
 
 
 @router.get("/me", response_model=APIResponse[ProfileResponse])
 async def me(svc: Service, who: Principal):
-    return APIResponse.ok(svc.profile(*who[:2]))
+    return APIResponse.ok(await svc.profile_with_photo(*who[:2]))
 
 
 @router.patch("/me", response_model=APIResponse[ProfileResponse])
