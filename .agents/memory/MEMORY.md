@@ -9,4 +9,5 @@
 - [Owner account retention](owner-account-retention.md) — user wants deletion represented by status with data retained for future retrieval; do not promise Apple approval.
 - [Admin draft approval](admin-draft-approval.md) — conservative development defaults are approved, not production changes; never substitute contacts or job amounts for identities or payments.
 - [Customer auth approval](customer-auth-approval.md) — mobile-only OTP/session defaults are approved; remaining draft policy and identity-linking decisions are separate.
+- [Remaining customer API approval](customer-remaining-api-approval.md) — development rules approved; Razorpay requested; endpoint/header/payload/response document required.
 - [Validator generation](workspace-validator-version.md) — generate for the consuming Zod major; root workspace inference may produce incompatible validators.
