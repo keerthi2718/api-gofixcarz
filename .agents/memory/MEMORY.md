@@ -11,3 +11,4 @@
 - [Customer auth approval](customer-auth-approval.md) — mobile-only OTP/session defaults are approved; remaining draft policy and identity-linking decisions are separate.
 - [Remaining customer API approval](customer-remaining-api-approval.md) — development rules approved; Razorpay requested; endpoint/header/payload/response document required.
 - [Validator generation](workspace-validator-version.md) — generate for the consuming Zod major; root workspace inference may produce incompatible validators.
+- [Production probe limits](production-probe-limits.md) — workspace requests to replit.app can use an internal proxy; distinguish app health from public-domain TLS verification.
