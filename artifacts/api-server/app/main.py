@@ -8,6 +8,7 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -159,11 +160,24 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    docs_url="/api/docs",
+    docs_url="/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
     lifespan=lifespan,
 )
+
+
+@app.get("/api/docs", include_in_schema=False)
+async def legacy_api_docs():
+    """Keep the original documentation URL available alongside /docs."""
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - Swagger UI",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        init_oauth=app.swagger_ui_init_oauth,
+        swagger_ui_parameters=app.swagger_ui_parameters,
+    )
+
 
 # Attach limiter to app state so SlowAPIMiddleware can find it
 app.state.limiter = limiter
@@ -261,6 +275,12 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 # ── Health & version ─────────────────────────────────────────────────────────
 health_router = APIRouter(tags=["Health"])
+
+
+@health_router.get("/health", include_in_schema=False)
+async def liveness():
+    """Report process liveness without depending on database availability."""
+    return {"status": "ok"}
 
 
 @health_router.get("/api/health")

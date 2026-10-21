@@ -150,7 +150,9 @@ class ProductionBuildTests(unittest.TestCase):
             service["production"]["run"]["args"],
             ["sh", "-c", "cd /home/runner/workspace/artifacts/api-server && python scripts/production_start.py"],
         )
-        self.assertEqual(service["production"]["health"]["startup"]["path"], "/api/healthz")
+        self.assertIn("/", service["paths"])
+        self.assertIn("/api", service["paths"])
+        self.assertEqual(service["production"]["health"]["startup"]["path"], "/health")
         self.assertNotIn("env", service["production"])
 
     def test_configured_build_command_success_and_failure_without_real_pip(self):

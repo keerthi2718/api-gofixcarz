@@ -97,3 +97,26 @@ def test_healthz_alias_works():
     assert r.status_code == 200
     assert "pool" in r.json()["data"]
     assert POOL_STAT_KEYS.issubset(r.json()["data"]["pool"].keys())
+
+
+def test_liveness_health_does_not_access_database():
+    """The deployment liveness probe stays healthy when the database is down."""
+    client = TestClient(app, raise_server_exceptions=False)
+
+    with patch("app.main.async_session") as session_factory:
+        response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+    session_factory.assert_not_called()
+
+
+def test_docs_are_available_at_root_and_legacy_api_paths():
+    """Both documentation URLs serve Swagger UI using the existing OpenAPI URL."""
+    client = TestClient(app, raise_server_exceptions=False)
+
+    for path in ("/docs", "/api/docs"):
+        response = client.get(path)
+        assert response.status_code == 200
+        assert "swagger-ui" in response.text
+        assert "/api/openapi.json" in response.text

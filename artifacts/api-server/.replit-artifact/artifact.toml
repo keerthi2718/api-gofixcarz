@@ -7,7 +7,7 @@ id = "3B4_FFSkEVBkAeYMFRJ2e"
 [[services]]
 localPort = 8080
 name = "API Server"
-paths = ["/api"]
+paths = ["/api", "/"]
 
 [services.development]
 run = "cd /home/runner/workspace/artifacts/api-server && uvicorn app.main:app --host 0.0.0.0 --port $PORT --reload"
@@ -21,4 +21,4 @@ args = ["python", "artifacts/api-server/scripts/production_build.py"]
 args = ["sh", "-c", "cd /home/runner/workspace/artifacts/api-server && python scripts/production_start.py"]
 
 [services.production.health.startup]
-path = "/api/healthz"
+path = "/health"
