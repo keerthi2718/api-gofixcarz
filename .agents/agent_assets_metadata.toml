@@ -154,3 +154,31 @@ mtime_ms = 1791971067001
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/d8df41c4-c204-4372-b202-49ea65537ec9/ebe41f3e-8675-4516-8a4d-5cce41ae2aee"
 storage_version_token = "1791971163368814"
 content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "7rJbggs0ZSsZYuMUsX4Zl"
+uri = "file://generated-artifacts/GoFixCarz_Customer_API_Workbook_Reference.docx"
+type = "word_document"
+title = "GoFixCarz Customer APIs — Editable Word"
+description = "Customer-only API contracts, headers, payloads, responses, validation and full workbook traceability. Pending and excluded requirements are explicitly marked."
+logical_id = "a5fac31b-9e48-4333-b729-7d5559afa261"
+content_hash = "sha256:d690fe7f3e4ca635d72f23639912b510cc5e1be2a787b95bebb8405220600eab"
+size = 70173
+mtime_ms = 1792588823708
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/a5fac31b-9e48-4333-b729-7d5559afa261/b5f166e0-e405-454b-acc7-6c190a057c62"
+storage_version_token = "1792588871389163"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "tiUVJOSTqdgo6tFFbLQ41"
+uri = "file://generated-artifacts/GoFixCarz_Customer_API_Workbook_Reference.pdf"
+type = "pdf"
+title = "GoFixCarz Customer APIs — PDF"
+description = "Matching 76-page PDF with endpoint index, navigation bookmarks, all 38 stories and 21 screens, lifecycle rules and delivery limitations."
+logical_id = "723b676a-b8ef-45d6-8901-83173b30317c"
+content_hash = "sha256:5cf15439d761e7528f0452f3bf197aa40a9cb530456d4f9a087652c64d82ea1c"
+size = 196645
+mtime_ms = 1792588824516
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/723b676a-b8ef-45d6-8901-83173b30317c/7df3fe47-3a40-46f8-9c27-7a8c9546eeb6"
+storage_version_token = "1792588872865871"
+content_type = "application/pdf"
