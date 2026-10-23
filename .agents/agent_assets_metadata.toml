@@ -210,3 +210,31 @@ mtime_ms = 1792738336305
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/070c3382-e88a-4bff-aef0-385f00133228/09f68040-cb1b-4fb6-a9ef-035accb8a9b1"
 storage_version_token = "1792738445507016"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "oMPoZK078nx5WUt8lhhBu"
+uri = "file://generated-artifacts/GoFixCarz_Customer_Garage_Booking_Integration.pdf"
+type = "pdf"
+title = "Customer ↔ Garage Owner Booking Integration — PDF"
+description = "16-page integration guide covering 17 endpoints: slots, customer quotes/bookings, owner acceptance/rejection, shared IDs, job conversion and customer tracking. Includes headers, payloads and illustrative responses. No admin APIs."
+logical_id = "a3f3a420-362e-4ea7-a3d3-eff02263aad0"
+content_hash = "sha256:5cf3cbd625b79ab0e82ae0816911fcf31db6cc3347877650ec862f1a4a650e06"
+size = 38842
+mtime_ms = 1792748553549
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/a3f3a420-362e-4ea7-a3d3-eff02263aad0/a2725515-9f9b-46d3-a14a-f3d4d26c1bfb"
+storage_version_token = "1792748576234777"
+content_type = "application/pdf"
+
+[[outputs]]
+id = "JOOvNWEWwou1stsCUiooN"
+uri = "file://generated-artifacts/GoFixCarz_Customer_Garage_Booking_Integration.docx"
+type = "word_document"
+title = "Customer ↔ Garage Owner Booking Integration — Word"
+description = "Editable version of the booking integration guide, with separate customer/owner authentication, status transitions, retry rules and ID mapping."
+logical_id = "f75324a3-45de-43c3-bd5d-e594aef02dd9"
+content_hash = "sha256:46a6cc686345b7214e6a765874c1c43add07a63f5bb6502e9aae7f7b8ec4606e"
+size = 45825
+mtime_ms = 1792748553489
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/f75324a3-45de-43c3-bd5d-e594aef02dd9/a614072a-a512-4ba4-8c72-ea926cc871c4"
+storage_version_token = "1792748577677803"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
