@@ -182,3 +182,31 @@ mtime_ms = 1792588824516
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/723b676a-b8ef-45d6-8901-83173b30317c/7df3fe47-3a40-46f8-9c27-7a8c9546eeb6"
 storage_version_token = "1792588872865871"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "7--f3j1sPmJbj2RFArDcM"
+uri = "file://generated-artifacts/GoFixCarz_Admin_API_Updates_Reference.docx"
+type = "word_document"
+title = "Admin API Updates — Editable Word"
+description = "28 documented admin contracts with endpoints, headers, payloads, validation, captured responses, permissions, and invitation/role lifecycle rules."
+logical_id = "f6ec0309-0847-4c08-98d5-86afea263aab"
+content_hash = "sha256:7b04cfcf6de70215f02121c3a8a0bac0fff9889cb7a3b2011844b9265fdc3001"
+size = 50475
+mtime_ms = 1792738336201
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/f6ec0309-0847-4c08-98d5-86afea263aab/3a771259-1b21-4594-a4ef-f562f5d1a812"
+storage_version_token = "1792738444078619"
+content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "amd7KAeuZIbKI_zDKewef"
+uri = "file://generated-artifacts/GoFixCarz_Admin_API_Updates_Reference.pdf"
+type = "pdf"
+title = "Admin API Updates — PDF"
+description = "Matching 30-page reference covering garage metrics/counts/actions, job details, invitations, custom roles, notifications, support tickets and filtered reports."
+logical_id = "070c3382-e88a-4bff-aef0-385f00133228"
+content_hash = "sha256:c50137627aa63acea0cda234ecc4eb93d6d7bdeae4cf4bb08255f65c42bc491b"
+size = 68857
+mtime_ms = 1792738336305
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/070c3382-e88a-4bff-aef0-385f00133228/09f68040-cb1b-4fb6-a9ef-035accb8a9b1"
+storage_version_token = "1792738445507016"
+content_type = "application/pdf"

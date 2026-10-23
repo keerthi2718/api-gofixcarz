@@ -16,22 +16,24 @@ def enforce_route_permission(request, session, legacy=False):
         "bookings": "bookings.read", "jobs": "jobs.read", "alerts": "jobs.read",
         "billing": "finance.read", "audit-logs": "audit.read", "activity": "activity.read",
         "permissions": "security.read", "roles": "security.read", "staff": "security.read",
+        "invitations": "security.read",
         "customers": "customers.read", "finance": "finance.read", "invoices": "finance.read",
         "payments": "finance.read", "refunds": "finance.read", "disputes": "finance.read",
         "notifications": "notifications.read", "announcements": "notifications.read",
-        "support": "support.read", "garage-owner-statistics": "owner_statistics.read",
+        "support": "support.read", "support-tickets": "support.read", "garage-owner-statistics": "owner_statistics.read",
         "reports": "reports.export",
     }.get(root)
     if method not in ("GET", "HEAD"):
-        if root == "staff":
+        if root in ("staff", "roles", "invitations"):
             permission = "security.manage"
         elif root == "users":
             permission = "users.status.write"
         elif root == "garages":
-            permission = "garages.verify" if path.endswith("/verification") else "garages.status.write"
+            permission = ("garages.verify" if path.endswith("/verification") else
+                          "garages.status.write" if path.endswith("/status") else "garages.update")
         elif root == "announcements":
             permission = "announcements.send"
-        elif root == "support":
+        elif root in ("support", "support-tickets"):
             permission = ("support.assign" if path.endswith("/assignment") else
                           "support.reply" if path.endswith("/messages") else "support.manage")
     if permission:

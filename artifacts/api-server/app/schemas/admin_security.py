@@ -21,7 +21,7 @@ class AdminDataScope(BaseModel):
 
 class AdminRoleAssignment(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    role_ids: list[Literal["role_ceo", "role_operations", "role_finance", "role_support"]] = Field(min_length=1, max_length=4)
+    role_ids: list[str] = Field(min_length=1, max_length=20)
     data_scope: AdminDataScope
     reason: str = Field(min_length=1, max_length=500)
 

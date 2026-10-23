@@ -11,7 +11,7 @@ from app.models.admin_account import AdminAccount, AdminSession, AdminRevokedFam
 from app.database.session import get_session
 from app.models.user import User, UserRole
 from app.core.config import settings
-from app.core.admin_policy import effective_permissions
+from app.core.admin_policy import resolve_permissions
 from app.repositories.user_repository import UserRepository
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -103,7 +103,7 @@ async def get_current_admin(
         mfa_at = getattr(current_user, "_mfa_verified_at", None)
     session.info["admin_access"] = {
         "principal_id": str(current_user.id),
-        "permissions": effective_permissions(current_user) if isinstance(current_user, AdminAccount) else set(PERMISSIONS),
+        "permissions": await resolve_permissions(session, current_user) if isinstance(current_user, AdminAccount) else set(PERMISSIONS),
         "garage_ids": [uuid.UUID(v) for v in current_user.garage_scope] if (
             isinstance(current_user, AdminAccount) and current_user.garage_scope is not None
         ) else None,

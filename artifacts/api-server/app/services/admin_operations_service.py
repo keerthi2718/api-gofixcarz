@@ -7,7 +7,7 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
-from app.core.admin_policy import effective_permissions, require_permission, scope_ids
+from app.core.admin_policy import resolve_permissions, require_permission, scope_ids
 from app.core.config import settings
 from app.core.admin_read_filters import apply_admin_filters
 from app.models.admin_account import AdminAccount
@@ -156,7 +156,7 @@ class AdminOperationsService:
         if operation == "assignment":
             if data.assignee_id:
                 account = await self.session.get(AdminAccount, data.assignee_id)
-                if not account or not account.is_active or "support.reply" not in effective_permissions(account):
+                if not account or not account.is_active or "support.reply" not in await resolve_permissions(self.session, account):
                     raise HTTPException(422, "ASSIGNEE_INVALID")
                 if account.garage_scope is not None and str(ticket.garage_id) not in account.garage_scope:
                     raise HTTPException(422, "ASSIGNEE_SCOPE_DENIED")

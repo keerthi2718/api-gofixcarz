@@ -96,6 +96,7 @@ class AdminService:
         counts = await self.repo.status_counts(garage_id)
         return AdminGarageDetail(
             **_with_logo_url(GarageResponse.model_validate(garage)).model_dump(),
+            admin_version=garage.admin_version,
             total_jobs=sum(counts.values()), completed_jobs=counts["COMPLETED"],
             total_revenue=await self.repo.revenue(garage_id),
             billing_issue_count=await self.repo.count(

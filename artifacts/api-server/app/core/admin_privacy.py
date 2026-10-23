@@ -23,6 +23,13 @@ class AdminPrivacyRoute(APIRoute):
             access = getattr(request.state, "admin_access", {})
             finance = "finance.read" in access.get("permissions", [])
             restricted = set()
+            # Only a platform security operator can issue these one-time proofs.
+            # They are deliberately returned on create/resend, never lists/audits.
+            invitation_proof = request.method == "POST" and (
+                request.url.path == "/api/v1/admin/invitations" or
+                (request.url.path.startswith("/api/v1/admin/invitations/") and
+                 request.url.path.endswith("/resend"))
+            )
 
             def redact(value):
                 if isinstance(value, list):
@@ -31,7 +38,9 @@ class AdminPrivacyRoute(APIRoute):
                     return value
                 result = {}
                 for key, item in value.items():
-                    if any(word in key.lower() for word in (
+                    if key == "invitation_token" and invitation_proof:
+                        result[key] = item
+                    elif any(word in key.lower() for word in (
                         "password", "otp", "secret", "token", "credential", "authorization", "cookie",
                     )):
                         result[key] = "[REDACTED]"

@@ -112,7 +112,10 @@ async def user_status(
     return APIResponse.ok(data=result, message="Account status updated")
 
 
-@router.get("/garages", response_model=APIResponse[PaginatedData[GarageResponse]])
+from app.schemas.admin_management import GarageListItem
+
+
+@router.get("/garages", response_model=APIResponse[PaginatedData[GarageListItem]])
 async def garages(
     admin: CurrentAdmin, session: DBSession, search: Search = None, user_id: uuid.UUID | None = None,
     city: Annotated[str | None, Query(max_length=100)] = None,
@@ -130,6 +133,18 @@ async def garages(
     result = await service.page(
         query,
         GarageResponse, page, page_size, _with_logo_url,
+    )
+    # One grouped query per page, never an N+1 job count or a stale cached field.
+    from sqlalchemy import func, select
+    from app.models.job import Job
+    garage_ids = [item.id for item in result.items]
+    counts = dict((await session.execute(select(Job.garage_id, func.count(Job.id)).where(
+        Job.garage_id.in_(garage_ids), Job.deleted_at.is_(None),
+    ).group_by(Job.garage_id))).all()) if garage_ids else {}
+    result = PaginatedData[GarageListItem](
+        **result.model_dump(exclude={"items"}),
+        items=[GarageListItem(**item.model_dump(), admin_version=item.version,
+                              job_card_count=counts.get(item.id, 0)) for item in result.items],
     )
     await service.audit(admin.id, "garages.list")
     return APIResponse.ok(data=result)

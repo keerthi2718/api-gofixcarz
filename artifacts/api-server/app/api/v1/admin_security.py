@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_, select, update
 
 from app.api.v1.admin import DBSession, Page, PageSize
-from app.core.admin_policy import PERMISSIONS, ROLES, effective_permissions, require_permission
+from app.core.admin_policy import PERMISSIONS, ROLES, resolve_permissions, require_permission
 from app.core.config import settings
 from app.core.admin_read_filters import reject_unknown_admin_query
 from app.dependencies.auth import CurrentAdmin, get_current_admin
@@ -19,11 +19,11 @@ from app.core.admin_privacy import AdminPrivacyRoute
 router = APIRouter(route_class=AdminPrivacyRoute, dependencies=[Depends(get_current_admin), Depends(reject_unknown_admin_query)])
 
 
-def staff_row(account):
+async def staff_row(account, session):
     return {
         "id": account.id, "display_name": account.name, "email": account.email,
         "is_active": account.is_active, "role_ids": account.role_ids,
-        "permissions": sorted(effective_permissions(account)),
+        "permissions": sorted(await resolve_permissions(session, account)),
         "data_scope": {"type": "PLATFORM" if account.garage_scope is None else "GARAGES",
                        "garage_ids": account.garage_scope or []},
         "mfa_enrolled": bool(account.mfa_secret_encrypted),
@@ -40,10 +40,8 @@ async def permissions(admin: CurrentAdmin, session: DBSession):
 @router.get("/roles", response_model=APIResponse)
 async def roles(admin: CurrentAdmin, session: DBSession):
     await AdminService(session).audit(admin.id, "security.roles")
-    return APIResponse.ok(data={"items": [
-        {"id": role, "name": role.removeprefix("role_").title(), "permissions": permissions}
-        for role, permissions in ROLES.items()
-    ]})
+    from app.services.admin_management_service import AdminManagementService
+    return APIResponse.ok(data={"items": await AdminManagementService(session).roles()})
 
 
 @router.get("/staff", response_model=APIResponse)
@@ -59,12 +57,16 @@ async def staff(
         query = query.where(AdminAccount.is_active == is_active)
     rows, total = await AdminService(session).repo.page(query, page, page_size)
     await AdminService(session).audit(admin.id, "security.staff")
-    return APIResponse.ok(data={"items": [staff_row(a) for a in rows], "total": total, "page": page,
+    return APIResponse.ok(data={"items": [await staff_row(a, session) for a in rows], "total": total, "page": page,
                                "page_size": page_size, "pages": max(1, (total + page_size - 1)//page_size)})
 
 
 @router.put("/staff/{admin_id}/roles", response_model=APIResponse)
 async def assign_roles(admin_id: UUID, data: AdminRoleAssignment, admin: CurrentAdmin, session: DBSession):
+    from app.services.admin_management_service import AdminManagementService, manager, security_lock
+    manager(session, admin)
+    await security_lock(session)
+    await AdminManagementService(session).validate_roles(data.role_ids, data.data_scope)
     access = require_permission(session, "security.manage", recent_mfa=True)
     if not isinstance(admin, AdminAccount) or access["garage_ids"] is not None:
         raise HTTPException(403, "PRIVILEGE_ESCALATION_DENIED")
@@ -96,4 +98,4 @@ async def assign_roles(admin_id: UUID, data: AdminRoleAssignment, admin: Current
         "before": before, "after": {"role_ids": target.role_ids, "garage_scope": target.garage_scope},
         "reason": data.reason,
     })
-    return APIResponse.ok(data=staff_row(target))
+    return APIResponse.ok(data=await staff_row(target, session))

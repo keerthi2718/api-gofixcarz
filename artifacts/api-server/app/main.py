@@ -356,6 +356,7 @@ from app.api.v1.admin_finance import router as admin_finance_router  # noqa: E40
 from app.api.v1.admin_owner_statistics import router as admin_owner_statistics_router  # noqa: E402
 from app.api.v1.admin_reports import router as admin_reports_router  # noqa: E402
 from app.api.v1.customer_app import router as customer_app_router  # noqa: E402
+from app.api.v1.admin_management import router as admin_management_router, accept_router as admin_invitation_accept_router
 
 v1_router = APIRouter(prefix="/api/v1")
 from app.api.v1.customer_workspace import router as customer_workspace_router
@@ -363,6 +364,7 @@ from app.api.v1.customer_participants import router as customer_participants_rou
 v1_router.include_router(customer_app_router)
 v1_router.include_router(customer_workspace_router)
 v1_router.include_router(customer_participants_router)
+v1_router.include_router(admin_invitation_accept_router, tags=["Admin Invitation Acceptance"])
 v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 v1_router.include_router(dashboard_router, prefix="/dashboard", tags=["Dashboard"])
 v1_router.include_router(customers_router, prefix="/customers", tags=["Customers"])
@@ -376,7 +378,18 @@ v1_router.include_router(service_packages_router, prefix="/service-packages", ta
 v1_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 v1_router.include_router(static_router, prefix="/static", tags=["Static"])
 v1_router.include_router(images_router, prefix="/images", tags=["Images"])
+v1_router.include_router(admin_management_router, prefix="/admin", tags=["Admin Management"])
 v1_router.include_router(admin_operations_router, prefix="/admin", tags=["Admin Operations"])
+# Backwards-compatible spelling; preserve the same handlers and dependencies.
+for _route in admin_operations_router.routes:
+    if _route.path.startswith("/support/tickets"):
+        v1_router.add_api_route(
+            "/admin" + _route.path.replace("/support/tickets", "/support-tickets", 1),
+            _route.endpoint, methods=list(_route.methods), response_model=_route.response_model,
+            status_code=_route.status_code, tags=["Admin Support"],
+            dependencies=admin_operations_router.dependencies, route_class_override=type(_route),
+            name="alias_" + _route.name,
+        )
 v1_router.include_router(admin_finance_router, prefix="/admin", tags=["Admin Finance"])
 v1_router.include_router(admin_owner_statistics_router, prefix="/admin", tags=["Admin Owner Statistics"])
 v1_router.include_router(admin_reports_router, prefix="/admin", tags=["Admin Reports"])

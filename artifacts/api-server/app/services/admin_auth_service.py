@@ -71,9 +71,9 @@ class AdminAuthService:
         )
         self.session.add(login_session)
         await self.session.flush()
-        from app.core.admin_policy import effective_permissions
+        from app.core.admin_policy import resolve_permissions
         identity = AdminIdentity.model_validate(account).model_dump(mode="json")
-        identity.update(role_ids=account.role_ids, permissions=sorted(effective_permissions(account)),
+        identity.update(role_ids=account.role_ids, permissions=sorted(await resolve_permissions(self.session, account)),
                         data_scope={"type": "PLATFORM" if account.garage_scope is None else "GARAGES",
                                     "garage_ids": account.garage_scope or []})
         return {

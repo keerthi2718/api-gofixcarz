@@ -15,8 +15,9 @@ from reportlab.lib.pagesizes import A4
 
 
 class ApprovalWriter:
-    def __init__(self, title):
+    def __init__(self, title, footer_label="Admin API Requirements | Draft for Client Approval"):
         self.title = title
+        self.footer_label = footer_label
         self.doc = Document()
         section = self.doc.sections[0]
         section.top_margin = section.bottom_margin = Inches(.7)
@@ -28,7 +29,7 @@ class ApprovalWriter:
             self.doc.styles[name].font.color.rgb = RGBColor.from_string("163B58")
         self.doc.core_properties.title = title
         footer = section.footer.paragraphs[0]
-        footer.text = "GoFixCarz | Admin API Requirements | Draft for Client Approval | Page "
+        footer.text = f"GoFixCarz | {self.footer_label} | Page "
         field = OxmlElement("w:fldSimple")
         field.set(qn("w:instr"), "PAGE")
         footer._p.append(field)
@@ -115,7 +116,7 @@ class ApprovalWriter:
             canvas.line(50,42,A4[0]-50,42)
             canvas.setFont("Helvetica",7)
             canvas.setFillColor(colors.HexColor("#52616E"))
-            canvas.drawString(50,29,"GoFixCarz | Admin API Requirements | Draft for Client Approval")
+            canvas.drawString(50,29,f"GoFixCarz | {self.footer_label}")
             canvas.drawRightString(A4[0]-50,29,str(document.page))
             canvas.restoreState()
 

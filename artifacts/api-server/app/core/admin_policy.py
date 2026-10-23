@@ -11,12 +11,12 @@ PERMISSIONS = {
     "bookings.read", "jobs.read", "finance.read", "notifications.read", "announcements.send",
     "support.read", "support.assign", "support.manage", "support.reply",
     "owner_statistics.read", "reports.export", "audit.read", "activity.read",
-    "reviews.read", "reviews.moderate",
+    "reviews.read", "reviews.moderate", "garages.update",
 }
 ROLES = {
     "role_ceo": sorted(PERMISSIONS),
     "role_operations": [
-        "dashboard.read", "garages.read", "garages.status.write", "garages.verify",
+        "dashboard.read", "garages.read", "garages.status.write", "garages.verify", "garages.update",
         "customers.read", "bookings.read", "jobs.read", "notifications.read",
         "announcements.send", "support.read", "support.assign", "support.manage",
         "support.reply", "owner_statistics.read", "activity.read", "reports.export",
@@ -34,6 +34,22 @@ ROLES = {
 
 def effective_permissions(account):
     return set().union(*(set(ROLES.get(role, [])) for role in account.role_ids))
+
+
+async def resolve_permissions(session, account):
+    """Resolve custom definitions on every request; JWTs never cache privileges."""
+    from sqlalchemy import select
+    from app.models.admin_operations import AdminResource
+    custom_ids = [role for role in account.role_ids if role not in ROLES]
+    permissions = effective_permissions(account)
+    if custom_ids:
+        rows = (await session.execute(select(AdminResource).where(
+            AdminResource.kind == "CUSTOM_ROLE", AdminResource.status == "ACTIVE",
+            AdminResource.payload["role_id"].astext.in_(custom_ids),
+        ))).scalars().all()
+        for row in rows:
+            permissions.update(set(row.payload["permissions"]) & PERMISSIONS)
+    return permissions
 
 
 def require_permission(session, permission, *, recent_mfa=False):
