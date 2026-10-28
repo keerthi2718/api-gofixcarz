@@ -6,6 +6,7 @@
 - [TLS driver diagnostics](tls-driver-diagnostics.md) — libpq and Python may use different OpenSSL builds; identical handshake failures need driver-specific assertions.
 - [Platform admin boundary](platform-admin-boundary.md) — admin is cross-garage, while garage owners stay tenant-scoped; bootstrap must be deliberate.
 - [Customer API document scope](customer-api-document-scope.md) — approval documents contain customer-only contracts, excluding public browsing and other-role URL catalogues.
+- [Customer search requirement](customer-search-requirement.md) — service/garage-name search must connect owner catalogues to customer booking; explicitly requested discovery scope.
 - [Owner account retention](owner-account-retention.md) — user wants deletion represented by status with data retained for future retrieval; do not promise Apple approval.
 - [Admin draft approval](admin-draft-approval.md) — conservative development defaults are approved, not production changes; never substitute contacts or job amounts for identities or payments.
 - [Customer auth approval](customer-auth-approval.md) — mobile-only OTP/session defaults are approved; remaining draft policy and identity-linking decisions are separate.
