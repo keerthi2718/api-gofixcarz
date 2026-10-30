@@ -361,7 +361,9 @@ from app.api.v1.admin_management import router as admin_management_router, accep
 v1_router = APIRouter(prefix="/api/v1")
 from app.api.v1.customer_workspace import router as customer_workspace_router
 from app.api.v1.customer_participants import router as customer_participants_router
+from app.api.v1.customer_discovery import router as customer_discovery_router
 v1_router.include_router(customer_app_router)
+v1_router.include_router(customer_discovery_router)
 v1_router.include_router(customer_workspace_router)
 v1_router.include_router(customer_participants_router)
 v1_router.include_router(admin_invitation_accept_router, tags=["Admin Invitation Acceptance"])

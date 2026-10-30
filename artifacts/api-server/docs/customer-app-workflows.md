@@ -1,5 +1,16 @@
 # Customer app workflow APIs
 
+## Garage/service discovery and distance
+
+Four additional customer-authenticated discovery operations are implemented:
+POST garage search, GET garage detail, POST located garage detail and GET
+paginated active garage services. They read the owner's catalogue directly and
+return the same IDs used by existing availability, quote and booking submission.
+See [the discovery-to-booking contract](customer-garage-discovery.md) for complete
+headers, payloads, responses, distance semantics and the external app handoff.
+The implementation counts below describe the earlier workflow inventory,
+excluding these four additional discovery operations.
+
 The customer-only approval inventory now has 57 implemented operations out of
 58 applicable operations. Four conditional password operations remain excluded
 under the approved mobile-only OTP policy. API-41 checkout creation is explicitly

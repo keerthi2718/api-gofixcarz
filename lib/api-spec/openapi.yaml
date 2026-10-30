@@ -694,6 +694,203 @@ paths:
                 $ref: '#/components/schemas/APIResponse'
       security:
       - HTTPBearer: []
+  /v1/customer-app/garages/search:
+    post:
+      tags:
+      - Customer Discovery
+      summary: Search
+      description: Service/garage/all search; default geographic radius 5 km, maximum
+        200 km.
+      operationId: search_api_v1_customer_app_garages_search_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GarageSearch'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_GarageSearchResults_'
+        '401':
+          description: Customer session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Garage not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid search or location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+      security:
+      - HTTPBearer: []
+  /v1/customer-app/garages/{garage_id}:
+    get:
+      tags:
+      - Customer Discovery
+      summary: Detail
+      operationId: detail_api_v1_customer_app_garages__garage_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: garage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Garage Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_DiscoveryGarage_'
+        '401':
+          description: Customer session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Garage not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid search or location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/garages/{garage_id}/details:
+    post:
+      tags:
+      - Customer Discovery
+      summary: Located Detail
+      description: Selected garage distance, using the same body coordinates as search.
+      operationId: located_detail_api_v1_customer_app_garages__garage_id__details_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: garage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Garage Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LocationInput'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_DiscoveryGarage_'
+        '401':
+          description: Customer session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Garage not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid search or location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+  /v1/customer-app/garages/{garage_id}/services:
+    get:
+      tags:
+      - Customer Discovery
+      summary: Services
+      operationId: services_api_v1_customer_app_garages__garage_id__services_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: garage_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Garage Id
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100000
+          minimum: 1
+          default: 1
+          title: Page
+      - name: page_size
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          default: 20
+          title: Page Size
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+          maxLength: 100
+          default: ''
+          title: Q
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse_PaginatedData_DiscoveryService__'
+        '401':
+          description: Customer session required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          description: Garage not found or unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '422':
+          description: Invalid search or location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
   /v1/customer-app/vehicles:
     post:
       tags:
@@ -4573,6 +4770,392 @@ components:
       additionalProperties: false
       type: object
       title: ConversationStart
+    GarageSearch:
+      properties:
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: 'null'
+          title: Longitude
+        accuracy_meters:
+          anyOf:
+          - type: number
+            maximum: 100000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Accuracy Meters
+        captured_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Captured At
+        q:
+          type: string
+          maxLength: 100
+          title: Q
+          default: ''
+        search_by:
+          type: string
+          enum:
+          - all
+          - service
+          - garage
+          title: Search By
+          default: all
+        radius_km:
+          anyOf:
+          - type: number
+            maximum: 200.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Radius Km
+        page:
+          type: integer
+          maximum: 100000.0
+          minimum: 1.0
+          title: Page
+          default: 1
+        page_size:
+          type: integer
+          maximum: 100.0
+          minimum: 1.0
+          title: Page Size
+          default: 20
+      additionalProperties: false
+      type: object
+      title: GarageSearch
+    LocationInput:
+      properties:
+        latitude:
+          anyOf:
+          - type: number
+            maximum: 90.0
+            minimum: -90.0
+          - type: 'null'
+          title: Latitude
+        longitude:
+          anyOf:
+          - type: number
+            maximum: 180.0
+            minimum: -180.0
+          - type: 'null'
+          title: Longitude
+        accuracy_meters:
+          anyOf:
+          - type: number
+            maximum: 100000.0
+            minimum: 0.0
+          - type: 'null'
+          title: Accuracy Meters
+        captured_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Captured At
+      additionalProperties: false
+      type: object
+      title: LocationInput
+    APIResponse_PaginatedData_DiscoveryService__:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/PaginatedData_DiscoveryService_'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[PaginatedData[DiscoveryService]]
+    APIResponse_DiscoveryGarage_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/DiscoveryGarage'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[DiscoveryGarage]
+    APIResponse_GarageSearchResults_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/GarageSearchResults'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[GarageSearchResults]
+    GarageSearchResults:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/DiscoveryGarage'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        page:
+          type: integer
+          title: Page
+        page_size:
+          type: integer
+          title: Page Size
+        pages:
+          type: integer
+          title: Pages
+        radius_km:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Radius Km
+        distance_type:
+          type: string
+          const: STRAIGHT_LINE
+          title: Distance Type
+          default: STRAIGHT_LINE
+      type: object
+      required:
+      - items
+      - total
+      - page
+      - page_size
+      - pages
+      - radius_km
+      title: GarageSearchResults
+    PaginatedData_DiscoveryService_:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/DiscoveryService'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        page:
+          type: integer
+          title: Page
+        page_size:
+          type: integer
+          title: Page Size
+        pages:
+          type: integer
+          title: Pages
+      type: object
+      required:
+      - items
+      - total
+      - page
+      - page_size
+      - pages
+      title: PaginatedData[DiscoveryService]
+    DiscoveryService:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        price_inr:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Price Inr
+        amount:
+          type: integer
+          title: Amount
+          description: INR minor units (paise), matching quote service amounts
+        currency:
+          type: string
+          const: INR
+          title: Currency
+          default: INR
+        duration_minutes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Duration Minutes
+        booking_eligible:
+          type: boolean
+          title: Booking Eligible
+        unavailable_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Unavailable Reason
+      type: object
+      required:
+      - id
+      - name
+      - description
+      - price_inr
+      - amount
+      - duration_minutes
+      - booking_eligible
+      - unavailable_reason
+      title: DiscoveryService
+    DiscoveryGarage:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        address:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Address
+        city:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: City
+        state:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: State
+        zipcode:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Zipcode
+        country:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Country
+        distance_km:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Distance Km
+        distance_type:
+          type: string
+          const: STRAIGHT_LINE
+          title: Distance Type
+          default: STRAIGHT_LINE
+        matched_by:
+          items:
+            type: string
+            enum:
+            - garage
+            - service
+          type: array
+          title: Matched By
+        active_service_count:
+          type: integer
+          title: Active Service Count
+        matching_service_count:
+          type: integer
+          title: Matching Service Count
+        services:
+          items:
+            $ref: '#/components/schemas/DiscoveryService'
+          type: array
+          title: Services
+        services_has_more:
+          type: boolean
+          title: Services Has More
+        services_path:
+          type: string
+          title: Services Path
+        booking_eligible:
+          type: boolean
+          title: Booking Eligible
+        booking_prerequisites:
+          items:
+            type: string
+          type: array
+          title: Booking Prerequisites
+      type: object
+      required:
+      - id
+      - name
+      - address
+      - city
+      - state
+      - zipcode
+      - country
+      - distance_km
+      - matched_by
+      - active_service_count
+      - matching_service_count
+      - services
+      - services_has_more
+      - services_path
+      - booking_eligible
+      - booking_prerequisites
+      title: DiscoveryGarage
   securitySchemes:
     HTTPBearer:
       type: http

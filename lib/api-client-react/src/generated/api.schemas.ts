@@ -452,6 +452,144 @@ export interface ConversationStart {
   job_id?: string | null;
 }
 
+export type GarageSearchSearchBy = typeof GarageSearchSearchBy[keyof typeof GarageSearchSearchBy];
+
+
+export const GarageSearchSearchBy = {
+  all: 'all',
+  service: 'service',
+  garage: 'garage',
+} as const;
+
+export interface GarageSearch {
+  latitude?: number | null;
+  longitude?: number | null;
+  accuracy_meters?: number | null;
+  captured_at?: string | null;
+  /** @maxLength 100 */
+  q?: string;
+  search_by?: GarageSearchSearchBy;
+  radius_km?: number | null;
+  /**
+     * @minimum 1
+     * @maximum 100000
+     */
+  page?: number;
+  /**
+     * @minimum 1
+     * @maximum 100
+     */
+  page_size?: number;
+}
+
+export interface LocationInput {
+  latitude?: number | null;
+  longitude?: number | null;
+  accuracy_meters?: number | null;
+  captured_at?: string | null;
+}
+
+export interface DiscoveryService {
+  id: string;
+  name: string;
+  description: string | null;
+  /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
+  price_inr: string;
+  /** INR minor units (paise), matching quote service amounts */
+  amount: number;
+  currency?: 'INR';
+  duration_minutes: number | null;
+  booking_eligible: boolean;
+  unavailable_reason: string | null;
+}
+
+export interface PaginatedDataDiscoveryService {
+  items: DiscoveryService[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+}
+
+export interface APIResponsePaginatedDataDiscoveryService {
+  success: boolean;
+  message: string;
+  data?: PaginatedDataDiscoveryService | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export type DiscoveryGarageMatchedByItem = typeof DiscoveryGarageMatchedByItem[keyof typeof DiscoveryGarageMatchedByItem];
+
+
+export const DiscoveryGarageMatchedByItem = {
+  garage: 'garage',
+  service: 'service',
+} as const;
+
+export interface DiscoveryGarage {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zipcode: string | null;
+  country: string | null;
+  distance_km: number | null;
+  distance_type?: 'STRAIGHT_LINE';
+  matched_by: DiscoveryGarageMatchedByItem[];
+  active_service_count: number;
+  matching_service_count: number;
+  services: DiscoveryService[];
+  services_has_more: boolean;
+  services_path: string;
+  booking_eligible: boolean;
+  booking_prerequisites: string[];
+}
+
+export interface APIResponseDiscoveryGarage {
+  success: boolean;
+  message: string;
+  data?: DiscoveryGarage | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export interface GarageSearchResults {
+  items: DiscoveryGarage[];
+  total: number;
+  page: number;
+  page_size: number;
+  pages: number;
+  radius_km: number | null;
+  distance_type?: 'STRAIGHT_LINE';
+}
+
+export interface APIResponseGarageSearchResults {
+  success: boolean;
+  message: string;
+  data?: GarageSearchResults | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export type ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = {
+/**
+ * @minimum 1
+ * @maximum 100000
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+page_size?: number;
+/**
+ * @maxLength 100
+ */
+q?: string;
+};
+
 export type VehiclesApiV1CustomerAppVehiclesGetParams = {
 /**
  * @minimum 1

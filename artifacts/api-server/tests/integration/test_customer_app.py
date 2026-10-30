@@ -486,5 +486,11 @@ def test_openapi_has_approved_customer_operations_without_password_routes():
     expected = {(BASE + e["path"], e["method"].lower()) for group in inventory
                 for e in group["endpoints"] if e["id"] not in {"API-08", "API-09", "API-10", "API-11"}}
     actual = {(path, method) for path, operations in paths.items() for method in operations}
-    assert actual == expected | {(BASE + "/jobs/{job_id}/photos/{photo_index}", "get")}
+    discovery = {
+        (BASE + "/garages/search", "post"),
+        (BASE + "/garages/{garage_id}", "get"),
+        (BASE + "/garages/{garage_id}/details", "post"),
+        (BASE + "/garages/{garage_id}/services", "get"),
+    }
+    assert actual == expected | discovery | {(BASE + "/jobs/{job_id}/photos/{photo_index}", "get")}
     assert spec["components"]["schemas"]["RegisterRequest"]["additionalProperties"] is False

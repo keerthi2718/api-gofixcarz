@@ -14,3 +14,13 @@ was syntactically valid but failed TypeScript compilation.
 with the consumer; reassess it when deliberately upgrading the consumer.
 Do not hand-edit generated validators or replace the consumer library just to
 work around inference.
+
+Orval also emits some query names as both a TypeScript type and a Zod value.
+When both generated barrels are re-exported, explicitly select the original
+type and expose the validator under a separate Schema alias.
+
+**Why:** Wildcard exports alone produce ambiguous duplicate exports and break
+the shared-library build when adding a query endpoint.
+
+**How to apply:** Resolve collisions in the handwritten public barrel, not
+generated output, and run the consuming TypeScript build after generation.

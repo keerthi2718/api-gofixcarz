@@ -24,7 +24,10 @@ import type {
   APIResponseChallengeResponse,
   APIResponseContactResponse,
   APIResponseDict,
+  APIResponseDiscoveryGarage,
+  APIResponseGarageSearchResults,
   APIResponseLogoutResponse,
+  APIResponsePaginatedDataDiscoveryService,
   APIResponseSessionResponse,
   APIResponseTokenResponse,
   AppSchemasCustomerAppRefreshRequest,
@@ -41,9 +44,11 @@ import type {
   ConversationStart,
   ConversationsApiV1CustomerAppConversationsGetParams,
   DeviceRequest,
+  GarageSearch,
   HealthStatus,
   InvoicesApiV1CustomerAppInvoicesGetParams,
   JobsApiV1CustomerAppJobsGetParams,
+  LocationInput,
   LoginOTPRequest,
   LoginVerifyRequest,
   MessageSend,
@@ -60,6 +65,7 @@ import type {
   ReviewCreate,
   ReviewPatch,
   ReviewsApiV1CustomerAppMeReviewsGetParams,
+  ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams,
   TicketCreate,
   TicketMessagesApiV1CustomerAppSupportTicketsTicketIdMessagesGetParams,
   TicketReply,
@@ -967,6 +973,317 @@ export const useVerifyContactApiV1CustomerAppMeContactChangeVerifyPost = <TError
       > => {
       return useMutation(getVerifyContactApiV1CustomerAppMeContactChangeVerifyPostMutationOptions(options));
     }
+
+export const getSearchApiV1CustomerAppGaragesSearchPostUrl = () => {
+
+
+
+
+  return `/api/v1/customer-app/garages/search`
+}
+
+/**
+ * Service/garage/all search; default geographic radius 5 km, maximum 200 km.
+ * @summary Search
+ */
+export const searchApiV1CustomerAppGaragesSearchPost = async (garageSearch: GarageSearch, options?: RequestInit): Promise<APIResponseGarageSearchResults> => {
+
+  return customFetch<APIResponseGarageSearchResults>(getSearchApiV1CustomerAppGaragesSearchPostUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(garageSearch)
+  }
+);}
+
+
+
+
+
+export const getSearchApiV1CustomerAppGaragesSearchPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof searchApiV1CustomerAppGaragesSearchPost>>, TError,{data: BodyType<GarageSearch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof searchApiV1CustomerAppGaragesSearchPost>>, TError,{data: BodyType<GarageSearch>}, TContext> => {
+
+const mutationKey = ['searchApiV1CustomerAppGaragesSearchPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof searchApiV1CustomerAppGaragesSearchPost>>, {data: BodyType<GarageSearch>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  searchApiV1CustomerAppGaragesSearchPost(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SearchApiV1CustomerAppGaragesSearchPostMutationResult = NonNullable<Awaited<ReturnType<typeof searchApiV1CustomerAppGaragesSearchPost>>>
+    export type SearchApiV1CustomerAppGaragesSearchPostMutationBody = BodyType<GarageSearch>
+    export type SearchApiV1CustomerAppGaragesSearchPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Search
+ */
+export const useSearchApiV1CustomerAppGaragesSearchPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof searchApiV1CustomerAppGaragesSearchPost>>, TError,{data: BodyType<GarageSearch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof searchApiV1CustomerAppGaragesSearchPost>>,
+        TError,
+        {data: BodyType<GarageSearch>},
+        TContext
+      > => {
+      return useMutation(getSearchApiV1CustomerAppGaragesSearchPostMutationOptions(options));
+    }
+
+export const getDetailApiV1CustomerAppGaragesGarageIdGetUrl = (garageId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/garages/${garageId}`
+}
+
+/**
+ * @summary Detail
+ */
+export const detailApiV1CustomerAppGaragesGarageIdGet = async (garageId: string, options?: RequestInit): Promise<APIResponseDiscoveryGarage> => {
+
+  return customFetch<APIResponseDiscoveryGarage>(getDetailApiV1CustomerAppGaragesGarageIdGetUrl(garageId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getDetailApiV1CustomerAppGaragesGarageIdGetQueryKey = (garageId: string,) => {
+    return [
+    `/api/v1/customer-app/garages/${garageId}`
+    ] as const;
+    }
+
+
+export const getDetailApiV1CustomerAppGaragesGarageIdGetQueryOptions = <TData = Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>, TError = ErrorType<APIResponse>>(garageId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getDetailApiV1CustomerAppGaragesGarageIdGetQueryKey(garageId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>> = ({ signal }) => detailApiV1CustomerAppGaragesGarageIdGet(garageId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: garageId !== null && garageId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type DetailApiV1CustomerAppGaragesGarageIdGetQueryResult = NonNullable<Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>>
+export type DetailApiV1CustomerAppGaragesGarageIdGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Detail
+ */
+
+export function useDetailApiV1CustomerAppGaragesGarageIdGet<TData = Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>, TError = ErrorType<APIResponse>>(
+ garageId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof detailApiV1CustomerAppGaragesGarageIdGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getDetailApiV1CustomerAppGaragesGarageIdGetQueryOptions(garageId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostUrl = (garageId: string,) => {
+
+
+
+
+  return `/api/v1/customer-app/garages/${garageId}/details`
+}
+
+/**
+ * Selected garage distance, using the same body coordinates as search.
+ * @summary Located Detail
+ */
+export const locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost = async (garageId: string,
+    locationInput: LocationInput, options?: RequestInit): Promise<APIResponseDiscoveryGarage> => {
+
+  return customFetch<APIResponseDiscoveryGarage>(getLocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostUrl(garageId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(locationInput)
+  }
+);}
+
+
+
+
+
+export const getLocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost>>, TError,{garageId: string;data: BodyType<LocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost>>, TError,{garageId: string;data: BodyType<LocationInput>}, TContext> => {
+
+const mutationKey = ['locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost>>, {garageId: string;data: BodyType<LocationInput>}> = (props) => {
+          const {garageId,data} = props ?? {};
+
+          return  locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost(garageId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostMutationResult = NonNullable<Awaited<ReturnType<typeof locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost>>>
+    export type LocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostMutationBody = BodyType<LocationInput>
+    export type LocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostMutationError = ErrorType<APIResponse>
+
+    /**
+ * @summary Located Detail
+ */
+export const useLocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost>>, TError,{garageId: string;data: BodyType<LocationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPost>>,
+        TError,
+        {garageId: string;data: BodyType<LocationInput>},
+        TContext
+      > => {
+      return useMutation(getLocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostMutationOptions(options));
+    }
+
+export const getServicesApiV1CustomerAppGaragesGarageIdServicesGetUrl = (garageId: string,
+    params?: ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v1/customer-app/garages/${garageId}/services?${stringifiedParams}` : `/api/v1/customer-app/garages/${garageId}/services`
+}
+
+/**
+ * @summary Services
+ */
+export const servicesApiV1CustomerAppGaragesGarageIdServicesGet = async (garageId: string,
+    params?: ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams, options?: RequestInit): Promise<APIResponsePaginatedDataDiscoveryService> => {
+
+  return customFetch<APIResponsePaginatedDataDiscoveryService>(getServicesApiV1CustomerAppGaragesGarageIdServicesGetUrl(garageId,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryKey = (garageId: string,
+    params?: ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams,) => {
+    return [
+    `/api/v1/customer-app/garages/${garageId}/services`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryOptions = <TData = Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>, TError = ErrorType<APIResponse>>(garageId: string,
+    params?: ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryKey(garageId,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>> = ({ signal }) => servicesApiV1CustomerAppGaragesGarageIdServicesGet(garageId,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: garageId !== null && garageId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryResult = NonNullable<Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>>
+export type ServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryError = ErrorType<APIResponse>
+
+
+/**
+ * @summary Services
+ */
+
+export function useServicesApiV1CustomerAppGaragesGarageIdServicesGet<TData = Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>, TError = ErrorType<APIResponse>>(
+ garageId: string,
+    params?: ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof servicesApiV1CustomerAppGaragesGarageIdServicesGet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryOptions(garageId,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getVehicleCreateApiV1CustomerAppVehiclesPostUrl = () => {
 

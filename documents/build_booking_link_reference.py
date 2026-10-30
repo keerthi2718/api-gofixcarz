@@ -10,6 +10,7 @@ from app.main import app
 from app.schemas.booking import BookingResponse, BookingDetailResponse
 from app.schemas.job import JobResponse
 from app.schemas.customer_workspace import QuoteRequest, BookingSubmit, SlotCreate, CancelRequest
+from app.schemas.customer_discovery import DiscoveryGarage, DiscoveryService, GarageSearch, LocationInput
 from approval_document_writer import ApprovalWriter
 from build_customer_implemented_reference import resolve, describe
 
@@ -51,6 +52,18 @@ CUSTOMER_JOB = {"id": J, "job_number": "JOB-DEMO-001", "booking_id": B, "vehicle
                 "garage": GARAGE, "status": "OPEN", "created_at": STAMP, "completed_at": None,
                 "published": False, "findings": [], "notes": None,
                 "services": [], "parts": [], "labour": [], "photos": []}
+DISCOVERY_SERVICE = DiscoveryService(
+    id=S, name="Brake inspection", description="Inspection of brakes",
+    price_inr="500.00", amount=50000, duration_minutes=60,
+    booking_eligible=True, unavailable_reason=None,
+).model_dump(mode="json")
+DISCOVERY_GARAGE = DiscoveryGarage(
+    **GARAGE, address="Example Street", city="Bengaluru", state="Karnataka",
+    zipcode="560001", country="IN", distance_km=2.4, matched_by=["service"],
+    active_service_count=1, matching_service_count=1, services=[DISCOVERY_SERVICE],
+    services_has_more=False, services_path=f"/api/v1/customer-app/garages/{G}/services",
+    booking_eligible=True, booking_prerequisites=["SELECT_VEHICLE", "CHECK_AVAILABILITY", "CONFIRM_QUOTE"],
+).model_dump(mode="json")
 
 
 def page(item):
@@ -63,6 +76,20 @@ def changed(status):
 
 # side, method, path, body, success data, HTTP status, explanation
 ROUTES = [
+    ("Customer", "POST", "/customer-app/garages/search",
+     {"q": "Brake", "search_by": "service", "latitude": 12.9716, "longitude": 77.5946, "radius_km": 5},
+     {**page(DISCOVERY_GARAGE), "radius_km": 5, "distance_type": "STRAIGHT_LINE"}, 200,
+     "Search service names or set search_by=garage for garage names, all for both. Service-only matches preview matching services; garage-name matches preview the full active catalogue. Coordinates are body-only; radius defaults to 5 km, maximum 200 km. Distance filtering occurs before pagination."),
+    ("Customer", "GET", "/customer-app/garages/{garage_id}", None,
+     {**DISCOVERY_GARAGE, "distance_km": None, "matched_by": [], "matching_service_count": 0}, 200,
+     "Customer-safe selected garage with up to five active services. Without location distance is null, never zero. Excludes unavailable garages and internal owner fields."),
+    ("Customer", "POST", "/customer-app/garages/{garage_id}/details",
+     {"latitude": 12.9716, "longitude": 77.5946},
+     {**DISCOVERY_GARAGE, "matched_by": [], "matching_service_count": 0}, 200,
+     "Send the same chosen location as search to show selected-garage distance. Label it straight-line, not driving distance. Do not send coordinates in URLs or analytics logs."),
+    ("Customer", "GET", "/customer-app/garages/{garage_id}/services", None,
+     page(DISCOVERY_SERVICE), 200,
+     "Full paginated active catalogue; optional q filters service name. price_inr is a decimal INR string; amount is integer paise. Retain exact service IDs for availability and quote. Missing/nonpositive duration prevents booking eligibility."),
     ("Garage owner", "POST", "/garage/customer-slots", SLOT_BODY,
      {"id": SLOT, **SLOT_BODY, "active": True}, 201,
      "One-time setup: create a future slot before the customer requests availability. Mixed timezones and overlapping active slots are rejected."),
@@ -131,7 +158,8 @@ def main():
     writer.p("Both applications use the same backend booking record. Customer submission selects garage_id and returns data.id. "
              "That exact booking ID appears in the selected garage owner's booking list. The customer does not call the owner app, "
              "supply an owner password, or make a second booking to forward the request.")
-    writer.code("Owner creates appointment slot\n"
+    writer.code("Customer searches service or garage -> sees distance + services\n"
+                "Owner creates appointment slot\n"
                 "Customer selects garage + services + own vehicle\n"
                 "Customer reads availability -> creates quote -> submits booking\n"
                 "Owner reads same booking_id -> accepts OR rejects\n"
@@ -152,10 +180,16 @@ def main():
              "Customer login/OTP, token refresh and vehicle creation are prerequisites, not duplicated in this booking-only guide.")
     writer.p("The garage must be active, have active services with a positive duration and suitable future slots. "
              "Service IDs must belong to the selected garage. The customer vehicle ID must belong to the authenticated customer. "
-             "Garage search/profile/service catalogue discovery is a separate agreed dependency; this guide supplies no invented discovery routes.")
+             "The implemented discovery endpoints below supply the real garage/service IDs. The external customer app implements "
+             "its search bar, distance labels, selection and Book button against these contracts.")
+    writer.p("Nearby results use approximate straight-line Haversine distance (mean Earth radius 6371.0088 km), not road distance. "
+             "Show e.g. '2.4 km away - straight-line' beside search garages and selected garage services. Location is optional for text-only "
+             "search; nearby browsing needs both coordinates. Missing/invalid garage coordinates are excluded from nearby results. "
+             "Location body metadata accuracy_meters/captured_at is accepted but not stored or used to enforce freshness. "
+             "Use fresh mobile coordinates or a manually selected location; Google driving distance and travel time are not implemented.")
     writer.h("3. ID mapping — essential for integration")
     writer.table(["ID", "Source and use"], [
-        ["garage_id", "Agreed garage source. Selects the receiving garage. Owner requests derive their garage from the owner session."],
+        ["garage_id", "Discovery result item.id. Selects the receiving garage. Owner requests derive their garage from the owner session."],
         ["vehicle_id (customer)", "Customer vehicle API. Used in quote request and customer responses."],
         ["service_ids", "Active services for the selected garage; not arbitrary service names."],
         ["slot_id", "Owner creates it; customer availability returns it; customer submits it with the quote request."],
@@ -223,6 +257,8 @@ def main():
             ], [100, 65, 330])
             code(body)
             model = (SlotCreate if path == "/garage/customer-slots" else
+                     GarageSearch if path.endswith("/garages/search") else
+                     LocationInput if path.endswith("/details") else
                      QuoteRequest if path.endswith("/quote") else
                      BookingSubmit if path == "/customer-app/bookings" else CancelRequest)
             model.model_validate(body)
@@ -254,7 +290,7 @@ def main():
         "Check full/disabled/expired slots and expired/stale quotes. Verify duplicate owner conversion does not create another job; read current booking after an uncertain result.",
     ]:
         writer.p(text)
-    writer.p("Out of scope: admin APIs/credentials, public garage discovery/catalogue implementation, invoices/payments, "
+    writer.p("Out of scope: admin APIs/credentials, anonymous discovery, driving distance/navigation, mobile UI implementation, invoices/payments, "
              "chat and full job-edit/publication contracts. This handoff focuses only on linking customer bookings to the garage owner and continuing into job tracking.")
     writer.save(OUT / "GoFixCarz_Customer_Garage_Booking_Integration")
     (OUT / "booking-link-reference-validation.json").write_text(json.dumps({
