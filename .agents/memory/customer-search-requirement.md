@@ -7,6 +7,8 @@ The user requires a customer search bar where searching by service name displays
 
 They also asked to get garages based on location, “with in 5km radius like that.”
 
+The user reports having a GCP API key with location services and a distance API enabled. They requested a comparison and plan, explicitly saying “Don't do any code modifications”; the exact enabled Google product, credential access and billing have not been verified.
+
 **Why:** The user explicitly requested this discovery-to-booking link after clarifying that the integration concerns customer and garage-owner bookings, not admin APIs.
 
 **How to apply:** Treat garage/service discovery and location-radius filtering as explicitly requested scope for this feature, despite their exclusion from older customer-only approval documents. Carry real garage and service IDs into the existing shared booking flow; keep customer-facing discovery distinct from owner-only management and admin APIs.
