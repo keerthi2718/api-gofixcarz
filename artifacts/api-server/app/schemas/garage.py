@@ -63,7 +63,7 @@ class GarageResponse(BaseModel):
     name: str
     owner: str
     operational_status: str = "ACTIVE"
-    verification_status: str = "UNVERIFIED"
+    verification_status: str = "VERIFIED"
     version: int = Field(default=1, validation_alias="admin_version")
     address: Optional[str] = None
     city: Optional[str] = None

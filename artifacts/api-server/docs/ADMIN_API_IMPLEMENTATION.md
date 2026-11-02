@@ -71,9 +71,12 @@ provider is connected, or that every proposed extension has a source already.
 
 ## Garage controls
 
-Status and verification are independent. Existing garages start `ACTIVE` and
-`UNVERIFIED` without any invented document approval. Both changes require a
-reason and `expected_version`. A stale version returns 409.
+Status and verification are independent. Garages start `ACTIVE` and
+`VERIFIED`; the approved development policy also marks all existing garages
+`VERIFIED` without requiring manual onboarding approval. An admin can still
+change verification or operational status through the audited controls below;
+both changes require a reason and `expected_version`. A stale version returns
+409. Production records are not changed by this development update.
 
 Example status request:
 

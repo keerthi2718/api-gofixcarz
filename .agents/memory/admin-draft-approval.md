@@ -19,3 +19,15 @@ as booking decision history. Document chosen lifecycle, MFA/scope, snapshot,
 delay and privacy defaults. Require separate production rollout approval.
 Missing providers or source integrations must remain explicit, not successful
 placeholder responses.
+
+The user later explicitly directed that all garage accounts be VERIFIED,
+including existing records, and that future registrations default to VERIFIED.
+This applies to development data; it does not authorize a production data
+change. Admins may still make deliberate, audited verification changes.
+
+**Why:** This is a subsequent explicit change to the prior conservative
+verification default, not blanket approval of proposed admin policies or a
+production rollout.
+
+**How to apply:** Keep VERIFIED as the creation default and align development
+records; do not update production records or publish without separate approval.

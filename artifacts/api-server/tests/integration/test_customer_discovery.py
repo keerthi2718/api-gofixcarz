@@ -10,6 +10,8 @@ from app.core.customer_security import now
 from app.core.exceptions import NotFoundException
 from app.models.garage import Garage
 from app.models.service_package import ServicePackage
+from app.schemas.garage import GarageCreate
+from app.repositories.garage_repository import GarageRepository
 from app.schemas.customer_discovery import LocationInput
 from app.services.booking_service import BookingService
 from app.services.customer_discovery_service import EARTH_RADIUS_KM, distance_expression
@@ -75,6 +77,15 @@ async def test_service_garage_mixed_search_previews_and_private_fields(workspace
     page2 = await search(d, q="Discovery Oil", search_by="service", page_size=1, page=2)
     assert result["items"][0]["id"] != page2["items"][0]["id"]
     assert (await search(d, q="Discovery Oil", page=100))["items"] == []
+
+
+async def test_new_owner_garage_defaults_to_verified(workspace):
+    d = workspace
+    garage = await GarageRepository(d["db"]).create(
+        d["garage"].user_id,
+        GarageCreate(name="Verified by default", owner="New Garage Owner"),
+    )
+    assert garage.verification_status == "VERIFIED"
 
 
 async def test_radius_distance_sorting_detail_and_location_privacy(workspace):

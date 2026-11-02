@@ -22,6 +22,9 @@ and one explicit pending checkout operation.
 
 ## Development policies
 
+- Garage accounts are VERIFIED by default at creation; existing development
+  garages are marked VERIFIED. Operational status remains a separate control.
+  Production data is not changed by this development update.
 - Customer-owned vehicles; no historical contact/vehicle matching.
 - First vehicle is default; removal archives, blocks active work, and selects
   the oldest remaining vehicle as replacement default.
