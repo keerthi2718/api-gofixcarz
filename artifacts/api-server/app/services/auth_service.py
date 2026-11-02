@@ -33,6 +33,10 @@ from app.utils.msg91 import submit_otp_sms
 from app.services.sms_delivery_service import SMSDeliveryService
 
 
+DELETED_ACCOUNT_ERROR_CODE = "ACCOUNT_DELETED"
+DELETED_ACCOUNT_MESSAGE = "This account has been deleted. Please contact support for help."
+
+
 class AuthService:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -46,19 +50,31 @@ class AuthService:
             await SMSDeliveryService(self.session).register_submission(request_id)
         return request_id
 
+    @staticmethod
+    def _raise_deleted_account() -> None:
+        raise AppException(
+            DELETED_ACCOUNT_MESSAGE,
+            status_code=410,
+            error_code=DELETED_ACCOUNT_ERROR_CODE,
+        )
+
     # ──────────────────────────────────────────────────────
     # Sign-up
     # ──────────────────────────────────────────────────────
 
     async def sign_up(self, data: SignUpRequest) -> dict:
         # Unique mobile check (plain 10-digit)
-        existing = await self.user_repo.get_by_mobile(data.mobile)
+        existing = await self.user_repo.get_by_mobile_including_deleted(data.mobile)
         if existing:
+            if existing.deleted_at is not None:
+                self._raise_deleted_account()
             raise ConflictException("Mobile number already registered. Please sign in.")
 
         # Unique email check
-        existing_email = await self.user_repo.get_by_email(str(data.email))
+        existing_email = await self.user_repo.get_by_email_including_deleted(str(data.email))
         if existing_email:
+            if existing_email.deleted_at is not None:
+                self._raise_deleted_account()
             raise ConflictException("Email address already registered.")
 
         # Build full name
@@ -124,7 +140,9 @@ class AuthService:
     # ──────────────────────────────────────────────────────
 
     async def sign_in(self, data: SignInRequest) -> dict:
-        user = await self.user_repo.get_by_mobile(data.mobile)
+        user = await self.user_repo.get_by_mobile_including_deleted(data.mobile)
+        if user and user.deleted_at is not None:
+            self._raise_deleted_account()
         if not user:
             raise BadRequestException(
                 "Mobile number not registered. Please sign up first."
@@ -158,7 +176,9 @@ class AuthService:
     # ──────────────────────────────────────────────────────
 
     async def send_otp(self, data: SendOTPRequest) -> dict:
-        user = await self.user_repo.get_by_mobile(data.mobile)
+        user = await self.user_repo.get_by_mobile_including_deleted(data.mobile)
+        if user and user.deleted_at is not None:
+            self._raise_deleted_account()
         if not user:
             raise BadRequestException("Mobile number not registered.")
         if not user.is_active:
@@ -186,7 +206,9 @@ class AuthService:
     # ──────────────────────────────────────────────────────
 
     async def verify_otp(self, data: VerifyOTPRequest) -> TokenResponse:
-        user = await self.user_repo.get_by_mobile(data.mobile)
+        user = await self.user_repo.get_by_mobile_including_deleted(data.mobile)
+        if user and user.deleted_at is not None:
+            self._raise_deleted_account()
         if not user:
             raise BadRequestException("Mobile number not registered.")
         if not user.is_active:

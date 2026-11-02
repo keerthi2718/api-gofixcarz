@@ -218,15 +218,18 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
+    content = {
+        "success": False,
+        "message": exc.message,
+        "data": None,
+        "errors": exc.errors,
+        "status_code": exc.status_code,
+    }
+    if exc.error_code:
+        content["error_code"] = exc.error_code
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "success": False,
-            "message": exc.message,
-            "data": None,
-            "errors": exc.errors,
-            "status_code": exc.status_code,
-        },
+        content=content,
     )
 
 

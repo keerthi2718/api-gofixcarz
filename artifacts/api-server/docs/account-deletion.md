@@ -53,6 +53,24 @@ The original mobile/email remain reserved by existing unique constraints. No
 automatic restoration or duplicate account creation is provided. A retry using
 the former token returns 401 because access has already been revoked.
 
+Attempts to sign in, request/verify an OTP, or sign up using a deleted account's
+mobile number or email return HTTP 410 with a stable frontend key:
+
+```json
+{
+  "success": false,
+  "message": "This account has been deleted. Please contact support for help.",
+  "data": null,
+  "errors": [],
+  "status_code": 410,
+  "error_code": "ACCOUNT_DELETED"
+}
+```
+
+Frontend code should branch on `error_code === "ACCOUNT_DELETED"` rather than
+matching the message text. Sign-up checks both the mobile number and email
+against retained accounts.
+
 ## Authorized historical retrieval
 
 Default admin user reads continue to exclude deleted accounts. Administrators

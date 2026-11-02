@@ -52,6 +52,8 @@ async def test_owner_archival_revokes_all_sessions_and_preserves_history(setup_a
     session = d["session"]
     owner = d["owner"]
     owner_headers = headers(owner)
+    owner.email = f"deleted-{owner.id}@fixture.com"
+    await session.flush()
     original = {"name": owner.name, "mobile": owner.mobile, "email": owner.email}
     now = datetime.now(timezone.utc)
     extra = RefreshToken(
@@ -96,10 +98,29 @@ async def test_owner_archival_revokes_all_sessions_and_preserves_history(setup_a
         "/api/v1/auth/refresh", json={"refresh_token":"fixture-refresh"},
     )).status_code == 401
     for path in ["/api/v1/auth/sign-in","/api/v1/auth/send-otp"]:
-        assert (await d["client"].post(path,json={"mobile":original["mobile"]})).status_code == 400
-    assert (await d["client"].post(
+        response = await d["client"].post(path, json={"mobile": original["mobile"]})
+        assert response.status_code == 410
+        assert response.json()["error_code"] == "ACCOUNT_DELETED"
+        assert "deleted" in response.json()["message"].lower()
+    verify_response = await d["client"].post(
         "/api/v1/auth/verify-otp",json={"mobile":original["mobile"],"otp":"123456"},
-    )).status_code == 400
+    )
+    assert verify_response.status_code == 410
+    assert verify_response.json()["error_code"] == "ACCOUNT_DELETED"
+    signup_by_mobile = await d["client"].post("/api/v1/auth/sign-up", json={
+        "first_name": "Test", "workshop_name": "Retry Garage",
+        "email": f"retry_{uuid4().hex}@example.com", "country_code": owner.country_code,
+        "mobile": original["mobile"], "terms_accepted": True,
+    })
+    signup_by_email = await d["client"].post("/api/v1/auth/sign-up", json={
+        "first_name": "Test", "workshop_name": "Retry Garage",
+        "email": original["email"], "country_code": "91",
+        "mobile": str(uuid4().int % 10**10).zfill(10), "terms_accepted": True,
+    })
+    for response in (signup_by_mobile, signup_by_email):
+        assert response.status_code == 410
+        assert response.json()["error_code"] == "ACCOUNT_DELETED"
+        assert "deleted" in response.json()["message"].lower()
     assert (await d["client"].request(
         "DELETE","/api/v1/auth/account",json={"confirm":True},headers=owner_headers,
     )).status_code == 401

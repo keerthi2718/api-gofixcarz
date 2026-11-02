@@ -9,10 +9,12 @@ class AppException(Exception):
         message: str,
         status_code: int = 400,
         errors: Optional[List[Any]] = None,
+        error_code: Optional[str] = None,
     ):
         self.message = message
         self.status_code = status_code
         self.errors = errors or []
+        self.error_code = error_code
         super().__init__(message)
 
 

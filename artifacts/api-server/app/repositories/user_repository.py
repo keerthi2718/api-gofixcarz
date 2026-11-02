@@ -25,9 +25,22 @@ class UserRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_mobile_including_deleted(self, mobile: str) -> Optional[User]:
+        """Look up any account for authentication and re-registration decisions."""
+        result = await self.session.execute(
+            select(User).where(User.mobile == mobile)
+        )
+        return result.scalar_one_or_none()
+
     async def get_by_email(self, email: str) -> Optional[User]:
         result = await self.session.execute(
             select(User).where(User.email == email, User.deleted_at.is_(None))
+        )
+        return result.scalar_one_or_none()
+
+    async def get_by_email_including_deleted(self, email: str) -> Optional[User]:
+        result = await self.session.execute(
+            select(User).where(User.email == email)
         )
         return result.scalar_one_or_none()
 
