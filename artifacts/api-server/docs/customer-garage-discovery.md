@@ -138,7 +138,7 @@ Driving distance/traffic estimates remain excluded; never label this field
 | --- | --- | --- |
 | `GET /api/v1/customer-app/garages/{garage_id}` | No body | Customer-safe garage detail, bounded active-service preview, distance null |
 | `POST /api/v1/customer-app/garages/{garage_id}/details` | `{"latitude":12.9716,"longitude":77.5946}` | Same detail with distance from that location; accepts the same optional accuracy/timestamp metadata |
-| `GET /api/v1/customer-app/garages/{garage_id}/services?page=1&page_size=20` | Optional query `q` filters service name; page size 1..100 | `{items:[service],total,page,page_size,pages}` |
+| `GET /api/v1/customer-app/garages/{garage_id}/services?page=1&page_size=100` | Optional query `q` filters service name; page size 1..100 | API envelope `data: {items:[service],total,page,page_size,pages}` |
 
 Use the **same chosen location** for search and selected-garage details.
 Detail does not impose a radius, allowing the app to display the selected
@@ -157,8 +157,12 @@ can be discovered by name but has `booking_eligible: false`. Missing/nonpositive
 duration (or invalid negative price) makes a service ineligible; do not enable
 its Book selection. `booking_eligible: true` means catalogue configuration is
 suitable to request availability/quote, **not** that a slot is reserved or free.
-Prices may change; the quote is authoritative. `price_inr` is a decimal string
-for display; `amount` is integer **paise**, consistent with quote service amounts.
+Prices may change; the quote is authoritative. `price` is numeric INR major units
+to match the owner catalogue response; `price_inr` remains a decimal string for
+exact display, and `amount` is integer **paise**, consistent with quote service amounts. Every returned item
+includes `is_active: true`; inactive packages are excluded. The default page
+size is 100, with recently updated packages first; use `total`, `page_size`, and
+`pages` to fetch any remaining pages.
 
 ## 3. Continue into the existing shared booking
 

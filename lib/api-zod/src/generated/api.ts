@@ -499,10 +499,12 @@ export const SearchApiV1CustomerAppGaragesSearchPostResponse = zod.object({
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
+  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(searchApiV1CustomerAppGaragesSearchPostResponseDataOneItemsItemServicesItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(searchApiV1CustomerAppGaragesSearchPostResponseDataOneItemsItemServicesItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
+  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -555,10 +557,12 @@ export const DetailApiV1CustomerAppGaragesGarageIdGetResponse = zod.object({
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
+  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(detailApiV1CustomerAppGaragesGarageIdGetResponseDataOneServicesItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(detailApiV1CustomerAppGaragesGarageIdGetResponseDataOneServicesItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
+  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -623,10 +627,12 @@ export const LocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostResponse = z
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
+  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostResponseDataOneServicesItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostResponseDataOneServicesItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
+  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -650,7 +656,7 @@ export const ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = zod.obje
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageDefault = 1;
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageMax = 100000;
 
-export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeDefault = 20;
+export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeDefault = 100;
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeMax = 100;
 
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQDefault = ``;
@@ -676,10 +682,12 @@ export const ServicesApiV1CustomerAppGaragesGarageIdServicesGetResponse = zod.ob
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
+  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(servicesApiV1CustomerAppGaragesGarageIdServicesGetResponseDataOneItemsItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(servicesApiV1CustomerAppGaragesGarageIdServicesGetResponseDataOneItemsItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
+  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),

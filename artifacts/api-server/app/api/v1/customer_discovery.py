@@ -41,7 +41,7 @@ async def located_detail(garage_id: UUID, data: LocationInput, db: DB, who: Prin
 @router.get("/{garage_id}/services", response_model=APIResponse[PaginatedData[DiscoveryService]])
 async def services(garage_id: UUID, db: DB, who: Principal, response: Response,
                    page: Annotated[int, Query(ge=1, le=100000)] = 1,
-                   page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+                   page_size: Annotated[int, Query(ge=1, le=100)] = 100,
                    q: Annotated[str, Query(max_length=100)] = ""):
     response.headers["Cache-Control"] = "no-store"
     return APIResponse.ok(await CustomerDiscoveryService(db).services(garage_id, page, page_size, q.strip()))

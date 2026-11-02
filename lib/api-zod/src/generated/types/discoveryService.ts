@@ -10,12 +10,15 @@ export interface DiscoveryService {
   id: string;
   name: string;
   description: string | null;
+  /** INR major units, matching owner service-package responses */
+  price: number;
   /** @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$ */
   price_inr: string;
   /** INR minor units (paise), matching quote service amounts */
   amount: number;
   currency?: 'INR';
   duration_minutes: number | null;
+  is_active: boolean;
   booking_eligible: boolean;
   unavailable_reason: string | null;
 }

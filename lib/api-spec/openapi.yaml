@@ -856,7 +856,7 @@ paths:
           type: integer
           maximum: 100
           minimum: 1
-          default: 20
+          default: 100
           title: Page Size
       - name: q
         in: query
@@ -5023,6 +5023,10 @@ components:
           - type: string
           - type: 'null'
           title: Description
+        price:
+          type: number
+          title: Price
+          description: INR major units, matching owner service-package responses
         price_inr:
           type: string
           pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
@@ -5041,6 +5045,9 @@ components:
           - type: integer
           - type: 'null'
           title: Duration Minutes
+        is_active:
+          type: boolean
+          title: Is Active
         booking_eligible:
           type: boolean
           title: Booking Eligible
@@ -5054,9 +5061,11 @@ components:
       - id
       - name
       - description
+      - price
       - price_inr
       - amount
       - duration_minutes
+      - is_active
       - booking_eligible
       - unavailable_reason
       title: DiscoveryService
