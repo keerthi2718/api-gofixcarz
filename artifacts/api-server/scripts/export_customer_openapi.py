@@ -19,6 +19,10 @@ def main():
     prefix = "/api/v1/customer-app"
     paths = {path.removeprefix("/api"): operations for path, operations in runtime["paths"].items()
              if path.startswith(prefix)}
+    # This owner action completes the customer booking contract. Keep its
+    # request/response schemas available to both client integrations.
+    schedule_path = "/api/v1/bookings/{booking_id}/schedule"
+    paths[schedule_path.removeprefix("/api")] = runtime["paths"][schedule_path]
     for path in list(existing["paths"]):
         if path.startswith("/v1/customer-app"):
             del existing["paths"][path]

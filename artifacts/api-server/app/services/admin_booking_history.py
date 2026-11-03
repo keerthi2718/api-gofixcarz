@@ -18,11 +18,12 @@ async def ensure_new_work(session, garage_id):
         raise HTTPException(409, "GARAGE_SUSPENDED: existing work remains accessible")
 
 
-async def record_booking_event(session, booking, status):
+async def record_booking_event(session, booking, status, *, event_key=None):
     garage = await session.get(Garage, booking.garage_id)
+    event_key = event_key or f"{booking.id}:{status}"
     session.add(SourceRecord(
         id=uuid.uuid4(), kind="BOOKING_EVENT", source="garage-owner-api",
-        external_id=f"{booking.id}:{status}", garage_id=booking.garage_id,
+        external_id=event_key, garage_id=booking.garage_id,
         booking_id=booking.id, status=status, occurred_at=datetime.now(timezone.utc),
         payload={"actor_id": str(garage.user_id)} if garage else {},
     ))
@@ -32,4 +33,4 @@ async def record_booking_event(session, booking, status):
     link = await session.get(CustomerBookingLink, booking.id)
     if link:
         await CustomerWorkspaceBase(session, link.customer_id).notify(
-            "BOOKINGS", f"Booking status: {status}", booking.id, f"booking:{booking.id}:{status}")
+            "BOOKINGS", f"Booking status: {status}", booking.id, f"booking:{event_key}")

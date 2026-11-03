@@ -33,12 +33,16 @@ class CustomerBookingService(CustomerAttachmentService):
         rows = (await self.db.execute(select(ServicePackage).where(
             ServicePackage.id.in_(identifiers), ServicePackage.garage_id == garage_id,
             ServicePackage.deleted_at.is_(None), ServicePackage.is_active.is_(True)))).scalars().all()
-        if len(rows) != len(identifiers) or any(
-            row.duration_minutes is None or row.duration_minutes <= 0 for row in rows
-        ):
+        if len(rows) != len(identifiers):
             fail("SERVICE_INACTIVE", 422)
         by_id = {row.id: row for row in rows}
         return [by_id[identifier] for identifier in identifiers]
+
+    @staticmethod
+    def service_duration(services):
+        if any(s.duration_minutes is None or s.duration_minutes <= 0 for s in services):
+            fail("SERVICE_INACTIVE", 422)
+        return sum(s.duration_minutes for s in services)
 
     async def slot_free(self, slot):
         count = (await self.db.execute(select(func.count()).select_from(CustomerBookingLink).join(
@@ -51,7 +55,7 @@ class CustomerBookingService(CustomerAttachmentService):
     async def availability(self, garage_id, day, service_ids):
         await self.garage(garage_id)
         services = await self.services(garage_id, service_ids)
-        duration = sum(row.duration_minutes for row in services)
+        duration = self.service_duration(services)
         rows = (await self.db.execute(select(AppointmentSlot).where(
             AppointmentSlot.garage_id == garage_id, AppointmentSlot.active.is_(True)
         ).order_by(AppointmentSlot.starts_at))).scalars().all()
@@ -78,9 +82,7 @@ class CustomerBookingService(CustomerAttachmentService):
             not slot or slot.garage_id != garage.id or not await self.slot_free(slot)
         ):
             fail("SLOT_UNAVAILABLE", 409)
-        if slot and (slot.ends_at - slot.starts_at).total_seconds() < sum(
-            s.duration_minutes for s in services
-        ) * 60:
+        if slot and (slot.ends_at - slot.starts_at).total_seconds() < self.service_duration(services) * 60:
             fail("SLOT_UNAVAILABLE", 409)
         items = [{"id": str(s.id), "name": s.name,
                   "amount": int((Decimal(s.price) * 100).quantize(Decimal("1"))),
@@ -118,7 +120,19 @@ class CustomerBookingService(CustomerAttachmentService):
             if original.payload["quote_id"] != str(quote_id):
                 fail("IDEMPOTENCY_CONFLICT", 409)
             return original.payload["response"]
-        quote = await self.resource(quote_id, "QUOTE")
+        quote = (await self.db.execute(self.query("QUOTE").where(
+            CustomerResource.id == quote_id
+        ).with_for_update().execution_options(populate_existing=True))).scalar_one_or_none()
+        if not quote:
+            fail("RESOURCE_NOT_FOUND", 404)
+        # Slotless requests also need serialization: two submissions of one
+        # quote must not race into the unique booking link constraint.
+        original = (await self.db.execute(self.query("BOOKING_REQUEST").where(
+            CustomerResource.dedupe_key == key))).scalar_one_or_none()
+        if original:
+            if original.payload["quote_id"] != str(quote_id):
+                fail("IDEMPOTENCY_CONFLICT", 409)
+            return original.payload["response"]
         if quote.status != "ACTIVE" or datetime.fromisoformat(quote.payload["expires_at"]) <= now():
             fail("QUOTE_EXPIRED", 409)
         slot_id = UUID(quote.payload["slot_id"]) if quote.payload.get("slot_id") else None
@@ -210,6 +224,7 @@ class CustomerBookingService(CustomerAttachmentService):
             slot is None or slot.starts_at > now()
         )
         return {"id": booking.id, "booking_id": booking.id, "quote_id": link.quote_id,
+                "slot_id": link.slot_id,
                 "status": status, "garage": quote.payload["garage"],
                 "vehicle": quote.payload["vehicle"], "services": quote.payload["services"],
                 "scheduled_date": scheduled_date, "scheduled_start": starts_at,
@@ -218,7 +233,7 @@ class CustomerBookingService(CustomerAttachmentService):
                 "attachment_ids": quote.payload["attachment_ids"],
                 "estimated_total": quote.payload["estimated_total"], "currency": "INR",
                 "can_cancel": can_cancel,
-                "cancel_reason": None if can_cancel else "Only PENDING bookings may be cancelled",
+                "cancel_reason": None if can_cancel else "Only unscheduled or future PENDING bookings may be cancelled",
                 "linked_job_id": jobs[0].id if jobs else None,
                 "linked_job_status": jobs[0].status.value if jobs else None,
                 "created_at": booking.created_at}

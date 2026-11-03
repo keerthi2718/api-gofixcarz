@@ -3,7 +3,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = "0017_customer_booking_without_slots"
+revision = "0017_optional_booking_slots"
 down_revision = "0016_customer_workspace"
 branch_labels = None
 depends_on = None

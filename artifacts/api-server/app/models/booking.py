@@ -45,6 +45,7 @@ class Booking(Base, SoftDeleteMixin):
         SAEnum(BookingStatus, name="booking_status"), default=BookingStatus.PENDING, nullable=False
     )
     booking_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    owner_accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     scheduled_start: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     scheduled_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

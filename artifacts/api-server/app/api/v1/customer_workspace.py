@@ -14,6 +14,7 @@ from app.schemas.customer_workspace import (
     ReadMarker, ReviewCreate, ReviewPatch, TicketCreate, TicketReply,
 )
 from app.schemas.customer_app import StrictInput
+from app.schemas.customer_booking import CustomerBookingResponse, CustomerQuoteResponse
 from app.schemas.response import APIResponse
 from app.services.customer_activity_service import CustomerActivityService
 from app.services.customer_vehicle_service import CustomerVehicleService
@@ -114,12 +115,12 @@ async def availability(garage_id: UUID, svc: Workspace, date: date,
     return APIResponse.ok(await svc.availability(garage_id, date, service_ids))
 
 
-@router.post("/bookings/quote", response_model=APIResponse[dict])
+@router.post("/bookings/quote", response_model=APIResponse[CustomerQuoteResponse])
 async def quote(data: QuoteRequest, svc: Workspace):
     return APIResponse.ok(await svc.create_quote(data))
 
 
-@router.post("/bookings", response_model=APIResponse[dict], status_code=201)
+@router.post("/bookings", response_model=APIResponse[CustomerBookingResponse], status_code=201)
 async def submit(data: BookingSubmit, svc: Workspace, who: Principal, key: Key):
     return APIResponse.ok(await svc.submit(data.quote_id, key, *who[:2]), status_code=201)
 
@@ -131,7 +132,7 @@ async def bookings(svc: Workspace, page: Page = 1, page_size: Size = 20,
     return APIResponse.ok(await svc.list_bookings(page, page_size, status, vehicle_id, garage_id, linked_job_status))
 
 
-@router.get("/bookings/{booking_id}", response_model=APIResponse[dict])
+@router.get("/bookings/{booking_id}", response_model=APIResponse[CustomerBookingResponse])
 async def booking_detail(booking_id: UUID, svc: Workspace):
     return APIResponse.ok(await svc.booking_row(*await svc.booking(booking_id)))
 

@@ -92,8 +92,6 @@ class BookingScheduleUpdate(StrictInput):
             raise ValueError("scheduled_end must include a timezone offset")
         if self.scheduled_end <= self.scheduled_start:
             raise ValueError("scheduled_end must be after scheduled_start")
-        if self.scheduled_end.date() != self.scheduled_start.date():
-            raise ValueError("scheduled_start and scheduled_end must be on the same date")
         return self
 
 

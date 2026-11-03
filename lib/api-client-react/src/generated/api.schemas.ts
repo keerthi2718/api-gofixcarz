@@ -576,6 +576,133 @@ export interface APIResponseGarageSearchResults {
   status_code: number;
 }
 
+export interface BookingGarage {
+  id: string;
+  name: string;
+  address?: string | null;
+}
+
+export interface BookingVehicle {
+  id: string;
+  registration_number: string;
+  brand?: string | null;
+  model?: string | null;
+  year?: number | null;
+}
+
+export interface BookingSelectedService {
+  id: string;
+  name: string;
+  amount: number;
+  duration_minutes?: number | null;
+}
+
+export interface CustomerBookingResponse {
+  garage: BookingGarage;
+  vehicle: BookingVehicle;
+  services: BookingSelectedService[];
+  slot_id?: string | null;
+  scheduled_date?: string | null;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  notes?: string | null;
+  attachment_ids: string[];
+  estimated_total: number;
+  currency: string;
+  id: string;
+  booking_id: string;
+  quote_id: string;
+  status: BookingStatus;
+  can_cancel: boolean;
+  cancel_reason?: string | null;
+  linked_job_id?: string | null;
+  linked_job_status?: string | null;
+  created_at: string;
+}
+
+export interface APIResponseCustomerBookingResponse {
+  success: boolean;
+  message: string;
+  data?: CustomerBookingResponse | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export interface BookingScheduleUpdate {
+  scheduled_start: string;
+  scheduled_end: string;
+}
+
+export interface BookingResponse {
+  id: string;
+  garage_id: string;
+  customer_id?: string | null;
+  vehicle_id?: string | null;
+  status: BookingStatus;
+  booking_date?: string | null;
+  owner_accepted_at?: string | null;
+  scheduled_date?: string | null;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+  notes?: string | null;
+  customer_name?: string | null;
+  customer_mobile?: string | null;
+  service_requested?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface APIResponseBookingResponse {
+  success: boolean;
+  message: string;
+  data?: BookingResponse | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export interface CustomerQuoteResponse {
+  garage: BookingGarage;
+  vehicle: BookingVehicle;
+  services: BookingSelectedService[];
+  slot_id?: string | null;
+  scheduled_date?: string | null;
+  scheduled_start?: string | null;
+  scheduled_end?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  notes?: string | null;
+  attachment_ids: string[];
+  estimated_total: number;
+  currency: string;
+  quote_id: string;
+  expires_at: string;
+  slot_reserved: boolean;
+}
+
+export interface APIResponseCustomerQuoteResponse {
+  success: boolean;
+  message: string;
+  data?: CustomerQuoteResponse | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export type ValidationErrorCtx = { [key: string]: unknown };
+
+export interface ValidationError {
+  loc: (string | number)[];
+  msg: string;
+  type: string;
+  input?: unknown;
+  ctx?: ValidationErrorCtx;
+}
+
+export interface HTTPValidationError {
+  detail?: ValidationError[];
+}
+
 export type ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = {
 /**
  * @minimum 1

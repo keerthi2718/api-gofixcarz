@@ -33,10 +33,18 @@ and one explicit pending checkout operation.
   no animation. Support uploads are images under the same policy.
   DELETE revokes access transactionally; physical S3 removal is deferred until
   a separately approved retention/cleanup policy exists.
-- Owners configure explicit non-overlapping capacity slots and garage timezone.
-  Quotes expire in ten minutes; submission locks capacity, checks unchanged
-  prices/duration and creates deliberate new-work garage contacts/vehicles.
-- Cancellation is only for future PENDING bookings without a job. Cancelled
+- Customer appointment selection is optional. A quote may omit `slot_id` or
+  send null; it uses real selected service prices and creates no slot records.
+  Owners can still offer explicit capacity slots and a garage timezone.
+  Quotes expire in ten minutes; submission locks the quote (and selected slot,
+  if any), rechecks the selection, and creates deliberate new-work garage records.
+- Slotless bookings remain PENDING with null schedule fields until the owner
+  confirms a real time. Owner acceptance records `owner_accepted_at` separately;
+  `PATCH /api/v1/bookings/{booking_id}/schedule` then sets the schedule and
+  changes status to ACCEPTED. Its body contains timezone-aware ISO datetimes
+  `scheduled_start` and `scheduled_end`. Accepted slotless bookings can be
+  rescheduled through that same endpoint. Existing slot-based acceptance is unchanged.
+- Cancellation is allowed for unscheduled or future PENDING bookings without a job. Cancelled
   bookings cannot be accepted/converted by garage APIs.
   A 60-second background worker expires past unattended PENDING appointments.
 - Job status is visible on explicitly linked work; details/photos require

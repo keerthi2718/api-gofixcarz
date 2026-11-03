@@ -13,3 +13,4 @@
 - [Remaining customer API approval](customer-remaining-api-approval.md) — development rules approved; Razorpay requested; endpoint/header/payload/response document required.
 - [Validator generation](workspace-validator-version.md) — generate for the consuming Zod major; root workspace inference may produce incompatible validators.
 - [Production probe limits](production-probe-limits.md) — workspace requests to replit.app can use an internal proxy; distinguish app health from public-domain TLS verification.
+- [Customer appointment policy](customer-appointment-policy.md) — slots are optional; owner agreement precedes scheduled confirmation, with PENDING status until a real time is assigned.
