@@ -1011,7 +1011,7 @@ export const QuoteApiV1CustomerAppBookingsQuotePostBody = zod.object({
   "garage_id": zod.string().uuid(),
   "vehicle_id": zod.string().uuid(),
   "service_ids": zod.array(zod.string().uuid()).min(1).max(quoteApiV1CustomerAppBookingsQuotePostBodyServiceIdsMax),
-  "slot_id": zod.string().uuid(),
+  "slot_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
   "notes": zod.union([zod.string().max(quoteApiV1CustomerAppBookingsQuotePostBodyNotesOneMax),zod.null()]).optional(),
   "attachment_ids": zod.array(zod.string().uuid()).max(quoteApiV1CustomerAppBookingsQuotePostBodyAttachmentIdsMax).optional()
 })

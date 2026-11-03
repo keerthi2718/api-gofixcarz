@@ -4430,8 +4430,10 @@ components:
           minItems: 1
           title: Service Ids
         slot_id:
-          type: string
-          format: uuid
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
           title: Slot Id
         notes:
           anyOf:
@@ -4452,7 +4454,6 @@ components:
       - garage_id
       - vehicle_id
       - service_ids
-      - slot_id
       title: QuoteRequest
     CancelRequest:
       properties:

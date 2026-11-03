@@ -14,7 +14,7 @@ export interface QuoteRequest {
      * @maxItems 20
      */
   service_ids: string[];
-  slot_id: string;
+  slot_id?: string | null;
   notes?: string | null;
   /** @maxItems 5 */
   attachment_ids?: string[];

@@ -241,6 +241,78 @@ async def test_booking_capacity_idempotency_cancellation_and_customer_isolation(
     await quote(d, v)  # Cancellation released capacity.
 
 
+@pytest.mark.parametrize("owner_action", ["accept", "reject"])
+async def test_customer_booking_without_slot_and_owner_schedule(workspace, owner_action):
+    d = workspace
+    extra_service = ServicePackage(
+        id=uuid4(), garage_id=d["garage"].id, name="Additional Inspection",
+        price=325, duration_minutes=30, is_active=True,
+    )
+    d["db"].add(extra_service)
+    await d["db"].flush()
+    v = await vehicle(d)
+
+    quote_response = await d["call"]("POST", "/bookings/quote", json={
+        "garage_id": str(d["garage"].id),
+        "vehicle_id": v["id"],
+        "service_ids": [str(d["service"].id), str(extra_service.id)],
+        "notes": "",
+        "attachment_ids": [],
+    })
+    q = quote_response.json()["data"]
+    quote_id = UUID(q["quote_id"])
+    assert str(quote_id) == q["quote_id"]
+    assert q["slot_id"] is None
+    assert q["scheduled_date"] is None
+    assert q["scheduled_start"] is None and q["scheduled_end"] is None
+    assert len(q["services"]) == 2
+    assert q["estimated_total"] == 182500
+
+    b = await booking(d, q)
+    booking_id = UUID(b["booking_id"])
+    assert b["id"] == b["booking_id"]
+    assert b["quote_id"] == str(quote_id)
+    assert b["status"] == "PENDING"
+    assert b["scheduled_date"] is None
+    assert b["scheduled_start"] is None and b["scheduled_end"] is None
+    link = await d["db"].get(CustomerBookingLink, booking_id)
+    assert link and link.slot_id is None
+
+    owner_list = (await d["call"]("GET", "/api/v1/bookings")).json()["data"]
+    assert b["id"] in [item["id"] for item in owner_list["items"]]
+    await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/{owner_action}")
+    current = (await d["call"]("GET", f"/bookings/{b['id']}")).json()["data"]
+
+    if owner_action == "reject":
+        assert current["status"] == "REJECTED"
+        assert current["scheduled_date"] is None
+        return
+
+    assert current["status"] == "ACCEPTED"
+    assert current["scheduled_date"] is None
+    scheduled_start = now() + timedelta(days=5)
+    scheduled_end = scheduled_start + timedelta(hours=1)
+    assigned = await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/schedule", json={
+        "scheduled_start": scheduled_start.isoformat(),
+        "scheduled_end": scheduled_end.isoformat(),
+    })
+    owner_booking = assigned.json()["data"]
+    assert owner_booking["status"] == "ACCEPTED"
+    assert owner_booking["scheduled_date"] == scheduled_start.date().isoformat()
+
+    customer_booking = (await d["call"]("GET", f"/bookings/{b['id']}")).json()["data"]
+    assert customer_booking["booking_id"] == b["id"]
+    assert customer_booking["quote_id"] == str(quote_id)
+    assert customer_booking["status"] == "ACCEPTED"
+    assert customer_booking["scheduled_date"] == scheduled_start.date().isoformat()
+    assert customer_booking["scheduled_start"] == scheduled_start.isoformat()
+    assert customer_booking["scheduled_end"] == scheduled_end.isoformat()
+    assert customer_booking["garage"]["id"] == str(d["garage"].id)
+    assert customer_booking["vehicle"]["id"] == v["id"]
+    assert len(customer_booking["services"]) == 2
+    assert customer_booking["estimated_total"] == 182500
+
+
 async def test_tracking_publication_invoices_confirmed_finance_and_reviews(workspace):
     d = workspace
     j = await job(d)

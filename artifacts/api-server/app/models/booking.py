@@ -1,8 +1,8 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Date, Enum as SAEnum, ForeignKey, Index, Text
+from sqlalchemy import Date, DateTime, Enum as SAEnum, ForeignKey, Index, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import enum
@@ -45,6 +45,8 @@ class Booking(Base, SoftDeleteMixin):
         SAEnum(BookingStatus, name="booking_status"), default=BookingStatus.PENDING, nullable=False
     )
     booking_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    scheduled_start: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    scheduled_end: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     customer_name: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     customer_mobile: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -55,3 +57,7 @@ class Booking(Base, SoftDeleteMixin):
     customer: Mapped[Optional["Customer"]] = relationship("Customer", back_populates="bookings")
     vehicle: Mapped[Optional["Vehicle"]] = relationship("Vehicle", back_populates="bookings")
     jobs: Mapped[list["Job"]] = relationship("Job", back_populates="booking")
+
+    @property
+    def scheduled_date(self) -> Optional[date]:
+        return self.booking_date

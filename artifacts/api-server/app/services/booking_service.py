@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,6 +11,7 @@ from app.repositories.job_repository import JobRepository
 from app.schemas.booking import BookingDetailResponse, BookingResponse
 from app.schemas.job import JobCreate, JobResponse
 from app.schemas.response import PaginatedData
+from app.models.customer_workspace import CustomerBookingLink
 
 
 class BookingService:
@@ -68,6 +70,37 @@ class BookingService:
         updated = await self.repo.update_status(booking, BookingStatus.REJECTED)
         await record_booking_event(self.repo.session, updated, "REJECTED")
         return BookingResponse.model_validate(updated)
+
+    async def assign_schedule(
+        self,
+        garage_id: uuid.UUID,
+        booking_id: uuid.UUID,
+        scheduled_start: datetime,
+        scheduled_end: datetime,
+    ) -> BookingResponse:
+        from app.services.admin_booking_history import lock_booking, record_booking_event
+
+        await lock_booking(self.repo.session, garage_id, booking_id)
+        booking = await self.repo.get_by_id(booking_id, garage_id)
+        if not booking:
+            raise NotFoundException("Booking not found")
+        if booking.status != BookingStatus.ACCEPTED:
+            raise BadRequestException("Only ACCEPTED bookings can be scheduled")
+        link = await self.repo.session.get(CustomerBookingLink, booking.id)
+        if link and link.slot_id is not None:
+            raise BadRequestException("This booking already has an appointment slot")
+
+        was_scheduled = booking.scheduled_start is not None
+        booking.booking_date = scheduled_start.date()
+        booking.scheduled_start = scheduled_start
+        booking.scheduled_end = scheduled_end
+        booking.updated_at = datetime.now(timezone.utc)
+        await self.repo.session.flush()
+        await self.repo.session.refresh(booking)
+        await record_booking_event(
+            self.repo.session, booking, "RESCHEDULED" if was_scheduled else "SCHEDULED"
+        )
+        return BookingResponse.model_validate(booking)
 
     async def create_job_from_booking(
         self, garage_id: uuid.UUID, booking_id: uuid.UUID

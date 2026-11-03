@@ -1,5 +1,5 @@
 """Slot capacity, immutable quotes and idempotent customer booking submission."""
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from uuid import UUID, uuid4
 from zoneinfo import ZoneInfo
@@ -73,22 +73,37 @@ class CustomerBookingService(CustomerAttachmentService):
         vehicle = await self.vehicle(data.vehicle_id)
         services = await self.services(garage.id, data.service_ids)
         await self.validate_attachments(data.attachment_ids, "BOOKING_PHOTO")
-        slot = await self.db.get(AppointmentSlot, data.slot_id)
-        if not slot or slot.garage_id != garage.id or not await self.slot_free(slot):
+        slot = await self.db.get(AppointmentSlot, data.slot_id) if data.slot_id else None
+        if data.slot_id and (
+            not slot or slot.garage_id != garage.id or not await self.slot_free(slot)
+        ):
             fail("SLOT_UNAVAILABLE", 409)
-        if (slot.ends_at - slot.starts_at).total_seconds() < sum(s.duration_minutes for s in services) * 60:
+        if slot and (slot.ends_at - slot.starts_at).total_seconds() < sum(
+            s.duration_minutes for s in services
+        ) * 60:
             fail("SLOT_UNAVAILABLE", 409)
         items = [{"id": str(s.id), "name": s.name,
                   "amount": int((Decimal(s.price) * 100).quantize(Decimal("1"))),
                   "duration_minutes": s.duration_minutes} for s in services]
+        scheduled_start = slot.starts_at if slot else None
+        scheduled_end = slot.ends_at if slot else None
+        scheduled_date = (
+            slot.starts_at.astimezone(ZoneInfo(slot.timezone)).date().isoformat()
+            if slot else None
+        )
         return {
-            "garage": {"id": str(garage.id), "name": garage.name},
-            "vehicle": {"id": str(vehicle.id), "registration_number": vehicle.registration_number},
-            "services": items, "starts_at": slot.starts_at.isoformat(), "ends_at": slot.ends_at.isoformat(),
+            "garage": {"id": str(garage.id), "name": garage.name, "address": garage.address},
+            "vehicle": {"id": str(vehicle.id), "registration_number": vehicle.registration_number,
+                        "brand": vehicle.brand, "model": vehicle.model, "year": vehicle.year},
+            "services": items, "starts_at": scheduled_start.isoformat() if scheduled_start else None,
+            "ends_at": scheduled_end.isoformat() if scheduled_end else None,
+            "scheduled_date": scheduled_date,
+            "scheduled_start": scheduled_start.isoformat() if scheduled_start else None,
+            "scheduled_end": scheduled_end.isoformat() if scheduled_end else None,
             "notes": data.notes, "attachment_ids": [str(i) for i in data.attachment_ids],
             "estimated_total": sum(s["amount"] for s in items), "currency": "INR",
-            "expires_at": (now() + timedelta(minutes=10)).isoformat(), "slot_reserved": False,
-            "slot_id": str(slot.id),
+            "expires_at": (now() + timedelta(minutes=10)).isoformat(),
+            "slot_reserved": False, "slot_id": str(slot.id) if slot else None,
         }
 
     async def create_quote(self, data):
@@ -106,17 +121,18 @@ class CustomerBookingService(CustomerAttachmentService):
         quote = await self.resource(quote_id, "QUOTE")
         if quote.status != "ACTIVE" or datetime.fromisoformat(quote.payload["expires_at"]) <= now():
             fail("QUOTE_EXPIRED", 409)
-        slot_id = UUID(quote.payload["slot_id"])
-        # Row lock serializes capacity checks across customers/workers.
-        await self.db.execute(select(AppointmentSlot.id).where(
-            AppointmentSlot.id == slot_id).with_for_update())
+        slot_id = UUID(quote.payload["slot_id"]) if quote.payload.get("slot_id") else None
+        if slot_id:
+            # Row lock serializes capacity checks across customers/workers.
+            await self.db.execute(select(AppointmentSlot.id).where(
+                AppointmentSlot.id == slot_id).with_for_update())
         data = QuoteRequest(
             garage_id=quote.garage_id, vehicle_id=quote.payload["vehicle"]["id"],
             service_ids=[s["id"] for s in quote.payload["services"]], slot_id=slot_id,
             notes=quote.payload["notes"], attachment_ids=quote.payload["attachment_ids"],
         )
         selection = await self.quote_selection(data)
-        for name in ("services", "vehicle", "starts_at", "ends_at", "estimated_total"):
+        for name in ("services", "vehicle", "starts_at", "ends_at", "estimated_total", "slot_id"):
             if selection[name] != quote.payload[name]:
                 fail("QUOTE_STALE", 409)
         # Create deliberate per-account/vehicle garage records for NEW work.
@@ -148,10 +164,23 @@ class CustomerBookingService(CustomerAttachmentService):
         contact.name, contact.mobile = account.name, identity.mobile
         garage_vehicle.make, garage_vehicle.model = vehicle.brand, vehicle.model
         garage_vehicle.year, garage_vehicle.registration_plate = vehicle.year, vehicle.registration_number
+        scheduled_start = (
+            datetime.fromisoformat(selection["scheduled_start"])
+            if selection["scheduled_start"] else None
+        )
+        scheduled_end = (
+            datetime.fromisoformat(selection["scheduled_end"])
+            if selection["scheduled_end"] else None
+        )
+        booking_date = (
+            date.fromisoformat(selection["scheduled_date"])
+            if selection["scheduled_date"] else None
+        )
         booking = Booking(id=uuid4(), garage_id=quote.garage_id,
                           customer_id=UUID(bridge.payload["contact_id"]), vehicle_id=UUID(bridge.payload["vehicle_id"]),
                           status=BookingStatus.PENDING,
-                          booking_date=datetime.fromisoformat(selection["starts_at"]).date(),
+                          booking_date=booking_date, scheduled_start=scheduled_start,
+                          scheduled_end=scheduled_end,
                           notes=data.notes, customer_name=account.name, customer_mobile=identity.mobile,
                           service_requested=", ".join(s["name"] for s in selection["services"]))
         self.db.add(booking)
@@ -167,18 +196,29 @@ class CustomerBookingService(CustomerAttachmentService):
         return result
 
     async def booking_row(self, booking, link):
-        slot = await self.db.get(AppointmentSlot, link.slot_id)
+        slot = await self.db.get(AppointmentSlot, link.slot_id) if link.slot_id else None
         quote = await self.resource(link.quote_id, "QUOTE")
         jobs = (await self.db.execute(select(Job).where(Job.booking_id == booking.id,
                                                        Job.deleted_at.is_(None)))).scalars().all()
         status = booking.status.value
-        can_cancel = status == "PENDING" and slot.starts_at > now() and not jobs
-        return {"id": booking.id, "status": status, "garage": quote.payload["garage"],
+        starts_at = booking.scheduled_start or (slot.starts_at if slot else None)
+        ends_at = booking.scheduled_end or (slot.ends_at if slot else None)
+        scheduled_date = booking.booking_date
+        if scheduled_date is None and slot:
+            scheduled_date = slot.starts_at.astimezone(ZoneInfo(slot.timezone)).date()
+        can_cancel = status == "PENDING" and not jobs and (
+            slot is None or slot.starts_at > now()
+        )
+        return {"id": booking.id, "booking_id": booking.id, "quote_id": link.quote_id,
+                "status": status, "garage": quote.payload["garage"],
                 "vehicle": quote.payload["vehicle"], "services": quote.payload["services"],
-                "starts_at": slot.starts_at, "ends_at": slot.ends_at, "notes": quote.payload["notes"],
+                "scheduled_date": scheduled_date, "scheduled_start": starts_at,
+                "scheduled_end": ends_at, "starts_at": starts_at, "ends_at": ends_at,
+                "notes": quote.payload["notes"],
                 "attachment_ids": quote.payload["attachment_ids"],
                 "estimated_total": quote.payload["estimated_total"], "currency": "INR",
-                "can_cancel": can_cancel, "cancel_reason": None if can_cancel else "Only future PENDING bookings may be cancelled",
+                "can_cancel": can_cancel,
+                "cancel_reason": None if can_cancel else "Only PENDING bookings may be cancelled",
                 "linked_job_id": jobs[0].id if jobs else None,
                 "linked_job_status": jobs[0].status.value if jobs else None,
                 "created_at": booking.created_at}
