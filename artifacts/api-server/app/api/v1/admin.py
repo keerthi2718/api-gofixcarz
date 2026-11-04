@@ -121,10 +121,17 @@ async def garages(
     city: Annotated[str | None, Query(max_length=100)] = None,
     operational_status: Literal["ACTIVE", "SUSPENDED"] | None = None,
     verification_status: Literal["UNVERIFIED", "VERIFIED", "REJECTED"] | None = None,
+    location_issue: Annotated[bool | None, Query(
+        description="True: either coordinate is missing or outside latitude [-90, 90] / "
+        "longitude [-180, 180]. False: both coordinates are present and in range. "
+        "Omit for all locations; combine with operational_status=ACTIVE for active garages.",
+    )] = None,
     page: Page = 1, page_size: PageSize = 20,
 ):
     service = AdminService(session)
-    query = service.repo.garages_query(search, user_id, filters=AdminReadFilters(city=city))
+    query = service.repo.garages_query(
+        search, user_id, filters=AdminReadFilters(city=city), location_issue=location_issue,
+    )
     from app.models.garage import Garage
     if operational_status:
         query = query.where(Garage.operational_status == operational_status)

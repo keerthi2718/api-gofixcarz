@@ -75,7 +75,7 @@ class AdminRepository:
             query = query.where(User.role == role)
         return query.order_by(User.created_at.desc(), User.id.desc())
 
-    def garages_query(self, search=None, user_id=None, filters=None):
+    def garages_query(self, search=None, user_id=None, filters=None, location_issue=None):
         query = select(Garage).where(Garage.deleted_at.is_(None))
         if search:
             term = f"%{search}%"
@@ -84,6 +84,14 @@ class AdminRepository:
             ))
         if user_id is not None:
             query = query.where(Garage.user_id == user_id)
+        if location_issue is not None:
+            # Explicit NULL arms avoid SQL's unknown result for partial pins.
+            issue = or_(
+                Garage.latitude.is_(None), Garage.longitude.is_(None),
+                ~Garage.latitude.between(-90, 90),
+                ~Garage.longitude.between(-180, 180),
+            )
+            query = query.where(issue if location_issue else ~issue)
         return apply_admin_filters(query, filters).order_by(Garage.created_at.desc(), Garage.id.desc())
 
     def jobs_query(self, garage_id=None, status=None, search=None, date_from=None, date_to=None,

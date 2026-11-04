@@ -327,6 +327,12 @@
                   "value": "20",
                   "description": "Default: 20.",
                   "disabled": false
+                },
+                {
+                  "key": "location_issue",
+                  "value": "true",
+                  "disabled": true,
+                  "description": "Optional: true for missing/invalid pins, false for valid pairs. Combine with operational_status=ACTIVE for active garages."
                 }
               ]
             }

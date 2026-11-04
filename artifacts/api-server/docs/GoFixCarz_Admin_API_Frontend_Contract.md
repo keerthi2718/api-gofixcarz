@@ -287,10 +287,31 @@ Total: 70 operations (66 protected admin operations and 4 private auth operation
 - `city` — query; optional
 - `operational_status` — query; optional
 - `verification_status` — query; optional
+- `location_issue` — query; optional boolean. Omit for all locations; `true`
+  selects missing, partial, or out-of-range coordinates; `false` selects valid
+  coordinate pairs. Invalid boolean values return 422.
 - `page` — query; optional; integer; default: 1
 - `page_size` — query; optional; integer; default: 20
 
-**Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_GarageResponse_.
+**Success:** HTTP 200. `data` = Response data schema: components.schemas.PaginatedData_GarageListItem_.
+
+For support triage, use
+`/api/v1/admin/garages?operational_status=ACTIVE&location_issue=true`.
+The existing admin authentication, `garages.read` permission and assigned data
+scope still apply. All existing filters combine before counting and pagination;
+deleted garages remain excluded. No active/verified restriction is implied by
+the location filter itself.
+
+Each list item includes `job_card_count` and read-only `location_status`:
+- `MISSING`: either coordinate is null, including a partial pair. This takes
+  precedence if the other coordinate is out of range.
+- `INVALID`: both are present but latitude is outside [-90, 90] or longitude
+  outside [-180, 180].
+- `VALID`: both present and within those inclusive bounds. Zero is valid.
+
+Coordinates are returned unchanged. This is a diagnostic, not a repair or a
+guarantee of nearby-search inclusion; no verification, operations, bookings or
+customer search behavior changes.
 
 ### GET `https://api.gofixcarz.com/api/v1/admin/garages/{garage_id}`
 
@@ -3088,7 +3109,8 @@ _Operation: Owner Detail. Replace the sample IDs and filters with values for the
 
 ### GET /api/v1/admin/garages
 
-**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages?search=Aarav&user_id=11111111-1111-4111-8111-111111111111&city=Pune&operational_status=ACTIVE&verification_status=UNVERIFIED&page=1&page_size=20`  
+**Endpoint:** `https://api.gofixcarz.com/api/v1/admin/garages?search=Aarav&user_id=11111111-1111-4111-8111-111111111111&city=Pune&operational_status=ACTIVE&verification_status=UNVERIFIED&location_issue=true&page=1&page_size=20`
+
 **Request headers:**
 
 ```http
@@ -3125,8 +3147,10 @@ None.
           "<example>"
         ],
         "working_hours": {},
-        "latitude": "<example>",
-        "longitude": "<example>",
+        "latitude": null,
+        "longitude": null,
+        "location_status": "MISSING",
+        "job_card_count": 0,
         "logo_object_key": "<example>",
         "logo_url": "<example>",
         "created_at": "2026-10-12T10:30:00Z",

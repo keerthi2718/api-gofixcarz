@@ -47,7 +47,7 @@ Missing/invalid JWTs return 401; authenticated non-admin accounts return 403.
 | GET | `/users` | `search`, `is_active`, `role`, pagination |
 | GET | `/users/{user_id}` | User and their garages |
 | PATCH | `/users/{user_id}/status` | `{"is_active":false}` or `true` |
-| GET | `/garages` | `search`, `user_id`, pagination |
+| GET | `/garages` | `search`, `user_id`, `city`, `operational_status`, `verification_status`, `location_issue`, pagination |
 | GET | `/garages/{garage_id}` | Garage with job/revenue/billing issue totals |
 | GET | `/jobs` | `garage_id`, `status`, `search`, `date_from`, `date_to`, pagination |
 | GET | `/jobs/{job_id}` | Details, saved billing and timeline |
@@ -55,6 +55,30 @@ Missing/invalid JWTs return 401; authenticated non-admin accounts return 403.
 | GET | `/analytics` | Optional `garage_id`; `period=daily\|weekly\|monthly\|custom`; custom requires dates |
 | GET | `/billing/issues` | Optional `garage_id`, pagination; read-only |
 | GET | `/audit-logs` | `actor_id`, `action`, `date_from`, `date_to`, pagination |
+
+### Garage location triage
+
+`GET /api/v1/admin/garages?operational_status=ACTIVE&location_issue=true`
+finds non-deleted active garages whose map coordinates cannot be used in radius
+search. Requires the existing admin authentication, `garages.read` permission,
+and assigned garage data scope; the filter does not expand access.
+
+- Omit `location_issue` to keep the existing listing behavior. `true` selects
+  either coordinate being null or out of range; `false` selects both present and
+  in range. Invalid boolean values return 422.
+- `latitude` must be within [-90, 90], `longitude` within [-180, 180], inclusive.
+  Zero is valid. Partial pins are missing, never silently filled.
+- Each list item adds read-only `location_status`: `MISSING` if either coordinate
+  is null (even when the other is out of range), otherwise `INVALID` for
+  out-of-range coordinates, otherwise `VALID`. Stored coordinate values are
+  returned unchanged.
+- The filter combines with search, owner (`user_id`), city, operations and
+  verification filters before counting/pagination. It does not implicitly select
+  active or verified garages. Existing page limits and job counts are unchanged.
+- This diagnoses coordinate validity only, not overall discoverability:
+  valid pins do not guarantee inclusion for any radius, catalogue, or other
+  discovery criteria. No coordinates, verification/operational statuses,
+  booking eligibility or customer search behavior are changed.
 
 Pagination uses `page=1&page_size=20`, maximum page size 100. Responses use
 the existing envelope: `success`, `message`, `data`, `errors`, `status_code`.

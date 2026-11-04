@@ -4232,6 +4232,24 @@
             }
           },
           {
+            "name": "location_issue",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "True: either coordinate is missing or outside latitude [-90, 90] / longitude [-180, 180]. False: both coordinates are present and in range. Omit for all locations; combine with operational_status=ACTIVE for active garages.",
+              "title": "Location Issue"
+            },
+            "description": "True: either coordinate is missing or outside latitude [-90, 90] / longitude [-180, 180]. False: both coordinates are present and in range. Omit for all locations; combine with operational_status=ACTIVE for active garages."
+          },
+          {
             "name": "page",
             "in": "query",
             "required": false,
@@ -4261,7 +4279,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/APIResponse_PaginatedData_GarageResponse__"
+                  "$ref": "#/components/schemas/APIResponse_PaginatedData_GarageListItem__"
                 }
               }
             }
@@ -14183,6 +14201,293 @@
           "refresh_token"
         ],
         "additionalProperties": false
+      },
+      "APIResponse_PaginatedData_GarageListItem__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PaginatedData_GarageListItem_"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "errors": {
+            "items": {},
+            "type": "array",
+            "title": "Errors",
+            "default": []
+          },
+          "status_code": {
+            "type": "integer",
+            "title": "Status Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message",
+          "status_code"
+        ],
+        "title": "APIResponse[PaginatedData[GarageListItem]]"
+      },
+      "PaginatedData_GarageListItem_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GarageListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "pages"
+        ],
+        "title": "PaginatedData[GarageListItem]"
+      },
+      "GarageListItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "owner": {
+            "type": "string",
+            "title": "Owner"
+          },
+          "operational_status": {
+            "type": "string",
+            "title": "Operational Status",
+            "default": "ACTIVE"
+          },
+          "verification_status": {
+            "type": "string",
+            "title": "Verification Status",
+            "default": "VERIFIED"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "State"
+          },
+          "zipcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zipcode"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "alternate_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alternate Number"
+          },
+          "wheelers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wheelers"
+          },
+          "working_hours": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Working Hours"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "logo_object_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Object Key"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "job_card_count": {
+            "type": "integer",
+            "title": "Job Card Count",
+            "default": 0
+          },
+          "location_status": {
+            "type": "string",
+            "enum": [
+              "MISSING",
+              "INVALID",
+              "VALID"
+            ],
+            "title": "Location Status",
+            "description": "MISSING if either coordinate is null (including partial pins); otherwise INVALID if out of range, else VALID. Not a verification or booking status.",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "name",
+          "owner",
+          "created_at",
+          "updated_at",
+          "location_status"
+        ],
+        "title": "GarageListItem"
       }
     },
     "securitySchemes": {

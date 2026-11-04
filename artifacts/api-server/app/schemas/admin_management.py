@@ -1,7 +1,7 @@
 """Strict inputs for platform management; no client-controlled ownership."""
 from typing import Literal
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, computed_field, model_validator
 from app.schemas.admin_security import AdminDataScope
 from app.schemas.garage import GarageUpdate, GarageResponse
 
@@ -36,6 +36,16 @@ class GaragePatch(GarageUpdate):
 
 class GarageListItem(GarageResponse):
     job_card_count: int = 0
+
+    @computed_field(description="MISSING if either coordinate is null (including partial pins); "
+                    "otherwise INVALID if out of range, else VALID. Not a verification or booking status.")
+    @property
+    def location_status(self) -> Literal["MISSING", "INVALID", "VALID"]:
+        if self.latitude is None or self.longitude is None:
+            return "MISSING"
+        if not (-90 <= self.latitude <= 90 and -180 <= self.longitude <= 180):
+            return "INVALID"
+        return "VALID"
 
 
 class RoleCreate(Input):
