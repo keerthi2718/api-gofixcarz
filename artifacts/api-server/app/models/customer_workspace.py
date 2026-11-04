@@ -73,7 +73,11 @@ class CustomerBookingLink(Base):
     booking_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("bookings.id"), primary_key=True)
     customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customer_accounts.id"), index=True)
     vehicle_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customer_app_vehicles.id"), index=True)
-    slot_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customer_app_slots.id"))
+    # Earlier production bookings may have no slot. New request validation
+    # remains independent of this backward-compatible storage constraint.
+    slot_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("customer_app_slots.id"), nullable=True
+    )
     quote_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customer_app_resources.id"), unique=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     cancellation_reason: Mapped[str | None] = mapped_column(String(500))
