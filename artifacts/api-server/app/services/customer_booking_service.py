@@ -13,6 +13,7 @@ from app.models.service_package import ServicePackage
 from app.models.customer_workspace import AppointmentSlot, CustomerBookingLink, CustomerResource
 from app.models.admin_operations import AccountGarage
 from app.models.job import Job
+from app.repositories.booking_repository import BookingRepository
 from app.schemas.customer_workspace import QuoteRequest
 from app.services.customer_attachment_service import CustomerAttachmentService
 from app.services.customer_otp_service import fail
@@ -190,15 +191,19 @@ class CustomerBookingService(CustomerAttachmentService):
             date.fromisoformat(selection["scheduled_date"])
             if selection["scheduled_date"] else None
         )
-        booking = Booking(id=uuid4(), garage_id=quote.garage_id,
-                          customer_id=UUID(bridge.payload["contact_id"]), vehicle_id=UUID(bridge.payload["vehicle_id"]),
-                          status=BookingStatus.PENDING,
-                          booking_date=booking_date, scheduled_start=scheduled_start,
-                          scheduled_end=scheduled_end,
-                          notes=data.notes, customer_name=account.name, customer_mobile=identity.mobile,
-                          service_requested=", ".join(s["name"] for s in selection["services"]))
-        self.db.add(booking)
-        await self.db.flush()
+        # Use the same persisted model/repository read by the partner API.
+        # Tenant ownership comes only from the validated quote, never a
+        # request header or customer-supplied booking field.
+        booking = await BookingRepository(self.db).create(Booking(
+            id=uuid4(), garage_id=quote.garage_id,
+            customer_id=UUID(bridge.payload["contact_id"]),
+            vehicle_id=UUID(bridge.payload["vehicle_id"]),
+            status=BookingStatus.PENDING,
+            booking_date=booking_date, scheduled_start=scheduled_start,
+            scheduled_end=scheduled_end,
+            notes=data.notes, customer_name=account.name, customer_mobile=identity.mobile,
+            service_requested=", ".join(s["name"] for s in selection["services"]),
+        ))
         link = CustomerBookingLink(booking_id=booking.id, customer_id=self.customer_id,
                                    vehicle_id=data.vehicle_id, slot_id=slot_id, quote_id=quote.id)
         self.db.add(link)
