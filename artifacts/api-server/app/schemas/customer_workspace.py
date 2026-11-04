@@ -65,7 +65,7 @@ class QuoteRequest(StrictInput):
     garage_id: UUID
     vehicle_id: UUID
     service_ids: list[UUID] = Field(min_length=1, max_length=20)
-    slot_id: UUID | None = None
+    slot_id: UUID
     notes: str | None = Field(default=None, max_length=2000)
     attachment_ids: list[UUID] = Field(default_factory=list, max_length=5)
 
@@ -78,21 +78,6 @@ class QuoteRequest(StrictInput):
 
 class BookingSubmit(StrictInput):
     quote_id: UUID
-
-
-class BookingScheduleUpdate(StrictInput):
-    scheduled_start: datetime
-    scheduled_end: datetime
-
-    @model_validator(mode="after")
-    def valid_schedule(self):
-        if self.scheduled_start.tzinfo is None or self.scheduled_start.utcoffset() is None:
-            raise ValueError("scheduled_start must include a timezone offset")
-        if self.scheduled_end.tzinfo is None or self.scheduled_end.utcoffset() is None:
-            raise ValueError("scheduled_end must include a timezone offset")
-        if self.scheduled_end <= self.scheduled_start:
-            raise ValueError("scheduled_end must be after scheduled_start")
-        return self
 
 
 class CancelRequest(StrictInput):

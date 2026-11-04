@@ -16,10 +16,6 @@ class BookingResponse(BaseModel):
     vehicle_id: Optional[uuid.UUID] = None
     status: BookingStatus
     booking_date: Optional[date] = None
-    owner_accepted_at: Optional[datetime] = None
-    scheduled_date: Optional[date] = None
-    scheduled_start: Optional[datetime] = None
-    scheduled_end: Optional[datetime] = None
     notes: Optional[str] = None
     customer_name: Optional[str] = None
     customer_mobile: Optional[str] = None

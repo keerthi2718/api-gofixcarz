@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +10,6 @@ from app.repositories.job_repository import JobRepository
 from app.schemas.booking import BookingDetailResponse, BookingResponse
 from app.schemas.job import JobCreate, JobResponse
 from app.schemas.response import PaginatedData
-from app.models.customer_workspace import CustomerBookingLink
 
 
 class BookingService:
@@ -49,20 +47,10 @@ class BookingService:
         booking = await self.repo.get_by_id(booking_id, garage_id)
         if not booking:
             raise NotFoundException("Booking not found")
-        if booking.status != BookingStatus.PENDING or booking.owner_accepted_at is not None:
+        if booking.status != BookingStatus.PENDING:
             raise BadRequestException(f"Only PENDING bookings can be accepted (current: {booking.status.value})")
         from app.services.customer_booking_guards import validate_customer_appointment
         await validate_customer_appointment(self.repo.session, booking)
-        booking.owner_accepted_at = datetime.now(timezone.utc)
-        link = await self.repo.session.get(CustomerBookingLink, booking.id)
-        if link and link.slot_id is None and booking.scheduled_start is None:
-            # The owner has agreed to the request, but the customer's booking
-            # remains pending until an actual appointment time is confirmed.
-            booking.updated_at = booking.owner_accepted_at
-            await self.repo.session.flush()
-            await self.repo.session.refresh(booking)
-            await record_booking_event(self.repo.session, booking, "OWNER_ACCEPTED")
-            return BookingResponse.model_validate(booking)
         updated = await self.repo.update_status(booking, BookingStatus.ACCEPTED)
         await record_booking_event(self.repo.session, updated, "ACCEPTED")
         return BookingResponse.model_validate(updated)
@@ -81,53 +69,6 @@ class BookingService:
         await record_booking_event(self.repo.session, updated, "REJECTED")
         return BookingResponse.model_validate(updated)
 
-    async def assign_schedule(
-        self,
-        garage_id: uuid.UUID,
-        booking_id: uuid.UUID,
-        scheduled_start: datetime,
-        scheduled_end: datetime,
-    ) -> BookingResponse:
-        from app.services.admin_booking_history import lock_booking, record_booking_event
-
-        await lock_booking(self.repo.session, garage_id, booking_id)
-        booking = await self.repo.get_by_id(booking_id, garage_id)
-        if not booking:
-            raise NotFoundException("Booking not found")
-        pending_confirmation = (
-            booking.status == BookingStatus.PENDING and booking.owner_accepted_at is not None
-        )
-        if booking.status != BookingStatus.ACCEPTED and not pending_confirmation:
-            raise BadRequestException("The garage must accept the booking before assigning a schedule")
-        if scheduled_start <= datetime.now(timezone.utc):
-            raise BadRequestException("Appointment start must be in the future")
-        link = await self.repo.session.get(CustomerBookingLink, booking.id)
-        if link and link.slot_id is not None:
-            raise BadRequestException("This booking already has an appointment slot")
-        if (
-            booking.scheduled_start == scheduled_start
-            and booking.scheduled_end == scheduled_end
-            and booking.booking_date == scheduled_start.date()
-        ):
-            return BookingResponse.model_validate(booking)
-
-        was_scheduled = booking.scheduled_start is not None
-        booking.booking_date = scheduled_start.date()
-        booking.scheduled_start = scheduled_start
-        booking.scheduled_end = scheduled_end
-        if pending_confirmation:
-            booking.status = BookingStatus.ACCEPTED
-        booking.updated_at = datetime.now(timezone.utc)
-        await self.repo.session.flush()
-        await self.repo.session.refresh(booking)
-        if pending_confirmation:
-            await record_booking_event(self.repo.session, booking, "ACCEPTED")
-        await record_booking_event(
-            self.repo.session, booking, "RESCHEDULED" if was_scheduled else "SCHEDULED",
-            event_key=f"{booking.id}:schedule:{uuid.uuid4()}",
-        )
-        return BookingResponse.model_validate(booking)
-
     async def create_job_from_booking(
         self, garage_id: uuid.UUID, booking_id: uuid.UUID
     ) -> JobResponse:
@@ -138,9 +79,6 @@ class BookingService:
             raise NotFoundException("Booking not found")
         if booking.status not in (BookingStatus.PENDING, BookingStatus.ACCEPTED):
             raise BadRequestException("Only PENDING or ACCEPTED bookings may be converted to jobs")
-        link = await self.repo.session.get(CustomerBookingLink, booking.id)
-        if link and link.slot_id is None and booking.scheduled_start is None:
-            raise BadRequestException("Confirm an appointment time before creating a job")
         # Conversion of previously accepted work remains allowed while suspended.
         if booking.status == BookingStatus.PENDING:
             await ensure_new_work(self.repo.session, garage_id)

@@ -1,6 +1,5 @@
 """Real development SQL discovery-to-booking journeys, always rolled back."""
 import math
-from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 import pytest
@@ -87,85 +86,6 @@ async def test_new_owner_garage_defaults_to_verified(workspace):
         GarageCreate(name="Verified by default", owner="New Garage Owner"),
     )
     assert garage.verification_status == "VERIFIED"
-
-
-async def test_owner_created_service_syncs_to_customer_catalogue(workspace):
-    d = workspace
-    garage = d["garage"]
-    garage_id = str(garage.id)
-    old = datetime(2020, 1, 1, tzinfo=timezone.utc)
-    d["service"].created_at = old
-    d["service"].updated_at = old
-    d["db"].add_all([
-        ServicePackage(
-            garage_id=garage.id, name=f"Legacy package {index:02d}",
-            description="Older catalogue entry", price=100 + index,
-            duration_minutes=30, is_active=True, created_at=old, updated_at=old,
-        )
-        for index in range(25)
-    ])
-    other = await extra_garage(d, "Customer Sync Other Garage", services=0)
-    other_package = ServicePackage(
-        garage_id=other.id, name="Other garage only", price=999,
-        duration_minutes=90, is_active=True,
-    )
-    d["db"].add(other_package)
-    await d["db"].flush()
-
-    created = (await d["call"]("POST", "/api/v1/service-packages", expected=201, json={
-        "name": "Fresh owner service", "description": "Newly listed package",
-        "price": "725.50", "duration_minutes": 45, "is_active": True,
-    })).json()["data"]
-    inactive = (await d["call"]("POST", "/api/v1/service-packages", expected=201, json={
-        "name": "Inactive owner service", "description": "Should stay hidden",
-        "price": "125.00", "duration_minutes": 20, "is_active": False,
-    })).json()["data"]
-    assert created["garage_id"] == garage_id
-
-    listing_response = await d["call"]("GET", f"/garages/{garage_id}/services")
-    listing = listing_response.json()["data"]
-    assert listing_response.json()["success"] is True
-    assert listing["page"] == 1 and listing["page_size"] == 100 and listing["pages"] == 1
-    assert listing["total"] == len(listing["items"]) == 27
-    assert listing["items"][0]["id"] == created["id"]
-    listed_ids = {item["id"] for item in listing["items"]}
-    assert str(other_package.id) not in listed_ids
-    assert all(item["is_active"] is True for item in listing["items"])
-    assert inactive["id"] not in {item["id"] for item in listing["items"]}
-
-    created_item = next(item for item in listing["items"] if item["id"] == created["id"])
-    assert created_item["name"] == "Fresh owner service"
-    assert created_item["description"] == "Newly listed package"
-    assert created_item["price"] == created["price"] == 725.5
-    assert created_item["duration_minutes"] == created["duration_minutes"] == 45
-    assert created_item["is_active"] is True
-
-    updated = (await d["call"](
-        "PUT", f"/api/v1/service-packages/{created['id']}",
-        json={
-            "name": "Fresh owner service updated", "description": "Updated package",
-            "price": "875.25", "duration_minutes": 60,
-        },
-    )).json()["data"]
-    updated_results = (await d["call"](
-        "GET", f"/garages/{garage_id}/services",
-        params={"q": "Fresh owner service updated"},
-    )).json()["data"]
-    assert updated_results["total"] == 1
-    assert updated_results["items"][0]["id"] == updated["id"]
-    assert updated_results["items"][0]["name"] == updated["name"]
-    assert updated_results["items"][0]["price"] == updated["price"] == 875.25
-    assert updated_results["items"][0]["duration_minutes"] == updated["duration_minutes"] == 60
-    assert updated_results["items"][0]["description"] == "Updated package"
-
-    await d["call"](
-        "PUT", f"/api/v1/service-packages/{created['id']}", json={"is_active": False},
-    )
-    deactivated_results = (await d["call"](
-        "GET", f"/garages/{garage_id}/services",
-        params={"q": "Fresh owner service updated"},
-    )).json()["data"]
-    assert deactivated_results["items"] == [] and deactivated_results["total"] == 0
 
 
 async def test_radius_distance_sorting_detail_and_location_privacy(workspace):

@@ -15,7 +15,7 @@ DELIVERY_TABLE = "0008_sms_delivery"
 DELIVERY_HEAD = "0009_sms_delivery_retention"
 # Administrative/customer migrations follow the approved delivery target. Recognizing
 # this known head does not authorize applying it during delivery-only startup.
-REVIEWED_CODE_HEAD = "0018_owner_booking_confirmation"
+REVIEWED_CODE_HEAD = "0016_customer_workspace"
 # Transaction-level lock serializes concurrently starting production instances.
 MIGRATION_LOCK = 70991009
 

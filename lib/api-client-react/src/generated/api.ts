@@ -21,11 +21,8 @@ import type {
 
 import type {
   APIResponse,
-  APIResponseBookingResponse,
   APIResponseChallengeResponse,
   APIResponseContactResponse,
-  APIResponseCustomerBookingResponse,
-  APIResponseCustomerQuoteResponse,
   APIResponseDict,
   APIResponseDiscoveryGarage,
   APIResponseGarageSearchResults,
@@ -38,7 +35,6 @@ import type {
   AppSchemasResponseAPIResponseProfileResponse1,
   AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams,
   BodyAttachmentUploadApiV1CustomerAppAttachmentsPost,
-  BookingScheduleUpdate,
   BookingSubmit,
   BookingsApiV1CustomerAppBookingsGetParams,
   CancelRequest,
@@ -49,7 +45,6 @@ import type {
   ConversationsApiV1CustomerAppConversationsGetParams,
   DeviceRequest,
   GarageSearch,
-  HTTPValidationError,
   HealthStatus,
   InvoicesApiV1CustomerAppInvoicesGetParams,
   JobsApiV1CustomerAppJobsGetParams,
@@ -2297,9 +2292,9 @@ export const getQuoteApiV1CustomerAppBookingsQuotePostUrl = () => {
 /**
  * @summary Quote
  */
-export const quoteApiV1CustomerAppBookingsQuotePost = async (quoteRequest: QuoteRequest, options?: RequestInit): Promise<APIResponseCustomerQuoteResponse> => {
+export const quoteApiV1CustomerAppBookingsQuotePost = async (quoteRequest: QuoteRequest, options?: RequestInit): Promise<APIResponseDict> => {
 
-  return customFetch<APIResponseCustomerQuoteResponse>(getQuoteApiV1CustomerAppBookingsQuotePostUrl(),
+  return customFetch<APIResponseDict>(getQuoteApiV1CustomerAppBookingsQuotePostUrl(),
   {
     ...options,
     method: 'POST',
@@ -2368,9 +2363,9 @@ export const getSubmitApiV1CustomerAppBookingsPostUrl = () => {
 /**
  * @summary Submit
  */
-export const submitApiV1CustomerAppBookingsPost = async (bookingSubmit: BookingSubmit, options?: RequestInit): Promise<APIResponseCustomerBookingResponse> => {
+export const submitApiV1CustomerAppBookingsPost = async (bookingSubmit: BookingSubmit, options?: RequestInit): Promise<APIResponseDict> => {
 
-  return customFetch<APIResponseCustomerBookingResponse>(getSubmitApiV1CustomerAppBookingsPostUrl(),
+  return customFetch<APIResponseDict>(getSubmitApiV1CustomerAppBookingsPostUrl(),
   {
     ...options,
     method: 'POST',
@@ -2523,9 +2518,9 @@ export const getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl = (bookingI
 /**
  * @summary Booking Detail
  */
-export const bookingDetailApiV1CustomerAppBookingsBookingIdGet = async (bookingId: string, options?: RequestInit): Promise<APIResponseCustomerBookingResponse> => {
+export const bookingDetailApiV1CustomerAppBookingsBookingIdGet = async (bookingId: string, options?: RequestInit): Promise<APIResponseDict> => {
 
-  return customFetch<APIResponseCustomerBookingResponse>(getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl(bookingId),
+  return customFetch<APIResponseDict>(getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl(bookingId),
   {
     ...options,
     method: 'GET'
@@ -4989,78 +4984,5 @@ export const useTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPost = 
         TContext
       > => {
       return useMutation(getTicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostMutationOptions(options));
-    }
-
-export const getAssignBookingScheduleApiV1BookingsBookingIdSchedulePatchUrl = (bookingId: string,) => {
-
-
-
-
-  return `/api/v1/bookings/${bookingId}/schedule`
-}
-
-/**
- * Assign or update an appointment time for an accepted booking.
- * @summary Assign Booking Schedule
- */
-export const assignBookingScheduleApiV1BookingsBookingIdSchedulePatch = async (bookingId: string,
-    bookingScheduleUpdate: BookingScheduleUpdate, options?: RequestInit): Promise<APIResponseBookingResponse> => {
-
-  return customFetch<APIResponseBookingResponse>(getAssignBookingScheduleApiV1BookingsBookingIdSchedulePatchUrl(bookingId),
-  {
-    ...options,
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(bookingScheduleUpdate)
-  }
-);}
-
-
-
-
-
-export const getAssignBookingScheduleApiV1BookingsBookingIdSchedulePatchMutationOptions = <TError = ErrorType<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignBookingScheduleApiV1BookingsBookingIdSchedulePatch>>, TError,{bookingId: string;data: BodyType<BookingScheduleUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof assignBookingScheduleApiV1BookingsBookingIdSchedulePatch>>, TError,{bookingId: string;data: BodyType<BookingScheduleUpdate>}, TContext> => {
-
-const mutationKey = ['assignBookingScheduleApiV1BookingsBookingIdSchedulePatch'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof assignBookingScheduleApiV1BookingsBookingIdSchedulePatch>>, {bookingId: string;data: BodyType<BookingScheduleUpdate>}> = (props) => {
-          const {bookingId,data} = props ?? {};
-
-          return  assignBookingScheduleApiV1BookingsBookingIdSchedulePatch(bookingId,data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type AssignBookingScheduleApiV1BookingsBookingIdSchedulePatchMutationResult = NonNullable<Awaited<ReturnType<typeof assignBookingScheduleApiV1BookingsBookingIdSchedulePatch>>>
-    export type AssignBookingScheduleApiV1BookingsBookingIdSchedulePatchMutationBody = BodyType<BookingScheduleUpdate>
-    export type AssignBookingScheduleApiV1BookingsBookingIdSchedulePatchMutationError = ErrorType<HTTPValidationError>
-
-    /**
- * @summary Assign Booking Schedule
- */
-export const useAssignBookingScheduleApiV1BookingsBookingIdSchedulePatch = <TError = ErrorType<HTTPValidationError>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof assignBookingScheduleApiV1BookingsBookingIdSchedulePatch>>, TError,{bookingId: string;data: BodyType<BookingScheduleUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof assignBookingScheduleApiV1BookingsBookingIdSchedulePatch>>,
-        TError,
-        {bookingId: string;data: BodyType<BookingScheduleUpdate>},
-        TContext
-      > => {
-      return useMutation(getAssignBookingScheduleApiV1BookingsBookingIdSchedulePatchMutationOptions(options));
     }
 

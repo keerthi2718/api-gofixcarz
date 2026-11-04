@@ -856,7 +856,7 @@ paths:
           type: integer
           maximum: 100
           minimum: 1
-          default: 100
+          default: 20
           title: Page Size
       - name: q
         in: query
@@ -1640,7 +1640,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIResponse_CustomerQuoteResponse_'
+                $ref: '#/components/schemas/APIResponse_dict_'
         '401':
           description: Customer authentication/session required
           content:
@@ -1702,7 +1702,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIResponse_CustomerBookingResponse_'
+                $ref: '#/components/schemas/APIResponse_dict_'
         '401':
           description: Customer authentication/session required
           content:
@@ -1851,7 +1851,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIResponse_CustomerBookingResponse_'
+                $ref: '#/components/schemas/APIResponse_dict_'
         '401':
           description: Customer authentication/session required
           content:
@@ -3780,42 +3780,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIResponse'
-  /v1/bookings/{booking_id}/schedule:
-    patch:
-      tags:
-      - Bookings
-      summary: Assign Booking Schedule
-      description: Assign or update an appointment time for an accepted booking.
-      operationId: assign_booking_schedule_api_v1_bookings__booking_id__schedule_patch
-      security:
-      - HTTPBearer: []
-      parameters:
-      - name: booking_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: Booking Id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BookingScheduleUpdate'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIResponse_BookingResponse_'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
 components:
   schemas:
     HealthStatus:
@@ -4466,10 +4430,8 @@ components:
           minItems: 1
           title: Service Ids
         slot_id:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
+          type: string
+          format: uuid
           title: Slot Id
         notes:
           anyOf:
@@ -4490,6 +4452,7 @@ components:
       - garage_id
       - vehicle_id
       - service_ids
+      - slot_id
       title: QuoteRequest
     CancelRequest:
       properties:
@@ -5060,10 +5023,6 @@ components:
           - type: string
           - type: 'null'
           title: Description
-        price:
-          type: number
-          title: Price
-          description: INR major units, matching owner service-package responses
         price_inr:
           type: string
           pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
@@ -5082,9 +5041,6 @@ components:
           - type: integer
           - type: 'null'
           title: Duration Minutes
-        is_active:
-          type: boolean
-          title: Is Active
         booking_eligible:
           type: boolean
           title: Booking Eligible
@@ -5098,11 +5054,9 @@ components:
       - id
       - name
       - description
-      - price
       - price_inr
       - amount
       - duration_minutes
-      - is_active
       - booking_eligible
       - unavailable_reason
       title: DiscoveryService
@@ -5202,499 +5156,6 @@ components:
       - booking_eligible
       - booking_prerequisites
       title: DiscoveryGarage
-    APIResponse_CustomerBookingResponse_:
-      properties:
-        success:
-          type: boolean
-          title: Success
-        message:
-          type: string
-          title: Message
-        data:
-          anyOf:
-          - $ref: '#/components/schemas/CustomerBookingResponse'
-          - type: 'null'
-        errors:
-          items: {}
-          type: array
-          title: Errors
-          default: []
-        status_code:
-          type: integer
-          title: Status Code
-      type: object
-      required:
-      - success
-      - message
-      - status_code
-      title: APIResponse[CustomerBookingResponse]
-    CustomerBookingResponse:
-      properties:
-        garage:
-          $ref: '#/components/schemas/BookingGarage'
-        vehicle:
-          $ref: '#/components/schemas/BookingVehicle'
-        services:
-          items:
-            $ref: '#/components/schemas/BookingSelectedService'
-          type: array
-          title: Services
-        slot_id:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
-          title: Slot Id
-        scheduled_date:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Scheduled Date
-        scheduled_start:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Scheduled Start
-        scheduled_end:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Scheduled End
-        starts_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Starts At
-        ends_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Ends At
-        notes:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Notes
-        attachment_ids:
-          items:
-            type: string
-            format: uuid
-          type: array
-          title: Attachment Ids
-        estimated_total:
-          type: integer
-          title: Estimated Total
-        currency:
-          type: string
-          title: Currency
-        id:
-          type: string
-          format: uuid
-          title: Id
-        booking_id:
-          type: string
-          format: uuid
-          title: Booking Id
-        quote_id:
-          type: string
-          format: uuid
-          title: Quote Id
-        status:
-          $ref: '#/components/schemas/BookingStatus'
-        can_cancel:
-          type: boolean
-          title: Can Cancel
-        cancel_reason:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Cancel Reason
-        linked_job_id:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
-          title: Linked Job Id
-        linked_job_status:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Linked Job Status
-        created_at:
-          type: string
-          format: date-time
-          title: Created At
-      type: object
-      required:
-      - garage
-      - vehicle
-      - services
-      - attachment_ids
-      - estimated_total
-      - currency
-      - id
-      - booking_id
-      - quote_id
-      - status
-      - can_cancel
-      - created_at
-      title: CustomerBookingResponse
-    BookingScheduleUpdate:
-      properties:
-        scheduled_start:
-          type: string
-          format: date-time
-          title: Scheduled Start
-        scheduled_end:
-          type: string
-          format: date-time
-          title: Scheduled End
-      additionalProperties: false
-      type: object
-      required:
-      - scheduled_start
-      - scheduled_end
-      title: BookingScheduleUpdate
-    APIResponse_BookingResponse_:
-      properties:
-        success:
-          type: boolean
-          title: Success
-        message:
-          type: string
-          title: Message
-        data:
-          anyOf:
-          - $ref: '#/components/schemas/BookingResponse'
-          - type: 'null'
-        errors:
-          items: {}
-          type: array
-          title: Errors
-          default: []
-        status_code:
-          type: integer
-          title: Status Code
-      type: object
-      required:
-      - success
-      - message
-      - status_code
-      title: APIResponse[BookingResponse]
-    BookingVehicle:
-      properties:
-        id:
-          type: string
-          format: uuid
-          title: Id
-        registration_number:
-          type: string
-          title: Registration Number
-        brand:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Brand
-        model:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Model
-        year:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Year
-      type: object
-      required:
-      - id
-      - registration_number
-      title: BookingVehicle
-    BookingResponse:
-      properties:
-        id:
-          type: string
-          format: uuid
-          title: Id
-        garage_id:
-          type: string
-          format: uuid
-          title: Garage Id
-        customer_id:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
-          title: Customer Id
-        vehicle_id:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
-          title: Vehicle Id
-        status:
-          $ref: '#/components/schemas/BookingStatus'
-        booking_date:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Booking Date
-        owner_accepted_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Owner Accepted At
-        scheduled_date:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Scheduled Date
-        scheduled_start:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Scheduled Start
-        scheduled_end:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Scheduled End
-        notes:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Notes
-        customer_name:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Customer Name
-        customer_mobile:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Customer Mobile
-        service_requested:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Service Requested
-        created_at:
-          type: string
-          format: date-time
-          title: Created At
-        updated_at:
-          type: string
-          format: date-time
-          title: Updated At
-      type: object
-      required:
-      - id
-      - garage_id
-      - status
-      - created_at
-      - updated_at
-      title: BookingResponse
-    APIResponse_CustomerQuoteResponse_:
-      properties:
-        success:
-          type: boolean
-          title: Success
-        message:
-          type: string
-          title: Message
-        data:
-          anyOf:
-          - $ref: '#/components/schemas/CustomerQuoteResponse'
-          - type: 'null'
-        errors:
-          items: {}
-          type: array
-          title: Errors
-          default: []
-        status_code:
-          type: integer
-          title: Status Code
-      type: object
-      required:
-      - success
-      - message
-      - status_code
-      title: APIResponse[CustomerQuoteResponse]
-    BookingSelectedService:
-      properties:
-        id:
-          type: string
-          format: uuid
-          title: Id
-        name:
-          type: string
-          title: Name
-        amount:
-          type: integer
-          title: Amount
-        duration_minutes:
-          anyOf:
-          - type: integer
-          - type: 'null'
-          title: Duration Minutes
-      type: object
-      required:
-      - id
-      - name
-      - amount
-      title: BookingSelectedService
-    CustomerQuoteResponse:
-      properties:
-        garage:
-          $ref: '#/components/schemas/BookingGarage'
-        vehicle:
-          $ref: '#/components/schemas/BookingVehicle'
-        services:
-          items:
-            $ref: '#/components/schemas/BookingSelectedService'
-          type: array
-          title: Services
-        slot_id:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
-          title: Slot Id
-        scheduled_date:
-          anyOf:
-          - type: string
-            format: date
-          - type: 'null'
-          title: Scheduled Date
-        scheduled_start:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Scheduled Start
-        scheduled_end:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Scheduled End
-        starts_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Starts At
-        ends_at:
-          anyOf:
-          - type: string
-            format: date-time
-          - type: 'null'
-          title: Ends At
-        notes:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Notes
-        attachment_ids:
-          items:
-            type: string
-            format: uuid
-          type: array
-          title: Attachment Ids
-        estimated_total:
-          type: integer
-          title: Estimated Total
-        currency:
-          type: string
-          title: Currency
-        quote_id:
-          type: string
-          format: uuid
-          title: Quote Id
-        expires_at:
-          type: string
-          format: date-time
-          title: Expires At
-        slot_reserved:
-          type: boolean
-          title: Slot Reserved
-      type: object
-      required:
-      - garage
-      - vehicle
-      - services
-      - attachment_ids
-      - estimated_total
-      - currency
-      - quote_id
-      - expires_at
-      - slot_reserved
-      title: CustomerQuoteResponse
-    HTTPValidationError:
-      properties:
-        detail:
-          items:
-            $ref: '#/components/schemas/ValidationError'
-          type: array
-          title: Detail
-      type: object
-      title: HTTPValidationError
-    ValidationError:
-      properties:
-        loc:
-          items:
-            anyOf:
-            - type: string
-            - type: integer
-          type: array
-          title: Location
-        msg:
-          type: string
-          title: Message
-        type:
-          type: string
-          title: Error Type
-        input:
-          title: Input
-        ctx:
-          type: object
-          title: Context
-      type: object
-      required:
-      - loc
-      - msg
-      - type
-      title: ValidationError
-    BookingGarage:
-      properties:
-        id:
-          type: string
-          format: uuid
-          title: Id
-        name:
-          type: string
-          title: Name
-        address:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Address
-      type: object
-      required:
-      - id
-      - name
-      title: BookingGarage
   securitySchemes:
     HTTPBearer:
       type: http

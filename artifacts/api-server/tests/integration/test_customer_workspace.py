@@ -4,10 +4,9 @@ import json
 import os
 import re
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import timedelta
 from types import SimpleNamespace
 from uuid import UUID, uuid4
-from zoneinfo import ZoneInfo
 from PIL import Image
 import pytest
 import pytest_asyncio
@@ -240,133 +239,6 @@ async def test_booking_capacity_idempotency_cancellation_and_customer_isolation(
     with pytest.raises(BadRequestException):
         await BookingService(d["db"]).accept(d["garage"].id, UUID(b["id"]))
     await quote(d, v)  # Cancellation released capacity.
-
-
-@pytest.mark.parametrize("owner_action", ["accept", "reject"])
-async def test_customer_booking_without_slot_and_owner_schedule(workspace, owner_action):
-    d = workspace
-    extra_service = ServicePackage(
-        id=uuid4(), garage_id=d["garage"].id, name="Additional Inspection",
-        price=325, duration_minutes=30, is_active=True,
-    )
-    d["db"].add(extra_service)
-    await d["db"].flush()
-    v = await vehicle(d)
-
-    quote_response = await d["call"]("POST", "/bookings/quote", json={
-        "garage_id": str(d["garage"].id),
-        "vehicle_id": v["id"],
-        "service_ids": [str(d["service"].id), str(extra_service.id)],
-        "notes": "",
-        "attachment_ids": [],
-    })
-    q = quote_response.json()["data"]
-    quote_id = UUID(q["quote_id"])
-    assert str(quote_id) == q["quote_id"]
-    assert q["slot_id"] is None
-    assert q["scheduled_date"] is None
-    assert q["scheduled_start"] is None and q["scheduled_end"] is None
-    assert len(q["services"]) == 2
-    assert q["estimated_total"] == 182500
-
-    key = uuid4().hex
-    b = await booking(d, q, key)
-    assert (await booking(d, q, key))["booking_id"] == b["booking_id"]
-    booking_id = UUID(b["booking_id"])
-    assert b["id"] == b["booking_id"]
-    assert b["quote_id"] == str(quote_id)
-    assert b["status"] == "PENDING"
-    assert b["scheduled_date"] is None
-    assert b["scheduled_start"] is None and b["scheduled_end"] is None
-    link = await d["db"].get(CustomerBookingLink, booking_id)
-    assert link and link.slot_id is None
-    assert (await d["db"].execute(select(AppointmentSlot.id).where(
-        AppointmentSlot.garage_id == d["garage"].id
-    ))).scalars().all() == [d["slot"].id]
-
-    scheduled_start = now().astimezone(ZoneInfo("Asia/Kolkata")).replace(
-        hour=0, minute=30, second=0, microsecond=0
-    ) + timedelta(days=5)
-    scheduled_end = scheduled_start + timedelta(hours=1)
-    schedule = {
-        "scheduled_start": scheduled_start.isoformat(),
-        "scheduled_end": scheduled_end.isoformat(),
-    }
-    await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/schedule",
-                    expected=400, json=schedule)
-
-    owner_list = (await d["call"]("GET", "/api/v1/bookings")).json()["data"]
-    assert b["id"] in [item["id"] for item in owner_list["items"]]
-    decision = (await d["call"](
-        "PATCH", f"/api/v1/bookings/{b['id']}/{owner_action}"
-    )).json()["data"]
-    current = (await d["call"]("GET", f"/bookings/{b['id']}")).json()["data"]
-
-    if owner_action == "reject":
-        assert current["status"] == "REJECTED"
-        assert current["scheduled_date"] is None
-        return
-
-    assert current["status"] == "PENDING"
-    assert decision["owner_accepted_at"] is not None
-    assert current["scheduled_date"] is None
-    await d["call"]("POST", f"/api/v1/bookings/{b['id']}/create-job", expected=400)
-    await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/schedule", expected=422, json={
-        "scheduled_start": scheduled_start.replace(tzinfo=None).isoformat(),
-        "scheduled_end": scheduled_end.replace(tzinfo=None).isoformat(),
-    })
-    await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/schedule", expected=422, json={
-        "scheduled_start": scheduled_end.isoformat(),
-        "scheduled_end": scheduled_start.isoformat(),
-    })
-    assigned = await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/schedule", json={
-        "scheduled_start": scheduled_start.isoformat(),
-        "scheduled_end": scheduled_end.isoformat(),
-    })
-    owner_booking = assigned.json()["data"]
-    assert owner_booking["status"] == "ACCEPTED"
-    assert owner_booking["scheduled_date"] == scheduled_start.date().isoformat()
-
-    customer_booking = (await d["call"]("GET", f"/bookings/{b['id']}")).json()["data"]
-    assert customer_booking["booking_id"] == b["id"]
-    assert customer_booking["quote_id"] == str(quote_id)
-    assert customer_booking["status"] == "ACCEPTED"
-    assert customer_booking["scheduled_date"] == scheduled_start.date().isoformat()
-    assert datetime.fromisoformat(customer_booking["scheduled_start"]) == scheduled_start
-    assert datetime.fromisoformat(customer_booking["scheduled_end"]) == scheduled_end
-    assert customer_booking["garage"]["id"] == str(d["garage"].id)
-    assert customer_booking["vehicle"]["id"] == v["id"]
-    assert len(customer_booking["services"]) == 2
-    assert customer_booking["estimated_total"] == 182500
-    for day_offset in (6, 7):
-        new_start = scheduled_start + timedelta(days=day_offset)
-        new_end = scheduled_end + timedelta(days=day_offset)
-        await d["call"]("PATCH", f"/api/v1/bookings/{b['id']}/schedule", json={
-            "scheduled_start": new_start.isoformat(), "scheduled_end": new_end.isoformat(),
-        })
-    current = (await d["call"]("GET", f"/bookings/{b['id']}")).json()["data"]
-    assert datetime.fromisoformat(current["scheduled_start"]) == new_start
-    assert (await d["db"].get(CustomerBookingLink, booking_id)).slot_id is None
-
-
-@pytest.mark.parametrize("explicit_null", [False, True])
-async def test_single_service_quote_without_slot_or_duration(workspace, explicit_null):
-    d = workspace
-    d["service"].duration_minutes = None
-    await d["db"].flush()
-    v = await vehicle(d)
-    payload = {
-        "garage_id": str(d["garage"].id), "vehicle_id": v["id"],
-        "service_ids": [str(d["service"].id)], "notes": "", "attachment_ids": [],
-    }
-    if explicit_null:
-        payload["slot_id"] = None
-    q = (await d["call"]("POST", "/bookings/quote", json=payload)).json()["data"]
-    assert UUID(q["quote_id"]) and q["slot_id"] is None
-    assert q["estimated_total"] == 150000
-    assert q["services"][0]["duration_minutes"] is None
-    b = await booking(d, q)
-    assert b["status"] == "PENDING" and b["scheduled_date"] is None
 
 
 async def test_tracking_publication_invoices_confirmed_finance_and_reviews(workspace):

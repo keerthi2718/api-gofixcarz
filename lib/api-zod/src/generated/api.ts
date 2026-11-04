@@ -499,12 +499,10 @@ export const SearchApiV1CustomerAppGaragesSearchPostResponse = zod.object({
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
-  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(searchApiV1CustomerAppGaragesSearchPostResponseDataOneItemsItemServicesItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(searchApiV1CustomerAppGaragesSearchPostResponseDataOneItemsItemServicesItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
-  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -557,12 +555,10 @@ export const DetailApiV1CustomerAppGaragesGarageIdGetResponse = zod.object({
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
-  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(detailApiV1CustomerAppGaragesGarageIdGetResponseDataOneServicesItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(detailApiV1CustomerAppGaragesGarageIdGetResponseDataOneServicesItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
-  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -627,12 +623,10 @@ export const LocatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostResponse = z
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
-  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostResponseDataOneServicesItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(locatedDetailApiV1CustomerAppGaragesGarageIdDetailsPostResponseDataOneServicesItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
-  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -656,7 +650,7 @@ export const ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = zod.obje
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageDefault = 1;
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageMax = 100000;
 
-export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeDefault = 100;
+export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeDefault = 20;
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeMax = 100;
 
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQDefault = ``;
@@ -682,12 +676,10 @@ export const ServicesApiV1CustomerAppGaragesGarageIdServicesGetResponse = zod.ob
   "id": zod.string().uuid(),
   "name": zod.string(),
   "description": zod.union([zod.string(),zod.null()]),
-  "price": zod.number().describe('INR major units, matching owner service-package responses'),
   "price_inr": zod.string().regex(servicesApiV1CustomerAppGaragesGarageIdServicesGetResponseDataOneItemsItemPriceInrRegExp),
   "amount": zod.number().describe('INR minor units (paise), matching quote service amounts'),
   "currency": zod.literal("INR").default(servicesApiV1CustomerAppGaragesGarageIdServicesGetResponseDataOneItemsItemCurrencyDefault),
   "duration_minutes": zod.union([zod.number(),zod.null()]),
-  "is_active": zod.boolean(),
   "booking_eligible": zod.boolean(),
   "unavailable_reason": zod.union([zod.string(),zod.null()])
 })),
@@ -1011,7 +1003,7 @@ export const QuoteApiV1CustomerAppBookingsQuotePostBody = zod.object({
   "garage_id": zod.string().uuid(),
   "vehicle_id": zod.string().uuid(),
   "service_ids": zod.array(zod.string().uuid()).min(1).max(quoteApiV1CustomerAppBookingsQuotePostBodyServiceIdsMax),
-  "slot_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
+  "slot_id": zod.string().uuid(),
   "notes": zod.union([zod.string().max(quoteApiV1CustomerAppBookingsQuotePostBodyNotesOneMax),zod.null()]).optional(),
   "attachment_ids": zod.array(zod.string().uuid()).max(quoteApiV1CustomerAppBookingsQuotePostBodyAttachmentIdsMax).optional()
 })
@@ -1021,39 +1013,7 @@ export const quoteApiV1CustomerAppBookingsQuotePostResponseErrorsDefault = [];
 export const QuoteApiV1CustomerAppBookingsQuotePostResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "data": zod.union([zod.object({
-  "garage": zod.object({
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "address": zod.union([zod.string(),zod.null()]).optional()
-}),
-  "vehicle": zod.object({
-  "id": zod.string().uuid(),
-  "registration_number": zod.string(),
-  "brand": zod.union([zod.string(),zod.null()]).optional(),
-  "model": zod.union([zod.string(),zod.null()]).optional(),
-  "year": zod.union([zod.number(),zod.null()]).optional()
-}),
-  "services": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "amount": zod.number(),
-  "duration_minutes": zod.union([zod.number(),zod.null()]).optional()
-})),
-  "slot_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "scheduled_date": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_start": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_end": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "starts_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "ends_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "notes": zod.union([zod.string(),zod.null()]).optional(),
-  "attachment_ids": zod.array(zod.string().uuid()),
-  "estimated_total": zod.number(),
-  "currency": zod.string(),
-  "quote_id": zod.string().uuid(),
-  "expires_at": zod.coerce.date(),
-  "slot_reserved": zod.boolean()
-}),zod.null()]).optional(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(quoteApiV1CustomerAppBookingsQuotePostResponseErrorsDefault),
   "status_code": zod.number()
 })
@@ -1079,45 +1039,7 @@ export const submitApiV1CustomerAppBookingsPostResponseErrorsDefault = [];
 export const SubmitApiV1CustomerAppBookingsPostResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "data": zod.union([zod.object({
-  "garage": zod.object({
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "address": zod.union([zod.string(),zod.null()]).optional()
-}),
-  "vehicle": zod.object({
-  "id": zod.string().uuid(),
-  "registration_number": zod.string(),
-  "brand": zod.union([zod.string(),zod.null()]).optional(),
-  "model": zod.union([zod.string(),zod.null()]).optional(),
-  "year": zod.union([zod.number(),zod.null()]).optional()
-}),
-  "services": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "amount": zod.number(),
-  "duration_minutes": zod.union([zod.number(),zod.null()]).optional()
-})),
-  "slot_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "scheduled_date": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_start": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_end": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "starts_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "ends_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "notes": zod.union([zod.string(),zod.null()]).optional(),
-  "attachment_ids": zod.array(zod.string().uuid()),
-  "estimated_total": zod.number(),
-  "currency": zod.string(),
-  "id": zod.string().uuid(),
-  "booking_id": zod.string().uuid(),
-  "quote_id": zod.string().uuid(),
-  "status": zod.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CONVERTED', 'CANCELLED', 'EXPIRED']),
-  "can_cancel": zod.boolean(),
-  "cancel_reason": zod.union([zod.string(),zod.null()]).optional(),
-  "linked_job_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "linked_job_status": zod.union([zod.string(),zod.null()]).optional(),
-  "created_at": zod.coerce.date()
-}),zod.null()]).optional(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(submitApiV1CustomerAppBookingsPostResponseErrorsDefault),
   "status_code": zod.number()
 })
@@ -1165,45 +1087,7 @@ export const bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseErrorsDefa
 export const BookingDetailApiV1CustomerAppBookingsBookingIdGetResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "data": zod.union([zod.object({
-  "garage": zod.object({
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "address": zod.union([zod.string(),zod.null()]).optional()
-}),
-  "vehicle": zod.object({
-  "id": zod.string().uuid(),
-  "registration_number": zod.string(),
-  "brand": zod.union([zod.string(),zod.null()]).optional(),
-  "model": zod.union([zod.string(),zod.null()]).optional(),
-  "year": zod.union([zod.number(),zod.null()]).optional()
-}),
-  "services": zod.array(zod.object({
-  "id": zod.string().uuid(),
-  "name": zod.string(),
-  "amount": zod.number(),
-  "duration_minutes": zod.union([zod.number(),zod.null()]).optional()
-})),
-  "slot_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "scheduled_date": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_start": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_end": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "starts_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "ends_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "notes": zod.union([zod.string(),zod.null()]).optional(),
-  "attachment_ids": zod.array(zod.string().uuid()),
-  "estimated_total": zod.number(),
-  "currency": zod.string(),
-  "id": zod.string().uuid(),
-  "booking_id": zod.string().uuid(),
-  "quote_id": zod.string().uuid(),
-  "status": zod.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CONVERTED', 'CANCELLED', 'EXPIRED']),
-  "can_cancel": zod.boolean(),
-  "cancel_reason": zod.union([zod.string(),zod.null()]).optional(),
-  "linked_job_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "linked_job_status": zod.union([zod.string(),zod.null()]).optional(),
-  "created_at": zod.coerce.date()
-}),zod.null()]).optional(),
+  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseErrorsDefault),
   "status_code": zod.number()
 })
@@ -1939,47 +1823,6 @@ export const TicketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostRespon
   "message": zod.string(),
   "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(ticketReplyApiV1CustomerAppSupportTicketsTicketIdMessagesPostResponseErrorsDefault),
-  "status_code": zod.number()
-})
-
-
-/**
- * Assign or update an appointment time for an accepted booking.
- * @summary Assign Booking Schedule
- */
-export const AssignBookingScheduleApiV1BookingsBookingIdSchedulePatchParams = zod.object({
-  "booking_id": zod.coerce.string().uuid()
-})
-
-export const AssignBookingScheduleApiV1BookingsBookingIdSchedulePatchBody = zod.object({
-  "scheduled_start": zod.coerce.date(),
-  "scheduled_end": zod.coerce.date()
-})
-
-export const assignBookingScheduleApiV1BookingsBookingIdSchedulePatchResponseErrorsDefault = [];
-
-export const AssignBookingScheduleApiV1BookingsBookingIdSchedulePatchResponse = zod.object({
-  "success": zod.boolean(),
-  "message": zod.string(),
-  "data": zod.union([zod.object({
-  "id": zod.string().uuid(),
-  "garage_id": zod.string().uuid(),
-  "customer_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "vehicle_id": zod.union([zod.string().uuid(),zod.null()]).optional(),
-  "status": zod.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CONVERTED', 'CANCELLED', 'EXPIRED']),
-  "booking_date": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "owner_accepted_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_date": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_start": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "scheduled_end": zod.union([zod.coerce.date(),zod.null()]).optional(),
-  "notes": zod.union([zod.string(),zod.null()]).optional(),
-  "customer_name": zod.union([zod.string(),zod.null()]).optional(),
-  "customer_mobile": zod.union([zod.string(),zod.null()]).optional(),
-  "service_requested": zod.union([zod.string(),zod.null()]).optional(),
-  "created_at": zod.coerce.date(),
-  "updated_at": zod.coerce.date()
-}),zod.null()]).optional(),
-  "errors": zod.array(zod.unknown()).default(assignBookingScheduleApiV1BookingsBookingIdSchedulePatchResponseErrorsDefault),
   "status_code": zod.number()
 })
 

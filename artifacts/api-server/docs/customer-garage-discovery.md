@@ -138,7 +138,7 @@ Driving distance/traffic estimates remain excluded; never label this field
 | --- | --- | --- |
 | `GET /api/v1/customer-app/garages/{garage_id}` | No body | Customer-safe garage detail, bounded active-service preview, distance null |
 | `POST /api/v1/customer-app/garages/{garage_id}/details` | `{"latitude":12.9716,"longitude":77.5946}` | Same detail with distance from that location; accepts the same optional accuracy/timestamp metadata |
-| `GET /api/v1/customer-app/garages/{garage_id}/services?page=1&page_size=100` | Optional query `q` filters service name; page size 1..100 | API envelope `data: {items:[service],total,page,page_size,pages}` |
+| `GET /api/v1/customer-app/garages/{garage_id}/services?page=1&page_size=20` | Optional query `q` filters service name; page size 1..100 | `{items:[service],total,page,page_size,pages}` |
 
 Use the **same chosen location** for search and selected-garage details.
 Detail does not impose a radius, allowing the app to display the selected
@@ -157,12 +157,8 @@ can be discovered by name but has `booking_eligible: false`. Missing/nonpositive
 duration (or invalid negative price) makes a service ineligible; do not enable
 its Book selection. `booking_eligible: true` means catalogue configuration is
 suitable to request availability/quote, **not** that a slot is reserved or free.
-Prices may change; the quote is authoritative. `price` is numeric INR major units
-to match the owner catalogue response; `price_inr` remains a decimal string for
-exact display, and `amount` is integer **paise**, consistent with quote service amounts. Every returned item
-includes `is_active: true`; inactive packages are excluded. The default page
-size is 100, with recently updated packages first; use `total`, `page_size`, and
-`pages` to fetch any remaining pages.
+Prices may change; the quote is authoritative. `price_inr` is a decimal string
+for display; `amount` is integer **paise**, consistent with quote service amounts.
 
 ## 3. Continue into the existing shared booking
 
@@ -171,9 +167,9 @@ size is 100, with recently updated packages first; use `total`, `page_size`, and
    owner app endpoint.
 2. Get the customer's vehicles through `GET /api/v1/customer-app/vehicles`
    and select the customer's `vehicle_id`.
-3. Appointment selection is optional. If the customer wants an available slot,
-   read `GET /api/v1/customer-app/garages/{garage_id}/availability?date=YYYY-MM-DD&service_ids=<id>`.
-   Repeat `service_ids` for multiple services. Otherwise skip availability entirely.
+3. Read `GET /api/v1/customer-app/garages/{garage_id}/availability?date=YYYY-MM-DD&service_ids=<id>`.
+   Repeat `service_ids` for multiple services. Choose an available returned
+   slot; availability does not reserve capacity.
 4. `POST /api/v1/customer-app/bookings/quote`:
 
    ```json
@@ -181,48 +177,25 @@ size is 100, with recently updated packages first; use `total`, `page_size`, and
      "garage_id": "10000000-0000-4000-8000-000000000001",
      "vehicle_id": "10000000-0000-4000-8000-000000000002",
      "service_ids": ["10000000-0000-4000-8000-000000000003"],
-     "notes": "",
-     "attachment_ids": []
+     "slot_id": "10000000-0000-4000-8000-000000000004"
    }
    ```
 
-   `slot_id` may be omitted or null. A selected real slot UUID is also supported.
-   Slotless quotes have null `scheduled_date`, `scheduled_start`, and `scheduled_end`.
 5. Display the server's quoted services, timing, currency and `estimated_total`
    in paise for confirmation. `POST /api/v1/customer-app/bookings` with
    `{"quote_id":"<returned-quote-id>"}` and a stable `Idempotency-Key` header.
    Retry the same request/key after an uncertain response, not a new booking.
-6. Save response `data.booking_id` (`data.id` remains a compatible alias).
-   The response also includes `quote_id`, status, garage, vehicle, selected
-   services, estimated total, and nullable schedule fields.
-   The garage owner reads this exact
+6. Save response `data.id` as **booking_id**. The garage owner reads this exact
    ID in `GET /api/v1/bookings` and `GET /api/v1/bookings/{booking_id}` with its
    owner credential. No second record, forwarding request or identity matching.
 7. Owner uses `PATCH /api/v1/bookings/{booking_id}/accept` or `/reject`.
-   For a slotless booking, acceptance records `owner_accepted_at`, but status
-   remains PENDING until a real time is assigned. The owner then calls
-   `PATCH /api/v1/bookings/{booking_id}/schedule` with:
-
-   ```json
-   {
-     "scheduled_start": "2026-11-10T10:00:00+05:30",
-     "scheduled_end": "2026-11-10T11:30:00+05:30"
-   }
-   ```
-
-   This confirms status ACCEPTED. The same endpoint updates the schedule of an
-   already confirmed slotless booking. It rejects missing owner acceptance,
-   past starts, timezone-less timestamps, and an end not after the start.
-   Existing slot-based bookings retain their selected-slot behavior.
-   Customer refreshes booking detail/list or timeline to see the assigned
-   `scheduled_date`, `scheduled_start`, and `scheduled_end`.
+   Customer refreshes booking detail/list or timeline to see the result.
 8. Owner uses `POST /api/v1/bookings/{booking_id}/create-job`. Customer booking
    becomes `CONVERTED` and exposes `linked_job_id`/`linked_job_status`; use
    `GET /api/v1/customer-app/jobs/{linked_job_id}` for customer-safe job tracking.
 
-The server revalidates service activity/ownership, garage availability, vehicle
-ownership, and quote freshness/prices. Duration and capacity checks apply only
-when an actual slot is selected. No slots, quote IDs, or prices are fabricated.
+The existing server revalidates service activity/ownership/duration, garage
+availability, vehicle ownership, quote freshness/prices and slot capacity.
 Search is not a reservation. Re-fetch availability and quote after a conflict;
 do not trust a stale search price. Refresh booking state on screen entry and
 while awaiting an owner decision; this change does not add push delivery.

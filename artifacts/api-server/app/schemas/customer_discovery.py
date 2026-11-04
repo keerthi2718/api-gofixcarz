@@ -45,12 +45,10 @@ class DiscoveryService(BaseModel):
     id: UUID
     name: str
     description: str | None
-    price: float = Field(description="INR major units, matching owner service-package responses")
     price_inr: Decimal
     amount: int = Field(description="INR minor units (paise), matching quote service amounts")
     currency: Literal["INR"] = "INR"
     duration_minutes: int | None
-    is_active: bool
     booking_eligible: bool
     unavailable_reason: str | None
 

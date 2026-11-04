@@ -50,10 +50,9 @@ class CustomerDiscoveryService:
         eligible = service.duration_minutes is not None and service.duration_minutes > 0 and service.price >= 0
         return {
             "id": service.id, "name": service.name, "description": service.description,
-            "price": float(service.price), "price_inr": service.price, "currency": "INR",
+            "price_inr": service.price, "currency": "INR",
             "amount": int((Decimal(service.price) * 100).quantize(Decimal("1"))),
-            "duration_minutes": service.duration_minutes, "is_active": service.is_active,
-            "booking_eligible": eligible,
+            "duration_minutes": service.duration_minutes, "booking_eligible": eligible,
             "unavailable_reason": None if eligible else "SERVICE_CONFIGURATION_INCOMPLETE",
         }
 
@@ -154,9 +153,7 @@ class CustomerDiscoveryService:
         if q:
             query = query.where(Service.name.icontains(q, autoescape=True))
         total = await self.db.scalar(select(func.count()).select_from(query.subquery()))
-        rows = (await self.db.execute(query.order_by(
-            Service.updated_at.desc(), Service.created_at.desc(), Service.id
-        ).offset(
+        rows = (await self.db.execute(query.order_by(func.lower(Service.name), Service.id).offset(
             (page - 1) * page_size).limit(page_size))).scalars()
         return {"items": [self.service_row(s) for s in rows], "total": total, "page": page,
                 "page_size": page_size, "pages": (total + page_size - 1) // page_size}

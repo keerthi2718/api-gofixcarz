@@ -13,16 +13,6 @@ class BookingRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def create(self, booking: Booking) -> Booking:
-        """Persist the shared booking in the caller's transaction.
-
-        Customer links and quote consumption must commit atomically with this
-        record; the repository deliberately does not commit independently.
-        """
-        self.session.add(booking)
-        await self.session.flush()
-        return booking
-
     async def get_by_id(
         self, booking_id: uuid.UUID, garage_id: uuid.UUID, load_relations: bool = False
     ) -> Optional[Booking]:
