@@ -983,7 +983,7 @@ export const getSearchApiV1CustomerAppGaragesSearchPostUrl = () => {
 }
 
 /**
- * Service/garage/all search; default geographic radius 5 km, maximum 200 km.
+ * Service/garage/city discovery. Nearby-only defaults to 5 km; city browsing has no implicit radius. Explicit radius is strict, maximum 200 km.
  * @summary Search
  */
 export const searchApiV1CustomerAppGaragesSearchPost = async (garageSearch: GarageSearch, options?: RequestInit): Promise<APIResponseGarageSearchResults> => {

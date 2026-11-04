@@ -699,8 +699,8 @@ paths:
       tags:
       - Customer Discovery
       summary: Search
-      description: Service/garage/all search; default geographic radius 5 km, maximum
-        200 km.
+      description: Service/garage/city discovery. Nearby-only defaults to 5 km; city
+        browsing has no implicit radius. Explicit radius is strict, maximum 200 km.
       operationId: search_api_v1_customer_app_garages_search_post
       requestBody:
         content:
@@ -4812,6 +4812,15 @@ components:
           - garage
           title: Search By
           default: all
+        city:
+          anyOf:
+          - type: string
+            maxLength: 100
+          - type: 'null'
+          title: City
+          description: Exact saved-city match, case-insensitive and trimmed. City
+            browsing includes garages without coordinates. With city, no default radius
+            is imposed; an explicit radius_km remains strict.
         radius_km:
           anyOf:
           - type: number

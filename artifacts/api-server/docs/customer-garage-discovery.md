@@ -40,8 +40,9 @@ not the garage owner's live position.
 | --- | --- |
 | q | Trimmed case-insensitive partial **name** search, at most 100 characters; `%`, `_`, `/` are literal, not wildcard syntax |
 | search_by | `service`, `garage` or `all` (default); `all` is suitable for one search bar |
+| city | Optional saved-city filter, at most 100 characters; trimmed, case-insensitive **exact** match (not address, name, substring or geocoding). Allows city-only browsing, including garages without map pins |
 | latitude / longitude | Optional complete, finite pair; ranges -90..90 and -180..180; zero is valid |
-| radius_km | Optional, greater than 0 and at most 200; defaults to 5 when coordinates are supplied; cannot be used without coordinates |
+| radius_km | Optional, greater than 0 and at most 200; defaults to 5 when coordinates are supplied **without city**; cannot be used without coordinates. With city, only an explicitly supplied radius limits geographic distance |
 | accuracy_meters | Optional finite 0..100000 mobile accuracy estimate; requires coordinates; not used to expand radius |
 | captured_at | Optional ISO timestamp supplied by the app; requires coordinates; not stored and does not enforce freshness |
 | page / page_size | Defaults 1 / 20; page 1..100000, page size 1..100 |
@@ -56,8 +57,16 @@ not the garage owner's live position.
   A garage-name match shows its full active catalogue preview; a service-only
   match shows matching services. `matched_by` explains the match.
 - **Nearby browsing:** omit `q` (or use an empty string) and supply coordinates.
+- **City browsing:** send `{"city":"Hyderabad","page":1,"page_size":20}`.
+  This uses the existing garage's saved city and existing owner service catalogue,
+  including active garages without coordinates. Optional `q`/`search_by` further
+  filter names within the city. Blank city is treated as omitted.
+  Coordinates may also be supplied to calculate and sort by distance, with
+  unknown distances last, but **no implicit radius** is applied in city mode.
+  Explicitly supplying `radius_km` applies a strict intersection of city and
+  radius, excluding missing/invalid map pins. Omit `radius_km` for city fallback.
 - **Text-only fallback:** omit coordinates and radius; `distance_km` is null.
-  Empty text without coordinates is a 422 error.
+  Empty text without coordinates or a nonblank city is a 422 error.
 
 Illustrative response (IDs and prices are examples, not seeded records):
 
@@ -121,10 +130,13 @@ format appropriately, e.g. **“2.4 km away · straight-line”** in both search
 results and garage service selection. Tie-breaks are case-insensitive garage
 name then ID; text-only ordering uses those same tie-breaks.
 
-Garages with missing/out-of-range coordinates are excluded from nearby results,
-but can appear in text-only results with distance unavailable. Do not display
+Garages with missing/out-of-range coordinates are excluded from radius-filtered results,
+but can appear in text-only or city results with distance unavailable. Do not display
 missing distance as zero. Radius eligibility is based on the saved pin, not a
 claim that the customer can reach the garage within that road distance.
+City browsing does not claim that a garage without a pin is nearby; display
+“Distance unavailable” rather than a numeric distance for those results. No
+coordinates are guessed from city or address, and garage records are not changed.
 If a visible distance is close to the boundary, display rounding can differ
 from the precise value used for eligibility.
 

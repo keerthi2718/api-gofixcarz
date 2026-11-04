@@ -88,6 +88,74 @@ async def test_new_owner_garage_defaults_to_verified(workspace):
     assert garage.verification_status == "VERIFIED"
 
 
+async def test_missing_pin_garage_city_search_uses_existing_catalogue(workspace):
+    """Regression for the production garage, using rolled-back diagnostic fixtures."""
+    d = workspace
+    garage_id = UUID("fbce7066-6c45-408b-b125-db55d1535dde")
+    garage = Garage(
+        id=garage_id, user_id=d["garage"].user_id, name="Pranati's Workshop 2",
+        owner="Fixture owner", city="Hyderabad", operational_status="ACTIVE",
+        verification_status="UNVERIFIED", latitude=None, longitude=None,
+    )
+    d["db"].add(garage)
+    await d["db"].flush()
+    for name, price, duration in (("AC repair", 1000, 20), ("Car wash ", 600, 60), ("Full engine", 2000, 60)):
+        d["db"].add(ServicePackage(garage_id=garage_id, name=name, price=price,
+                                   duration_minutes=duration, is_active=True))
+    await d["db"].flush()
+    result = await search(d, city="  hYdErAbAd  ")
+    assert result["radius_km"] is None
+    found = next(item for item in result["items"] if item["id"] == str(garage_id))
+    assert found["active_service_count"] == 3 and found["distance_km"] is None
+    assert {s["name"].strip() for s in found["services"]} == {"AC repair", "Car wash", "Full engine"}
+    detail = (await d["call"]("GET", f"/garages/{garage_id}")).json()["data"]
+    catalogue = (await d["call"]("GET", f"/garages/{garage_id}/services")).json()["data"]
+    assert detail["id"] == str(garage_id) and detail["active_service_count"] == 3
+    assert {s["id"] for s in found["services"]} == {s["id"] for s in detail["services"]}
+    assert catalogue["total"] == 3
+    assert {s["id"] for s in catalogue["items"]} == {s["id"] for s in found["services"]}
+    matched = await search(d, city="Hyderabad", q="AC repair", search_by="service")
+    assert any(g["id"] == str(garage_id) for g in matched["items"])
+    assert not (await search(d, city="Hyder"))["items"]
+    # Synthetic test coordinates are not the customer's actual location.
+    # Missing pins are excluded for every radius, but city browsing remains usable.
+    nearby = await search(d, latitude=0, longitude=0)
+    assert str(garage_id) not in {g["id"] for g in nearby["items"]}
+    located_city = await search(d, city="Hyderabad", latitude=0, longitude=0)
+    assert located_city["radius_km"] is None
+    assert any(g["id"] == str(garage_id) for g in located_city["items"])
+    strict = await search(d, city="Hyderabad", latitude=0, longitude=0, radius_km=5)
+    assert str(garage_id) not in {g["id"] for g in strict["items"]}
+    for payload in ({"city": " "}, {"city": "H" * 101}, {"city": "Hyderabad", "radius_km": 5}):
+        await d["call"]("POST", "/garages/search", expected=422, json=payload)
+    assert (await search(d, city="%"))["total"] == 0
+    garage.operational_status = "SUSPENDED"
+    await d["db"].flush()
+    assert str(garage_id) not in {g["id"] for g in (await search(d, city="Hyderabad"))["items"]}
+
+
+async def test_city_location_ordering_radius_and_pagination(workspace):
+    d = workspace
+    near = await extra_garage(d, "City Garage Near", longitude=0.01)
+    far = await extra_garage(d, "City Garage Far", longitude=1)
+    missing = await extra_garage(d, "City Garage Missing", latitude=None, longitude=None)
+    invalid = await extra_garage(d, "City Garage Invalid", latitude=91)
+    for garage in (near, far, missing, invalid):
+        garage.city = " City Fixture "
+    other_city = await extra_garage(d, "City Garage Other", longitude=0)
+    other_city.city = "Other"
+    await d["db"].flush()
+    first = await search(d, city="city fixture", latitude=0, longitude=0, page_size=2)
+    second = await search(d, city="city fixture", latitude=0, longitude=0, page_size=2, page=2)
+    assert first["total"] == 4 and first["pages"] == 2
+    assert [g["id"] for g in first["items"]] == [str(near.id), str(far.id)]
+    assert {g["id"] for g in second["items"]} == {str(missing.id), str(invalid.id)}
+    assert all(g["distance_km"] is None for g in second["items"])
+    strict = await search(d, city="city fixture", latitude=0, longitude=0, radius_km=5)
+    assert [g["id"] for g in strict["items"]] == [str(near.id)]
+    assert (await search(d, city="Other"))["total"] == 1
+
+
 async def test_radius_distance_sorting_detail_and_location_privacy(workspace):
     d = workspace
     near = await extra_garage(d, "Discovery Radius Near", longitude=0.01)

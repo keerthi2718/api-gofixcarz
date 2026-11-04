@@ -125,13 +125,19 @@ class CustomerDiscoveryService:
 
     async def search(self, data: GarageSearch):
         query = self.base_query(data, data.q, data.search_by)
-        radius = (data.radius_km if data.radius_km is not None else 5.0) if data.latitude is not None else None
+        if data.city:
+            query = query.where(func.lower(func.trim(Garage.city)) == data.city.lower())
+        # Explicit city browsing uses the saved city, not an inferred map pin.
+        # Keep nearby-only defaults and explicitly requested radii unchanged.
+        radius = data.radius_km
+        if radius is None and data.latitude is not None and not data.city:
+            radius = 5.0
         if radius is not None:
             query = query.where(distance_expression(data) <= radius)
         total = await self.db.scalar(select(func.count()).select_from(query.subquery()))
         ordering = [func.lower(Garage.name), Garage.id]
-        if radius is not None:
-            ordering.insert(0, distance_expression(data))
+        if data.latitude is not None:
+            ordering.insert(0, distance_expression(data).asc().nulls_last())
         rows = (await self.db.execute(query.order_by(*ordering).offset(
             (data.page - 1) * data.page_size).limit(data.page_size))).all()
         return {"items": await self.render(rows, data.q, data.search_by), "total": total,

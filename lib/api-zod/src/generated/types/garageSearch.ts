@@ -15,6 +15,8 @@ export interface GarageSearch {
   /** @maxLength 100 */
   q?: string;
   search_by?: GarageSearchSearchBy;
+  /** Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict. */
+  city?: string | null;
   radius_km?: number | null;
   /**
      * @minimum 1

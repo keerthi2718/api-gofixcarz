@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.schemas.customer_app import StrictInput
 from app.schemas.response import PaginatedData
@@ -28,16 +28,25 @@ class LocationInput(StrictInput):
 class GarageSearch(LocationInput):
     q: str = Field(default="", max_length=100)
     search_by: Literal["all", "service", "garage"] = "all"
+    city: str | None = Field(
+        default=None, max_length=100,
+        description="Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict.",
+    )
     radius_km: float | None = Field(default=None, gt=0, le=200, allow_inf_nan=False)
     page: int = Field(default=1, ge=1, le=100000)
     page_size: int = Field(default=20, ge=1, le=100)
+
+    @field_validator("city")
+    @classmethod
+    def normalize_city(cls, value):
+        return value or None
 
     @model_validator(mode="after")
     def validate_search(self):
         if self.radius_km is not None and self.latitude is None:
             raise ValueError("Radius requires coordinates")
-        if not self.q and self.latitude is None:
-            raise ValueError("Supply search text or a location")
+        if not self.q and self.latitude is None and not self.city:
+            raise ValueError("Supply search text, a city or a location")
         return self
 
 

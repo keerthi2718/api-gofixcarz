@@ -433,7 +433,7 @@ export const VerifyContactApiV1CustomerAppMeContactChangeVerifyPostResponse = zo
 
 
 /**
- * Service/garage/all search; default geographic radius 5 km, maximum 200 km.
+ * Service/garage/city discovery. Nearby-only defaults to 5 km; city browsing has no implicit radius. Explicit radius is strict, maximum 200 km.
  * @summary Search
  */
 export const searchApiV1CustomerAppGaragesSearchPostBodyLatitudeOneMin = -90;
@@ -449,6 +449,8 @@ export const searchApiV1CustomerAppGaragesSearchPostBodyQDefault = ``;
 export const searchApiV1CustomerAppGaragesSearchPostBodyQMax = 100;
 
 export const searchApiV1CustomerAppGaragesSearchPostBodySearchByDefault = `all`;
+export const searchApiV1CustomerAppGaragesSearchPostBodyCityOneMax = 100;
+
 export const searchApiV1CustomerAppGaragesSearchPostBodyRadiusKmOneExclusiveMin = 0;
 export const searchApiV1CustomerAppGaragesSearchPostBodyRadiusKmOneMax = 200;
 
@@ -467,6 +469,7 @@ export const SearchApiV1CustomerAppGaragesSearchPostBody = zod.object({
   "captured_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
   "q": zod.string().max(searchApiV1CustomerAppGaragesSearchPostBodyQMax).default(searchApiV1CustomerAppGaragesSearchPostBodyQDefault),
   "search_by": zod.enum(['all', 'service', 'garage']).default(searchApiV1CustomerAppGaragesSearchPostBodySearchByDefault),
+  "city": zod.union([zod.string().max(searchApiV1CustomerAppGaragesSearchPostBodyCityOneMax),zod.null()]).optional().describe('Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict.'),
   "radius_km": zod.union([zod.number().gt(searchApiV1CustomerAppGaragesSearchPostBodyRadiusKmOneExclusiveMin).max(searchApiV1CustomerAppGaragesSearchPostBodyRadiusKmOneMax),zod.null()]).optional(),
   "page": zod.number().min(1).max(searchApiV1CustomerAppGaragesSearchPostBodyPageMax).default(searchApiV1CustomerAppGaragesSearchPostBodyPageDefault),
   "page_size": zod.number().min(1).max(searchApiV1CustomerAppGaragesSearchPostBodyPageSizeMax).default(searchApiV1CustomerAppGaragesSearchPostBodyPageSizeDefault)

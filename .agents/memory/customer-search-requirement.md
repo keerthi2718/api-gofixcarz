@@ -20,3 +20,9 @@ Keep customer coordinates in request bodies rather than query strings, and keep 
 **Why:** Radius filtering does not establish road reachability; query-string locations can leak through infrastructure access logs even when application logs omit them.
 
 **How to apply:** Preserve that privacy and distance distinction when extending discovery or adding a provider. Google road metrics need a separately agreed eligibility/ranking contract.
+
+The user explicitly requested discovery “by location or city” and prohibited creating a separate garage/service store, changing booking behavior, or guessing garage coordinates.
+
+**Why:** An existing active garage with its owner's catalogue must remain discoverable even when it has no confirmed map pin.
+
+**How to apply:** City discovery is approved scope. Reuse the existing records and IDs; do not present city membership as proof of geographic proximity or manufacture a pin to make a radius search succeed.

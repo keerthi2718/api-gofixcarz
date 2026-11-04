@@ -20,7 +20,7 @@ router = APIRouter(prefix="/customer-app/garages", tags=["Customer Discovery"], 
 
 @router.post("/search", response_model=APIResponse[GarageSearchResults])
 async def search(data: GarageSearch, db: DB, who: Principal, response: Response):
-    """Service/garage/all search; default geographic radius 5 km, maximum 200 km."""
+    """Service/garage/city discovery. Nearby-only defaults to 5 km; city browsing has no implicit radius. Explicit radius is strict, maximum 200 km."""
     response.headers["Cache-Control"] = "no-store"
     return APIResponse.ok(await CustomerDiscoveryService(db).search(data))
 
