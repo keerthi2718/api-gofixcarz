@@ -17,6 +17,7 @@ from app.schemas.auth import (
     SendOTPRequest,
     SignInRequest,
     SignUpRequest,
+    SignUpResult,
     VerifyOTPRequest,
 )
 from app.schemas.response import APIResponse
@@ -95,7 +96,7 @@ def _login_key(request: Request) -> str:
 limiter = Limiter(key_func=get_remote_address)
 
 
-@router.post("/sign-up", response_model=APIResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/sign-up", response_model=APIResponse[SignUpResult], status_code=status.HTTP_201_CREATED)
 async def sign_up(data: SignUpRequest, session: DBSession):
     """Register a new user and send OTP."""
     service = AuthService(session)

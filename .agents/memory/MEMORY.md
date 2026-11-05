@@ -14,3 +14,4 @@
 - [Validator generation](workspace-validator-version.md) — generate for the consuming Zod major; root workspace inference may produce incompatible validators.
 - [Production probe limits](production-probe-limits.md) — workspace requests to replit.app can use an internal proxy; distinguish app health from public-domain TLS verification.
 - [Booking storage across restores](booking-storage-retention.md) — restoring older booking code must not delete storage or invalidate records from previously published workflows.
+- [Partner map signup](partner-map-signup.md) — partner app captures a map pin; preserve existing-client signup compatibility without inventing missing coordinates.

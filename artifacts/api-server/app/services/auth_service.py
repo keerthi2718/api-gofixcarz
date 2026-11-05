@@ -28,7 +28,7 @@ from app.schemas.auth import (
     UserResponse,
     VerifyOTPRequest,
 )
-from app.schemas.garage import GarageCreate
+from app.schemas.garage import GarageCreate, GarageResponse
 from app.utils.msg91 import submit_otp_sms
 from app.services.sms_delivery_service import SMSDeliveryService
 
@@ -108,11 +108,13 @@ class AuthService:
             state=data.state,
             zipcode=data.zipcode,
             country=data.country,
+            latitude=data.latitude,
+            longitude=data.longitude,
             # alternate_number stored as full international number for the garage
             alternate_number=data.full_mobile_2,
             wheelers=data.wheelers,
         )
-        await self.garage_repo.create(user_id=user.id, data=garage_data)
+        garage = await self.garage_repo.create(user_id=user.id, data=garage_data)
 
         # Auto-send OTP — combine country_code + mobile for MSG91
         otp = generate_otp()
@@ -133,6 +135,7 @@ class AuthService:
             "sms_delivery_status": "pending",
             "mobile": data.mobile,
             "country_code": data.country_code,
+            "garage": GarageResponse.model_validate(garage).model_dump(mode="json"),
         }
 
     # ──────────────────────────────────────────────────────

@@ -294,3 +294,17 @@ mtime_ms = 1793883056687
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/4a033a10-7cd4-45ec-85eb-1c1c3e99f99b/82c1e3b6-1afc-4f34-8007-19a10497d5d5"
 storage_version_token = "1793883058024667"
 content_type = "text/csv"
+
+[[outputs]]
+id = "3gc-Txf7cnzGylyQIGkGd"
+uri = "file://generated-artifacts/signup-location-verification.html"
+type = "html"
+title = "Signup location schema and test results"
+description = "Updated request/response schema, live-production comparison, and sanitized signup → owner GET → customer search evidence. Development tests only; publishing pending."
+logical_id = "bb852cb9-a1ca-412c-aed4-d645555bf509"
+content_hash = "sha256:87697c8aa66b56fd2a8b901fcdec938693bb8d3c4bc7c448740eaa8faabed4b5"
+size = 9560
+mtime_ms = 1793902428027
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/bb852cb9-a1ca-412c-aed4-d645555bf509/954bde73-19a7-4e39-b5d7-98cd3c84855b"
+storage_version_token = "1793902458006423"
+content_type = "text/html"

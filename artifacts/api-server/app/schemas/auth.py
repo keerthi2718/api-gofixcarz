@@ -3,10 +3,11 @@ import uuid
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, StrictBool, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, StrictBool, field_validator, model_validator
 
 from app.core.constants import DEFAULT_COUNTRY_CODE, VALID_COUNTRY_CODES
 from app.models.user import AccountStatus, UserRole
+from app.schemas.garage import GarageResponse
 
 _VALID_WHEELERS = {"2W", "3W", "4W", "6W"}
 
@@ -58,6 +59,8 @@ class SignUpRequest(BaseModel):
     state: Optional[str] = None
     zipcode: Optional[str] = None
     country: Optional[str] = None
+    latitude: Optional[float] = Field(default=None, ge=-90, le=90, allow_inf_nan=False, strict=True)
+    longitude: Optional[float] = Field(default=None, ge=-180, le=180, allow_inf_nan=False, strict=True)
     # Country codes — validated against the allowed list; default is India "91"
     country_code: str = DEFAULT_COUNTRY_CODE
     mobile: str                              # exactly 10 digits
@@ -65,6 +68,12 @@ class SignUpRequest(BaseModel):
     mobile_2: Optional[str] = None          # exactly 10 digits
     wheelers: Optional[List[str]] = None
     terms_accepted: bool
+
+    @model_validator(mode="after")
+    def complete_garage_location(self) -> "SignUpRequest":
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("Supply both latitude and longitude")
+        return self
 
     @field_validator("first_name")
     @classmethod
@@ -163,6 +172,15 @@ class SignUpRequest(BaseModel):
 # ──────────────────────────────────────────────────────────
 # Sign-in  (10-digit mobile only)
 # ──────────────────────────────────────────────────────────
+
+class SignUpResult(BaseModel):
+    message: str
+    sms_request_id: str
+    sms_delivery_status: str
+    mobile: str
+    country_code: str
+    garage: GarageResponse
+
 
 class SignInRequest(BaseModel):
     """
