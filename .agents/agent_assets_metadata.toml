@@ -266,3 +266,17 @@ mtime_ms = 1793877129315
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/91b81e99-f4f1-4e18-83c9-085b578e4837/51539341-e4b1-4745-8f7f-94a046081d3f"
 storage_version_token = "1793877131025363"
 content_type = "text/csv"
+
+[[outputs]]
+id = "DJXpiRrV_xWuUaISRn9V6"
+uri = "file://generated-artifacts/garage-location-review.csv"
+type = "table"
+title = "Garage location review — 37 missing pins"
+description = "Candidate coordinates and public sources, address conflicts, unresolved garages, and owner-confirmation requirements. No production updates performed."
+logical_id = "bfa5da3a-50c7-47ef-902d-c8789f05a34a"
+content_hash = "sha256:391a23e5b34dad4c980a3031dfd56955652098a851e00e1e8f2842d114832f52"
+size = 13317
+mtime_ms = 1793878587491
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/bfa5da3a-50c7-47ef-902d-c8789f05a34a/341eb3ba-f6a1-437a-ba7b-5eab508ea557"
+storage_version_token = "1793878589200014"
+content_type = "text/csv"
