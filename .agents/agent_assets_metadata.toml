@@ -252,3 +252,17 @@ mtime_ms = 1793869943632
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/6d8816e3-e45b-435f-aabc-f61a82ed3bd3/91fac5c0-bca8-4850-8705-6ab4fb591e30"
 storage_version_token = "1793870072554198"
 content_type = "text/html"
+
+[[outputs]]
+id = "MZ_wXXU-MdEGR-xmz_zDI"
+uri = "file://generated-artifacts/production-garage-locations.csv"
+type = "table"
+title = "Production garage locations"
+description = "Read-only production snapshot: garage IDs, names, saved addresses, coordinates, operational and verification status. No records changed."
+logical_id = "91b81e99-f4f1-4e18-83c9-085b578e4837"
+content_hash = "sha256:dfbbf1fb2ef1dae1196f06d2bb983b49b7b0cc1f74559deab8306447b732d538"
+size = 6216
+mtime_ms = 1793877129315
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/91b81e99-f4f1-4e18-83c9-085b578e4837/51539341-e4b1-4745-8f7f-94a046081d3f"
+storage_version_token = "1793877131025363"
+content_type = "text/csv"
