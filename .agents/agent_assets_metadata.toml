@@ -280,3 +280,17 @@ mtime_ms = 1793878587491
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/bfa5da3a-50c7-47ef-902d-c8789f05a34a/341eb3ba-f6a1-437a-ba7b-5eab508ea557"
 storage_version_token = "1793878589200014"
 content_type = "text/csv"
+
+[[outputs]]
+id = "WJi4bOZC-cG_ndc5CkQkw"
+uri = "file://generated-artifacts/google-maps-garage-coordinate-review.csv"
+type = "table"
+title = "Google Maps garage coordinate review"
+description = "All 39 current garages: 9 candidate record matches with coordinates and sources, 1 existing coordinate pair, and 29 unresolved records. Review only; no database updates."
+logical_id = "4a033a10-7cd4-45ec-85eb-1c1c3e99f99b"
+content_hash = "sha256:0cb3536457fa6b4cf152be612464ab6042a2cc06dfe2ec4040e58975df655e2e"
+size = 22387
+mtime_ms = 1793883056687
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/4a033a10-7cd4-45ec-85eb-1c1c3e99f99b/82c1e3b6-1afc-4f34-8007-19a10497d5d5"
+storage_version_token = "1793883058024667"
+content_type = "text/csv"
