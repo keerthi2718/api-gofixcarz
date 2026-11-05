@@ -238,3 +238,17 @@ mtime_ms = 1793338711939
 storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/f75324a3-45de-43c3-bd5d-e594aef02dd9/aee9d123-7bb2-4f78-a32f-da335b348ca6"
 storage_version_token = "1793338820507298"
 content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+
+[[outputs]]
+id = "fWNaOeFv4rgr-ierQXq9u"
+uri = "file://artifacts/api-server/docs/customer-booking-frontend-guide.html"
+type = "html"
+title = "Customer discovery and booking API guide"
+description = "Step-by-step endpoints, authentication headers, request bodies, response fields, money units, errors and migration notes for the frontend team."
+logical_id = "6d8816e3-e45b-435f-aabc-f61a82ed3bd3"
+content_hash = "sha256:b5812d891bbc0c33f299e3da4f1118b8934cc7a898261a4bd28d9e765f2eaa5e"
+size = 13828
+mtime_ms = 1793869943632
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:8e9fa5c2-d257-480f-a209-a8caf27c54d7/6d8816e3-e45b-435f-aabc-f61a82ed3bd3/91fac5c0-bca8-4850-8705-6ab4fb591e30"
+storage_version_token = "1793870072554198"
+content_type = "text/html"

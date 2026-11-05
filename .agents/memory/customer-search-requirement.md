@@ -5,7 +5,16 @@ description: Customer search must connect the garage-owner service catalogue to 
 
 The user requires a customer search bar where searching by service name displays garages together with their matching services, and searching by garage name displays services present in the matching garages, with an option to book. They describe this as “the mediation between the garage app and the customer app.”
 
-They also asked to get garages based on location, “with in 5km radius like that.”
+The current requirement is garages within **200 KM**, not 5 KM, and only verified,
+active garages. The user requires search to return all matching garages and
+services because their frontend has no search-pagination controls.
+
+**Why:** The user explicitly replaced the earlier five-kilometre behavior and
+five-service preview with a 200 KM, verified-only, uncapped search.
+
+**How to apply:** Do not restore five-kilometre defaults or truncate garage/service
+search results. Nearby search needs the selected customer's coordinates; a city
+filter can narrow geography but cannot replace a real garage map pin.
 
 The user explicitly requires distance to be shown alongside the service/garage search-to-booking flow, not only used internally to filter nearby garages.
 
@@ -21,8 +30,14 @@ Keep customer coordinates in request bodies rather than query strings, and keep 
 
 **How to apply:** Preserve that privacy and distance distinction when extending discovery or adding a provider. Google road metrics need a separately agreed eligibility/ranking contract.
 
-The user explicitly requested discovery “by location or city” and prohibited creating a separate garage/service store, changing booking behavior, or guessing garage coordinates.
+The user previously requested discovery “by location or city” and prohibited
+creating a separate garage/service store or guessing garage coordinates.
+Their later explicit change request authorizes date-only direct booking instead
+of the old slot/quote flow.
 
-**Why:** An existing active garage with its owner's catalogue must remain discoverable even when it has no confirmed map pin.
+**Why:** Search must reuse the owner's actual catalogue; city membership is not a
+confirmed map pin. The newer 200 KM location requirement takes precedence over
+the earlier no-coordinate city fallback for the search endpoint.
 
-**How to apply:** City discovery is approved scope. Reuse the existing records and IDs; do not present city membership as proof of geographic proximity or manufacture a pin to make a radius search succeed.
+**How to apply:** Reuse existing records and IDs; do not manufacture a pin to make a
+radius search succeed. Garages missing coordinates need a real profile update.

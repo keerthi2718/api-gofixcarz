@@ -9,7 +9,8 @@ from app.models.booking import BookingStatus
 from app.models.job import JobStatus
 from app.models.customer_workspace import CustomerResource, CustomerVehicle
 from app.schemas.customer_workspace import (
-    VehicleCreate, VehiclePatch, PhotoSet, QuoteRequest, BookingSubmit, CancelRequest,
+    VehicleCreate, VehiclePatch, PhotoSet, BookingSelection, BookingSubmit, CancelRequest,
+    BookingSummary, CustomerBookingResponse,
     DeviceRequest, Category, NotificationRead, ReadAll, ConversationStart, MessageSend,
     ReadMarker, ReviewCreate, ReviewPatch, TicketCreate, TicketReply,
 )
@@ -108,20 +109,21 @@ async def photo_delete(svc: Workspace):
     return APIResponse.ok(await svc.remove_photo())
 
 
-@router.get("/garages/{garage_id}/availability", response_model=APIResponse[dict])
+@router.get("/garages/{garage_id}/availability", response_model=APIResponse[dict], deprecated=True)
 async def availability(garage_id: UUID, svc: Workspace, date: date,
                        service_ids: Annotated[list[UUID], Query(min_length=1, max_length=20)]):
     return APIResponse.ok(await svc.availability(garage_id, date, service_ids))
 
 
-@router.post("/bookings/quote", response_model=APIResponse[dict])
-async def quote(data: QuoteRequest, svc: Workspace):
-    return APIResponse.ok(await svc.create_quote(data))
+@router.post("/bookings/summary", response_model=APIResponse[BookingSummary])
+async def summary(data: BookingSelection, svc: Workspace):
+    """Optional current-price preview; no quote or slot IDs are created or required."""
+    return APIResponse.ok(await svc.booking_selection(data))
 
 
-@router.post("/bookings", response_model=APIResponse[dict], status_code=201)
+@router.post("/bookings", response_model=APIResponse[CustomerBookingResponse], status_code=201)
 async def submit(data: BookingSubmit, svc: Workspace, who: Principal, key: Key):
-    return APIResponse.ok(await svc.submit(data.quote_id, key, *who[:2]), status_code=201)
+    return APIResponse.ok(await svc.submit(data, key, *who[:2]), status_code=201)
 
 
 @router.get("/bookings", response_model=APIResponse[dict])
@@ -131,7 +133,7 @@ async def bookings(svc: Workspace, page: Page = 1, page_size: Size = 20,
     return APIResponse.ok(await svc.list_bookings(page, page_size, status, vehicle_id, garage_id, linked_job_status))
 
 
-@router.get("/bookings/{booking_id}", response_model=APIResponse[dict])
+@router.get("/bookings/{booking_id}", response_model=APIResponse[CustomerBookingResponse])
 async def booking_detail(booking_id: UUID, svc: Workspace):
     return APIResponse.ok(await svc.booking_row(*await svc.booking(booking_id)))
 

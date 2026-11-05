@@ -1,6 +1,7 @@
 """Strict customer/participant write contracts and explicit published projections."""
 import re
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
@@ -61,13 +62,14 @@ class PhotoSet(StrictInput):
     attachment_id: UUID
 
 
-class QuoteRequest(StrictInput):
+class BookingSelection(StrictInput):
     garage_id: UUID
     vehicle_id: UUID
     service_ids: list[UUID] = Field(min_length=1, max_length=20)
-    slot_id: UUID
+    booking_date: date
     notes: str | None = Field(default=None, max_length=2000)
     attachment_ids: list[UUID] = Field(default_factory=list, max_length=5)
+    expected_total: int | None = Field(default=None, ge=0, strict=True, description="Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED.")
 
     @model_validator(mode="after")
     def unique(self):
@@ -76,8 +78,50 @@ class QuoteRequest(StrictInput):
         return self
 
 
-class BookingSubmit(StrictInput):
-    quote_id: UUID
+class BookingSubmit(BookingSelection):
+    pass
+
+
+class BookingGarage(StrictInput):
+    id: UUID
+    name: str
+
+
+class BookingVehicle(StrictInput):
+    id: UUID
+    registration_number: str
+
+
+class BookingServiceItem(StrictInput):
+    id: UUID
+    name: str
+    description: str | None = None
+    price_inr: Decimal | None = None
+    amount: int
+    duration_minutes: int | None = None
+
+
+class BookingSummary(StrictInput):
+    garage: BookingGarage
+    vehicle: BookingVehicle
+    services: list[BookingServiceItem]
+    booking_date: date | None
+    notes: str | None = None
+    attachment_ids: list[UUID]
+    estimated_total: int = Field(description="Sum of service amounts in paise; no booking fees.")
+    currency: Literal["INR"]
+
+
+class CustomerBookingResponse(BookingSummary):
+    id: UUID
+    status: Literal["PENDING", "ACCEPTED", "REJECTED", "CONVERTED", "CANCELLED", "EXPIRED"]
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    can_cancel: bool
+    cancel_reason: str | None
+    linked_job_id: UUID | None
+    linked_job_status: str | None
+    created_at: datetime
 
 
 class CancelRequest(StrictInput):

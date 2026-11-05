@@ -12,11 +12,7 @@ export type ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = {
  * @maximum 100000
  */
 page?: number;
-/**
- * @minimum 1
- * @maximum 100
- */
-page_size?: number;
+page_size?: number | null;
 /**
  * @maxLength 100
  */

@@ -21,8 +21,10 @@ import type {
 
 import type {
   APIResponse,
+  APIResponseBookingSummary,
   APIResponseChallengeResponse,
   APIResponseContactResponse,
+  APIResponseCustomerBookingResponse,
   APIResponseDict,
   APIResponseDiscoveryGarage,
   APIResponseGarageSearchResults,
@@ -35,6 +37,7 @@ import type {
   AppSchemasResponseAPIResponseProfileResponse1,
   AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams,
   BodyAttachmentUploadApiV1CustomerAppAttachmentsPost,
+  BookingSelection,
   BookingSubmit,
   BookingsApiV1CustomerAppBookingsGetParams,
   CancelRequest,
@@ -58,7 +61,6 @@ import type {
   PaymentRequest,
   PhotoSet,
   ProfilePatch,
-  QuoteRequest,
   ReadAll,
   ReadMarker,
   RegisterRequest,
@@ -983,7 +985,10 @@ export const getSearchApiV1CustomerAppGaragesSearchPostUrl = () => {
 }
 
 /**
- * Service/garage/city discovery. Nearby-only defaults to 5 km; city browsing has no implicit radius. Explicit radius is strict, maximum 200 km.
+ * All verified ACTIVE garages within 200 km by default, nearest first.
+ *
+ * Both coordinates are required. No search pagination or service preview cap.
+ * An optional city narrows results inside the radius; it cannot substitute for a map pin.
  * @summary Search
  */
 export const searchApiV1CustomerAppGaragesSearchPost = async (garageSearch: GarageSearch, options?: RequestInit): Promise<APIResponseGarageSearchResults> => {
@@ -2209,6 +2214,7 @@ export const getAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetUrl = 
 }
 
 /**
+ * @deprecated
  * @summary Availability
  */
 export const availabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet = async (garageId: string,
@@ -2259,6 +2265,7 @@ export type AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetQueryError
 
 
 /**
+ * @deprecated
  * @summary Availability
  */
 
@@ -2281,25 +2288,26 @@ export function useAvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGet<TD
 
 
 
-export const getQuoteApiV1CustomerAppBookingsQuotePostUrl = () => {
+export const getSummaryApiV1CustomerAppBookingsSummaryPostUrl = () => {
 
 
 
 
-  return `/api/v1/customer-app/bookings/quote`
+  return `/api/v1/customer-app/bookings/summary`
 }
 
 /**
- * @summary Quote
+ * Optional current-price preview; no quote or slot IDs are created or required.
+ * @summary Summary
  */
-export const quoteApiV1CustomerAppBookingsQuotePost = async (quoteRequest: QuoteRequest, options?: RequestInit): Promise<APIResponseDict> => {
+export const summaryApiV1CustomerAppBookingsSummaryPost = async (bookingSelection: BookingSelection, options?: RequestInit): Promise<APIResponseBookingSummary> => {
 
-  return customFetch<APIResponseDict>(getQuoteApiV1CustomerAppBookingsQuotePostUrl(),
+  return customFetch<APIResponseBookingSummary>(getSummaryApiV1CustomerAppBookingsSummaryPostUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(quoteRequest)
+    body: JSON.stringify(bookingSelection)
   }
 );}
 
@@ -2307,11 +2315,11 @@ export const quoteApiV1CustomerAppBookingsQuotePost = async (quoteRequest: Quote
 
 
 
-export const getQuoteApiV1CustomerAppBookingsQuotePostMutationOptions = <TError = ErrorType<APIResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, TError,{data: BodyType<QuoteRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
-): UseMutationOptions<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, TError,{data: BodyType<QuoteRequest>}, TContext> => {
+export const getSummaryApiV1CustomerAppBookingsSummaryPostMutationOptions = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof summaryApiV1CustomerAppBookingsSummaryPost>>, TError,{data: BodyType<BookingSelection>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof summaryApiV1CustomerAppBookingsSummaryPost>>, TError,{data: BodyType<BookingSelection>}, TContext> => {
 
-const mutationKey = ['quoteApiV1CustomerAppBookingsQuotePost'];
+const mutationKey = ['summaryApiV1CustomerAppBookingsSummaryPost'];
 const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
@@ -2321,10 +2329,10 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, {data: BodyType<QuoteRequest>}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof summaryApiV1CustomerAppBookingsSummaryPost>>, {data: BodyType<BookingSelection>}> = (props) => {
           const {data} = props ?? {};
 
-          return  quoteApiV1CustomerAppBookingsQuotePost(data,requestOptions)
+          return  summaryApiV1CustomerAppBookingsSummaryPost(data,requestOptions)
         }
 
 
@@ -2334,22 +2342,22 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
   return  { mutationFn, ...mutationOptions }}
 
-    export type QuoteApiV1CustomerAppBookingsQuotePostMutationResult = NonNullable<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>>
-    export type QuoteApiV1CustomerAppBookingsQuotePostMutationBody = BodyType<QuoteRequest>
-    export type QuoteApiV1CustomerAppBookingsQuotePostMutationError = ErrorType<APIResponse>
+    export type SummaryApiV1CustomerAppBookingsSummaryPostMutationResult = NonNullable<Awaited<ReturnType<typeof summaryApiV1CustomerAppBookingsSummaryPost>>>
+    export type SummaryApiV1CustomerAppBookingsSummaryPostMutationBody = BodyType<BookingSelection>
+    export type SummaryApiV1CustomerAppBookingsSummaryPostMutationError = ErrorType<APIResponse>
 
     /**
- * @summary Quote
+ * @summary Summary
  */
-export const useQuoteApiV1CustomerAppBookingsQuotePost = <TError = ErrorType<APIResponse>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>, TError,{data: BodyType<QuoteRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+export const useSummaryApiV1CustomerAppBookingsSummaryPost = <TError = ErrorType<APIResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof summaryApiV1CustomerAppBookingsSummaryPost>>, TError,{data: BodyType<BookingSelection>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
-        Awaited<ReturnType<typeof quoteApiV1CustomerAppBookingsQuotePost>>,
+        Awaited<ReturnType<typeof summaryApiV1CustomerAppBookingsSummaryPost>>,
         TError,
-        {data: BodyType<QuoteRequest>},
+        {data: BodyType<BookingSelection>},
         TContext
       > => {
-      return useMutation(getQuoteApiV1CustomerAppBookingsQuotePostMutationOptions(options));
+      return useMutation(getSummaryApiV1CustomerAppBookingsSummaryPostMutationOptions(options));
     }
 
 export const getSubmitApiV1CustomerAppBookingsPostUrl = () => {
@@ -2363,9 +2371,9 @@ export const getSubmitApiV1CustomerAppBookingsPostUrl = () => {
 /**
  * @summary Submit
  */
-export const submitApiV1CustomerAppBookingsPost = async (bookingSubmit: BookingSubmit, options?: RequestInit): Promise<APIResponseDict> => {
+export const submitApiV1CustomerAppBookingsPost = async (bookingSubmit: BookingSubmit, options?: RequestInit): Promise<APIResponseCustomerBookingResponse> => {
 
-  return customFetch<APIResponseDict>(getSubmitApiV1CustomerAppBookingsPostUrl(),
+  return customFetch<APIResponseCustomerBookingResponse>(getSubmitApiV1CustomerAppBookingsPostUrl(),
   {
     ...options,
     method: 'POST',
@@ -2518,9 +2526,9 @@ export const getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl = (bookingI
 /**
  * @summary Booking Detail
  */
-export const bookingDetailApiV1CustomerAppBookingsBookingIdGet = async (bookingId: string, options?: RequestInit): Promise<APIResponseDict> => {
+export const bookingDetailApiV1CustomerAppBookingsBookingIdGet = async (bookingId: string, options?: RequestInit): Promise<APIResponseCustomerBookingResponse> => {
 
-  return customFetch<APIResponseDict>(getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl(bookingId),
+  return customFetch<APIResponseCustomerBookingResponse>(getBookingDetailApiV1CustomerAppBookingsBookingIdGetUrl(bookingId),
   {
     ...options,
     method: 'GET'

@@ -23,6 +23,8 @@ def main():
         if path.startswith("/v1/customer-app"):
             del existing["paths"][path]
     existing["paths"].update(paths)
+    # The former slot/quote request is no longer a public customer contract.
+    existing["components"]["schemas"].pop("QuoteRequest", None)
     required = set()
 
     def references(value):

@@ -260,20 +260,6 @@ export interface TicketReply {
   attachment_ids?: string[];
 }
 
-export interface QuoteRequest {
-  garage_id: string;
-  vehicle_id: string;
-  /**
-     * @minItems 1
-     * @maxItems 20
-     */
-  service_ids: string[];
-  slot_id: string;
-  notes?: string | null;
-  /** @maxItems 5 */
-  attachment_ids?: string[];
-}
-
 export interface CancelRequest {
   /**
      * @minLength 1
@@ -382,7 +368,19 @@ export const BookingStatus = {
 } as const;
 
 export interface BookingSubmit {
-  quote_id: string;
+  garage_id: string;
+  vehicle_id: string;
+  /**
+     * @minItems 1
+     * @maxItems 20
+     */
+  service_ids: string[];
+  booking_date: string;
+  notes?: string | null;
+  /** @maxItems 5 */
+  attachment_ids?: string[];
+  /** Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED. */
+  expected_total?: number | null;
 }
 
 export interface ReviewPatch {
@@ -462,24 +460,35 @@ export const GarageSearchSearchBy = {
 } as const;
 
 export interface GarageSearch {
-  latitude?: number | null;
-  longitude?: number | null;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  latitude: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  longitude: number;
   accuracy_meters?: number | null;
   captured_at?: string | null;
   /** @maxLength 100 */
   q?: string;
   search_by?: GarageSearchSearchBy;
-  /** Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict. */
+  /** Optional exact saved-city filter within the selected location's radius. */
   city?: string | null;
   radius_km?: number | null;
   /**
+     * Ignored: search returns all matches.
+     * @deprecated
      * @minimum 1
      * @maximum 100000
      */
   page?: number;
   /**
+     * Ignored: search returns all matches.
+     * @deprecated
      * @minimum 1
-     * @maximum 100
      */
   page_size?: number;
 }
@@ -575,17 +584,109 @@ export interface APIResponseGarageSearchResults {
   status_code: number;
 }
 
+export interface BookingGarage {
+  id: string;
+  name: string;
+}
+
+export interface BookingVehicle {
+  id: string;
+  registration_number: string;
+}
+
+export interface BookingServiceItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  price_inr?: string | null;
+  amount: number;
+  duration_minutes?: number | null;
+}
+
+export type CustomerBookingResponseStatus = typeof CustomerBookingResponseStatus[keyof typeof CustomerBookingResponseStatus];
+
+
+export const CustomerBookingResponseStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REJECTED: 'REJECTED',
+  CONVERTED: 'CONVERTED',
+  CANCELLED: 'CANCELLED',
+  EXPIRED: 'EXPIRED',
+} as const;
+
+export interface CustomerBookingResponse {
+  garage: BookingGarage;
+  vehicle: BookingVehicle;
+  services: BookingServiceItem[];
+  booking_date: string | null;
+  notes?: string | null;
+  attachment_ids: string[];
+  /** Sum of service amounts in paise; no booking fees. */
+  estimated_total: number;
+  currency: 'INR';
+  id: string;
+  status: CustomerBookingResponseStatus;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  can_cancel: boolean;
+  cancel_reason: string | null;
+  linked_job_id: string | null;
+  linked_job_status: string | null;
+  created_at: string;
+}
+
+export interface APIResponseCustomerBookingResponse {
+  success: boolean;
+  message: string;
+  data?: CustomerBookingResponse | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
+export interface BookingSelection {
+  garage_id: string;
+  vehicle_id: string;
+  /**
+     * @minItems 1
+     * @maxItems 20
+     */
+  service_ids: string[];
+  booking_date: string;
+  notes?: string | null;
+  /** @maxItems 5 */
+  attachment_ids?: string[];
+  /** Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED. */
+  expected_total?: number | null;
+}
+
+export interface BookingSummary {
+  garage: BookingGarage;
+  vehicle: BookingVehicle;
+  services: BookingServiceItem[];
+  booking_date: string | null;
+  notes?: string | null;
+  attachment_ids: string[];
+  /** Sum of service amounts in paise; no booking fees. */
+  estimated_total: number;
+  currency: 'INR';
+}
+
+export interface APIResponseBookingSummary {
+  success: boolean;
+  message: string;
+  data?: BookingSummary | null;
+  errors?: unknown[];
+  status_code: number;
+}
+
 export type ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = {
 /**
  * @minimum 1
  * @maximum 100000
  */
 page?: number;
-/**
- * @minimum 1
- * @maximum 100
- */
-page_size?: number;
+page_size?: number | null;
 /**
  * @maxLength 100
  */

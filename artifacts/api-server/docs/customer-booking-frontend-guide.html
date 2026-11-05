@@ -1,0 +1,193 @@
+<!doctype html><html lang='en'><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Customer discovery and booking API guide</title><style>body{font:16px/1.6 system-ui,sans-serif;color:#17263a;max-width:1050px;margin:auto;padding:30px}h1,h2,h3{line-height:1.3}h2{margin-top:40px;border-bottom:1px solid #ddd;padding-bottom:10px}pre{background:#f3f5f8;padding:18px;overflow:auto;border-radius:6px;font-size:13px}code{background:#f3f5f8;padding:2px 4px;font-size:14px}p{white-space:pre-line}.item{margin:8px 0}@media print{body{padding:0}pre{white-space:pre-wrap}}</style><body><h1>Customer discovery and date-only booking: frontend handoff</h1>
+<p>This is the current contract for nearby search and new customer booking creation.
+Examples are illustrative: use IDs returned by the backend, the customer&#x27;s selected
+map location, and the selected date. Do not hardcode the example IDs or coordinates.</p>
+<h2>Authentication and common response</h2>
+<p>Customer operations require:</p>
+<pre>Authorization: Bearer &lt;customer_access_token&gt;
+Content-Type: application/json</pre>
+<p>Booking submission additionally requires <code>Idempotency-Key: &lt;unique-request-key&gt;</code>.
+Generate one key for one intended booking. Reuse it with the identical request after
+a timeout; use a new key for a different booking. Reusing a key with changed input
+returns <code>409 IDEMPOTENCY_CONFLICT</code>. An identical retry returns the existing booking
+with its current status, not a second booking.</p>
+<p>Owner operations use the garage-owner token, not the customer token.
+Responses use this envelope:</p>
+<pre>{
+  &quot;success&quot;: true,
+  &quot;message&quot;: &quot;Success&quot;,
+  &quot;data&quot;: {},
+  &quot;errors&quot;: [],
+  &quot;status_code&quot;: 200
+}</pre>
+<p>Customer locations travel in request bodies, not URLs, and responses use
+<code>Cache-Control: no-store</code>. They are not saved to the customer&#x27;s profile.</p>
+<h2>Step 1: Search nearby garages or services</h2>
+<p><code>POST /api/v1/customer-app/garages/search</code></p>
+<pre>{
+  &quot;latitude&quot;: 17.385044,
+  &quot;longitude&quot;: 78.486671,
+  &quot;radius_km&quot;: 200,
+  &quot;q&quot;: &quot;oil&quot;,
+  &quot;search_by&quot;: &quot;service&quot;
+}</pre>
+<p class='item'>- Both coordinates are now required. Changing location means repeating this request</p>
+<p>  with the newly selected coordinates; the frontend must replace its old results.</p>
+<p class='item'>- <code>radius_km</code> is optional: omitted/null defaults to <strong>200 KM</strong>; a positive value</p>
+<p>  up to 200 explicitly narrows the radius.</p>
+<p class='item'>- Omit <code>q</code> or send <code>&quot;&quot;</code> to browse all eligible nearby garages.</p>
+<p class='item'>- <code>search_by</code> is <code>all</code> (default), <code>service</code>, or <code>garage</code>. Matching is case-insensitive</p>
+<p>  literal substring matching by service/garage name.</p>
+<p class='item'>- Optional <code>city</code> narrows the result by saved city, case-insensitively and trimmed.</p>
+<p>  It does not bypass the radius or substitute for coordinates.</p>
+<p class='item'>- Only non-deleted garages with <code>operational_status: ACTIVE</code> and</p>
+<p>  <code>verification_status: VERIFIED</code> are included. Missing/invalid garage map pins
+  cannot satisfy the radius. No coordinates are inferred or invented.</p>
+<p class='item'>- Distance is geographic straight-line distance, <strong>not road distance</strong>, nearest first.</p>
+<p class='item'>- <strong>All matching garages are returned in one response.</strong> Old <code>page</code>/<code>page_size</code></p>
+<p>  fields are accepted but ignored; there is no search result truncation.</p>
+<p class='item'>- Each result includes all matching active services for a service-only match, or</p>
+<p>  the full active catalogue for a matching garage name. No five-service cap remains.</p>
+<p><code>data</code> contains:</p>
+<pre>{
+  &quot;items&quot;: [],
+  &quot;total&quot;: 0,
+  &quot;page&quot;: 1,
+  &quot;page_size&quot;: 0,
+  &quot;pages&quot;: 0,
+  &quot;radius_km&quot;: 200,
+  &quot;distance_type&quot;: &quot;STRAIGHT_LINE&quot;
+}</pre>
+<p>For nonempty results, <code>page_size</code> equals <code>total</code>, and <code>pages</code> is 1. These metadata
+fields remain for client compatibility; no further search page needs fetching.
+Each garage includes <code>id</code>, <code>name</code>, address fields, <code>distance_km</code>, <code>services</code>,
+service counts, <code>booking_eligible</code>, and <code>services_has_more: false</code>.
+Services include <code>id</code>, <code>name</code>, <code>description</code>, <code>price_inr</code>, <code>amount</code>,
+<code>currency</code>, <code>duration_minutes</code>, and <code>booking_eligible</code>.
+Missing duration does not prevent date-only booking.</p>
+<h2>Step 2: Open a garage and its complete service catalogue</h2>
+<pre>| Method | Endpoint | Input / behavior |
+|---|---|---|
+| GET | `/api/v1/customer-app/garages/{garage_id}` | Full active catalogue; distance is null without a selected location |
+| POST | `/api/v1/customer-app/garages/{garage_id}/details` | JSON body with latitude and longitude to return distance |
+| GET | `/api/v1/customer-app/garages/{garage_id}/services` | All active services by default; optional `q` filters names |</pre>
+<p>The services endpoint supports optional explicit <code>page_size</code>/<code>page</code> for older clients,
+but the frontend does not need pagination when these parameters are omitted.
+Unverified, rejected, inactive, or deleted garages are not exposed through these routes.
+These routes read the garage owner&#x27;s actual existing service catalogue.</p>
+<h2>Step 3: Select or create a customer-owned vehicle</h2>
+<p><code>GET /api/v1/customer-app/vehicles</code> lists the customer&#x27;s vehicles.
+This endpoint retains its existing pagination, unlike garage search.</p>
+<p><code>POST /api/v1/customer-app/vehicles</code> creates a vehicle:</p>
+<pre>{
+  &quot;registration_number&quot;: &quot;TS09AB1234&quot;,
+  &quot;brand&quot;: &quot;Maruti Suzuki&quot;,
+  &quot;model&quot;: &quot;Swift&quot;,
+  &quot;fuel_type&quot;: &quot;PETROL&quot;,
+  &quot;year&quot;: 2023
+}</pre>
+<p>Use the returned <code>data.id</code> as <code>vehicle_id</code>. Another customer&#x27;s vehicle is rejected.
+Do not use the owner&#x27;s internal garage vehicle ID.</p>
+<h2>Step 4: Optional booking summary</h2>
+<p><code>POST /api/v1/customer-app/bookings/summary</code></p>
+<pre>{
+  &quot;garage_id&quot;: &quot;11111111-1111-4111-8111-111111111111&quot;,
+  &quot;vehicle_id&quot;: &quot;22222222-2222-4222-8222-222222222222&quot;,
+  &quot;service_ids&quot;: [&quot;33333333-3333-4333-8333-333333333333&quot;],
+  &quot;booking_date&quot;: &quot;2030-01-10&quot;,
+  &quot;notes&quot;: &quot;Please inspect engine noise&quot;,
+  &quot;attachment_ids&quot;: []
+}</pre>
+<p>Display <code>data.garage</code>, <code>data.vehicle</code>, <code>data.services</code>, <code>data.booking_date</code>,
+<code>data.estimated_total</code>, and <code>data.currency</code>.
+No booking, slot reservation, or quote ID is created by this preview.
+Use <code>booking_date</code> in <code>YYYY-MM-DD</code> form. Today and future dates are accepted using
+the current <code>Asia/Kolkata</code> business-date policy; past dates return 422.
+Between 1 and 20 distinct service IDs and up to 5 booking-photo attachment IDs are accepted.</p>
+<p>Money rules:</p>
+<p class='item'>- Service <code>price_inr</code> is rupees (serialized as a decimal string).</p>
+<p class='item'>- Service <code>amount</code> and <code>estimated_total</code> are integer <strong>paise</strong>.</p>
+<p class='item'>- <code>estimated_total</code> is exactly the sum of the selected service amounts.</p>
+<p class='item'>- No booking fees, extra charges, or Code ID are added to this flow.</p>
+<p class='item'>- No client-supplied price or total can override backend service prices.</p>
+<h2>Step 5: Submit directly, without slot_id or quote_id</h2>
+<p><code>POST /api/v1/customer-app/bookings</code></p>
+<p>Headers:</p>
+<pre>Authorization: Bearer &lt;customer_access_token&gt;
+Content-Type: application/json
+Idempotency-Key: &lt;unique-key-for-this-booking&gt;</pre>
+<p>Body:</p>
+<pre>{
+  &quot;garage_id&quot;: &quot;11111111-1111-4111-8111-111111111111&quot;,
+  &quot;vehicle_id&quot;: &quot;22222222-2222-4222-8222-222222222222&quot;,
+  &quot;service_ids&quot;: [&quot;33333333-3333-4333-8333-333333333333&quot;],
+  &quot;booking_date&quot;: &quot;2030-01-10&quot;,
+  &quot;notes&quot;: &quot;Please inspect engine noise&quot;,
+  &quot;attachment_ids&quot;: [],
+  &quot;expected_total&quot;: 150000
+}</pre>
+<p>Use the same selection as the reviewed summary. <code>expected_total</code> is optional and
+must be the reviewed paise total, not a manually calculated charge. If current
+service prices differ, the server returns <code>409 PRICE_CHANGED</code>; refresh the summary
+and ask the customer to confirm the new price before resubmitting.
+Without <code>expected_total</code>, submission uses current backend prices.</p>
+<p>Summary is optional: the frontend may submit the selection directly.
+Submission rechecks the date, garage verification/operational status, vehicle
+ownership, active service membership, attachments, and prices.</p>
+<p>HTTP 201 returns <code>data.id</code> (the booking ID), <code>status: PENDING</code>, <code>garage</code>, <code>vehicle</code>,
+<code>services</code>, <code>booking_date</code>, <code>estimated_total</code>, <code>currency</code>, cancellation information,
+and timestamps. Legacy <code>starts_at</code> and <code>ends_at</code> fields are null for new date-only
+bookings; never use them to require a time-slot selection.
+No <code>slot_id</code> or <code>quote_id</code> is accepted or returned.
+Unknown fields such as <code>slot_id</code>, <code>quote_id</code>, <code>code_id</code>, <code>booking_fee</code>, or a
+client-authored <code>total</code> are rejected with 422.</p>
+<p>The previous <code>POST /bookings/quote</code> operation is removed. The old availability route
+is deprecated and is not needed for this flow. Existing slot-based bookings,
+storage, and owner slot-management records are retained for compatibility.
+An internal immutable service snapshot is saved automatically; the frontend never
+has to create, persist, or submit its storage identifier.</p>
+<h2>Step 6: Garage owner receives and acts on the booking</h2>
+<p>New requests use the existing shared bookings table and the selected garage ID.
+After submission commits, the owner can fetch the request immediately:</p>
+<pre>| Method | Endpoint | Result |
+|---|---|---|
+| GET | `/api/v1/bookings?status=PENDING` | Owner&#x27;s pending bookings; existing owner pagination remains |
+| GET | `/api/v1/bookings/{booking_id}` | Owner&#x27;s booking with customer, vehicle, requested service names and booking date |
+| PATCH | `/api/v1/bookings/{booking_id}/accept` | No body; changes status to `ACCEPTED` |
+| PATCH | `/api/v1/bookings/{booking_id}/reject` | No body; changes status to `REJECTED` |</pre>
+<p>Use a garage-owner access token. Garage scoping prevents another garage from reading
+or acting on the booking. Date-only requests need no slot to be accepted.</p>
+<p>Scope note: this change does <strong>not</strong> rename the existing acceptance status to
+<code>CONFIRMED</code>; customer and owner APIs continue to report <code>ACCEPTED</code>.
+The existing owner booking response exposes requested service names rather than
+the customer&#x27;s structured price snapshot/total. Extending that owner projection is
+separate work. This document does not claim an owner-dashboard frontend change.</p>
+<h2>Step 7: Customer reads the synchronized status</h2>
+<pre>| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/v1/customer-app/bookings` | Customer&#x27;s bookings; existing pagination remains |
+| GET | `/api/v1/customer-app/bookings/{booking_id}` | Current backend booking status, date, selected services and frozen total |
+| GET | `/api/v1/customer-app/bookings/{booking_id}/timeline` | Booking events |
+| POST | `/api/v1/customer-app/bookings/{booking_id}/cancel` | `{&quot;reason&quot;:&quot;Change of plans&quot;}` |</pre>
+<p>Submission is <code>PENDING</code>; owner acceptance is <code>ACCEPTED</code>; owner rejection is <code>REJECTED</code>.
+Customer reads use the same booking row as owner actions. The frontend must re-fetch
+after actions or on its normal refresh schedule; no live push/socket delivery is
+claimed. A pending date-only request without a job may be cancelled through its
+selected day. After that day passes in Asia/Kolkata, unattended pending requests
+expire; accepted work is not automatically expired.</p>
+<h2>Important error handling</h2>
+<pre>| HTTP | Code / condition | Frontend handling |
+|---|---|---|
+| 401 | Missing/expired customer session | Refresh/login |
+| 404 | Garage or owned vehicle not found | Reload selection; do not substitute IDs |
+| 409 | `GARAGE_UNAVAILABLE` | Garage is no longer active and verified |
+| 409 | `PRICE_CHANGED` | Refresh summary and confirm again |
+| 409 | `IDEMPOTENCY_CONFLICT` | Never reuse a key for different input |
+| 422 | `INVALID_APPOINTMENT_DATE` | Select today or a future date |
+| 422 | `SERVICE_INACTIVE` | Reload the catalogue and reselect services |
+| 422 | Invalid/unknown request fields | Correct the request contract |</pre>
+<h2>Storage and rollout</h2>
+<p>No schema change is required for this feature. Existing nullable-slot compatibility
+and historical scheduling storage must be preserved. No production rows or schema
+are changed by development tests. Publish through the normal flow after frontend
+clients adopt the breaking search/booking input changes.</p></body></html>

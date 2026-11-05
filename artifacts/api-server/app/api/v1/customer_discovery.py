@@ -20,7 +20,11 @@ router = APIRouter(prefix="/customer-app/garages", tags=["Customer Discovery"], 
 
 @router.post("/search", response_model=APIResponse[GarageSearchResults])
 async def search(data: GarageSearch, db: DB, who: Principal, response: Response):
-    """Service/garage/city discovery. Nearby-only defaults to 5 km; city browsing has no implicit radius. Explicit radius is strict, maximum 200 km."""
+    """All verified ACTIVE garages within 200 km by default, nearest first.
+
+    Both coordinates are required. No search pagination or service preview cap.
+    An optional city narrows results inside the radius; it cannot substitute for a map pin.
+    """
     response.headers["Cache-Control"] = "no-store"
     return APIResponse.ok(await CustomerDiscoveryService(db).search(data))
 
@@ -41,7 +45,7 @@ async def located_detail(garage_id: UUID, data: LocationInput, db: DB, who: Prin
 @router.get("/{garage_id}/services", response_model=APIResponse[PaginatedData[DiscoveryService]])
 async def services(garage_id: UUID, db: DB, who: Principal, response: Response,
                    page: Annotated[int, Query(ge=1, le=100000)] = 1,
-                   page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+                   page_size: Annotated[int | None, Query(ge=1, le=100)] = None,
                    q: Annotated[str, Query(max_length=100)] = ""):
     response.headers["Cache-Control"] = "no-store"
     return APIResponse.ok(await CustomerDiscoveryService(db).services(garage_id, page, page_size, q.strip()))

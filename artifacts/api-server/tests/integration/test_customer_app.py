@@ -485,6 +485,9 @@ def test_openapi_has_approved_customer_operations_without_password_routes():
                             "documents/customer-only-api-specification-source.json").read_text())
     expected = {(BASE + e["path"], e["method"].lower()) for group in inventory
                 for e in group["endpoints"] if e["id"] not in {"API-08", "API-09", "API-10", "API-11"}}
+    # The approved date-only flow supersedes the historical slot/quote draft.
+    expected.discard((BASE + "/bookings/quote", "post"))
+    expected.add((BASE + "/bookings/summary", "post"))
     actual = {(path, method) for path, operations in paths.items() for method in operations}
     discovery = {
         (BASE + "/garages/search", "post"),
@@ -494,3 +497,6 @@ def test_openapi_has_approved_customer_operations_without_password_routes():
     }
     assert actual == expected | discovery | {(BASE + "/jobs/{job_id}/photos/{photo_index}", "get")}
     assert spec["components"]["schemas"]["RegisterRequest"]["additionalProperties"] is False
+    booking_input = spec["components"]["schemas"]["BookingSubmit"]
+    assert {"garage_id", "vehicle_id", "service_ids", "booking_date"} <= set(booking_input["required"])
+    assert not {"slot_id", "quote_id", "booking_fee"} & set(booking_input["properties"])

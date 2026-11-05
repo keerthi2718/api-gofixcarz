@@ -433,14 +433,17 @@ export const VerifyContactApiV1CustomerAppMeContactChangeVerifyPostResponse = zo
 
 
 /**
- * Service/garage/city discovery. Nearby-only defaults to 5 km; city browsing has no implicit radius. Explicit radius is strict, maximum 200 km.
+ * All verified ACTIVE garages within 200 km by default, nearest first.
+ *
+ * Both coordinates are required. No search pagination or service preview cap.
+ * An optional city narrows results inside the radius; it cannot substitute for a map pin.
  * @summary Search
  */
-export const searchApiV1CustomerAppGaragesSearchPostBodyLatitudeOneMin = -90;
-export const searchApiV1CustomerAppGaragesSearchPostBodyLatitudeOneMax = 90;
+export const searchApiV1CustomerAppGaragesSearchPostBodyLatitudeMin = -90;
+export const searchApiV1CustomerAppGaragesSearchPostBodyLatitudeMax = 90;
 
-export const searchApiV1CustomerAppGaragesSearchPostBodyLongitudeOneMin = -180;
-export const searchApiV1CustomerAppGaragesSearchPostBodyLongitudeOneMax = 180;
+export const searchApiV1CustomerAppGaragesSearchPostBodyLongitudeMin = -180;
+export const searchApiV1CustomerAppGaragesSearchPostBodyLongitudeMax = 180;
 
 export const searchApiV1CustomerAppGaragesSearchPostBodyAccuracyMetersOneMin = 0;
 export const searchApiV1CustomerAppGaragesSearchPostBodyAccuracyMetersOneMax = 100000;
@@ -458,21 +461,20 @@ export const searchApiV1CustomerAppGaragesSearchPostBodyPageDefault = 1;
 export const searchApiV1CustomerAppGaragesSearchPostBodyPageMax = 100000;
 
 export const searchApiV1CustomerAppGaragesSearchPostBodyPageSizeDefault = 20;
-export const searchApiV1CustomerAppGaragesSearchPostBodyPageSizeMax = 100;
 
 
 
 export const SearchApiV1CustomerAppGaragesSearchPostBody = zod.object({
-  "latitude": zod.union([zod.number().min(searchApiV1CustomerAppGaragesSearchPostBodyLatitudeOneMin).max(searchApiV1CustomerAppGaragesSearchPostBodyLatitudeOneMax),zod.null()]).optional(),
-  "longitude": zod.union([zod.number().min(searchApiV1CustomerAppGaragesSearchPostBodyLongitudeOneMin).max(searchApiV1CustomerAppGaragesSearchPostBodyLongitudeOneMax),zod.null()]).optional(),
+  "latitude": zod.number().min(searchApiV1CustomerAppGaragesSearchPostBodyLatitudeMin).max(searchApiV1CustomerAppGaragesSearchPostBodyLatitudeMax),
+  "longitude": zod.number().min(searchApiV1CustomerAppGaragesSearchPostBodyLongitudeMin).max(searchApiV1CustomerAppGaragesSearchPostBodyLongitudeMax),
   "accuracy_meters": zod.union([zod.number().min(searchApiV1CustomerAppGaragesSearchPostBodyAccuracyMetersOneMin).max(searchApiV1CustomerAppGaragesSearchPostBodyAccuracyMetersOneMax),zod.null()]).optional(),
   "captured_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
   "q": zod.string().max(searchApiV1CustomerAppGaragesSearchPostBodyQMax).default(searchApiV1CustomerAppGaragesSearchPostBodyQDefault),
   "search_by": zod.enum(['all', 'service', 'garage']).default(searchApiV1CustomerAppGaragesSearchPostBodySearchByDefault),
-  "city": zod.union([zod.string().max(searchApiV1CustomerAppGaragesSearchPostBodyCityOneMax),zod.null()]).optional().describe('Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict.'),
+  "city": zod.union([zod.string().max(searchApiV1CustomerAppGaragesSearchPostBodyCityOneMax),zod.null()]).optional().describe('Optional exact saved-city filter within the selected location\'s radius.'),
   "radius_km": zod.union([zod.number().gt(searchApiV1CustomerAppGaragesSearchPostBodyRadiusKmOneExclusiveMin).max(searchApiV1CustomerAppGaragesSearchPostBodyRadiusKmOneMax),zod.null()]).optional(),
-  "page": zod.number().min(1).max(searchApiV1CustomerAppGaragesSearchPostBodyPageMax).default(searchApiV1CustomerAppGaragesSearchPostBodyPageDefault),
-  "page_size": zod.number().min(1).max(searchApiV1CustomerAppGaragesSearchPostBodyPageSizeMax).default(searchApiV1CustomerAppGaragesSearchPostBodyPageSizeDefault)
+  "page": zod.number().min(1).max(searchApiV1CustomerAppGaragesSearchPostBodyPageMax).default(searchApiV1CustomerAppGaragesSearchPostBodyPageDefault).describe('Ignored: search returns all matches.'),
+  "page_size": zod.number().min(1).default(searchApiV1CustomerAppGaragesSearchPostBodyPageSizeDefault).describe('Ignored: search returns all matches.')
 })
 
 export const searchApiV1CustomerAppGaragesSearchPostResponseDataOneItemsItemDistanceTypeDefault = `STRAIGHT_LINE`;
@@ -653,8 +655,7 @@ export const ServicesApiV1CustomerAppGaragesGarageIdServicesGetParams = zod.obje
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageDefault = 1;
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageMax = 100000;
 
-export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeDefault = 20;
-export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeMax = 100;
+export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeOneMax = 100;
 
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQDefault = ``;
 export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQMax = 100;
@@ -663,7 +664,7 @@ export const servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQMax = 100;
 
 export const ServicesApiV1CustomerAppGaragesGarageIdServicesGetQueryParams = zod.object({
   "page": zod.coerce.number().min(1).max(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageMax).default(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageDefault),
-  "page_size": zod.coerce.number().min(1).max(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeMax).default(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeDefault),
+  "page_size": zod.union([zod.coerce.number().min(1).max(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryPageSizeOneMax),zod.null()]).optional(),
   "q": zod.coerce.string().max(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQMax).default(servicesApiV1CustomerAppGaragesGarageIdServicesGetQueryQDefault)
 })
 
@@ -965,6 +966,7 @@ export const PhotoDeleteApiV1CustomerAppMePhotoDeleteResponse = zod.object({
 
 
 /**
+ * @deprecated
  * @summary Availability
  */
 export const AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetParams = zod.object({
@@ -992,32 +994,59 @@ export const AvailabilityApiV1CustomerAppGaragesGarageIdAvailabilityGetResponse 
 
 
 /**
- * @summary Quote
+ * Optional current-price preview; no quote or slot IDs are created or required.
+ * @summary Summary
  */
-export const quoteApiV1CustomerAppBookingsQuotePostBodyServiceIdsMax = 20;
+export const summaryApiV1CustomerAppBookingsSummaryPostBodyServiceIdsMax = 20;
 
-export const quoteApiV1CustomerAppBookingsQuotePostBodyNotesOneMax = 2000;
+export const summaryApiV1CustomerAppBookingsSummaryPostBodyNotesOneMax = 2000;
 
-export const quoteApiV1CustomerAppBookingsQuotePostBodyAttachmentIdsMax = 5;
+export const summaryApiV1CustomerAppBookingsSummaryPostBodyAttachmentIdsMax = 5;
+
+export const summaryApiV1CustomerAppBookingsSummaryPostBodyExpectedTotalOneMin = 0;
 
 
 
-export const QuoteApiV1CustomerAppBookingsQuotePostBody = zod.object({
+export const SummaryApiV1CustomerAppBookingsSummaryPostBody = zod.object({
   "garage_id": zod.string().uuid(),
   "vehicle_id": zod.string().uuid(),
-  "service_ids": zod.array(zod.string().uuid()).min(1).max(quoteApiV1CustomerAppBookingsQuotePostBodyServiceIdsMax),
-  "slot_id": zod.string().uuid(),
-  "notes": zod.union([zod.string().max(quoteApiV1CustomerAppBookingsQuotePostBodyNotesOneMax),zod.null()]).optional(),
-  "attachment_ids": zod.array(zod.string().uuid()).max(quoteApiV1CustomerAppBookingsQuotePostBodyAttachmentIdsMax).optional()
+  "service_ids": zod.array(zod.string().uuid()).min(1).max(summaryApiV1CustomerAppBookingsSummaryPostBodyServiceIdsMax),
+  "booking_date": zod.coerce.date(),
+  "notes": zod.union([zod.string().max(summaryApiV1CustomerAppBookingsSummaryPostBodyNotesOneMax),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()).max(summaryApiV1CustomerAppBookingsSummaryPostBodyAttachmentIdsMax).optional(),
+  "expected_total": zod.union([zod.number().min(summaryApiV1CustomerAppBookingsSummaryPostBodyExpectedTotalOneMin),zod.null()]).optional().describe('Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED.')
 })
 
-export const quoteApiV1CustomerAppBookingsQuotePostResponseErrorsDefault = [];
+export const summaryApiV1CustomerAppBookingsSummaryPostResponseDataOneServicesItemPriceInrOneRegExp = new RegExp('^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$');
+export const summaryApiV1CustomerAppBookingsSummaryPostResponseErrorsDefault = [];
 
-export const QuoteApiV1CustomerAppBookingsQuotePostResponse = zod.object({
+export const SummaryApiV1CustomerAppBookingsSummaryPostResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
-  "errors": zod.array(zod.unknown()).default(quoteApiV1CustomerAppBookingsQuotePostResponseErrorsDefault),
+  "data": zod.union([zod.object({
+  "garage": zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string()
+}),
+  "vehicle": zod.object({
+  "id": zod.string().uuid(),
+  "registration_number": zod.string()
+}),
+  "services": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "description": zod.union([zod.string(),zod.null()]).optional(),
+  "price_inr": zod.union([zod.string().regex(summaryApiV1CustomerAppBookingsSummaryPostResponseDataOneServicesItemPriceInrOneRegExp),zod.null()]).optional(),
+  "amount": zod.number(),
+  "duration_minutes": zod.union([zod.number(),zod.null()]).optional()
+})),
+  "booking_date": zod.union([zod.coerce.date(),zod.null()]),
+  "notes": zod.union([zod.string(),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()),
+  "estimated_total": zod.number().describe('Sum of service amounts in paise; no booking fees.'),
+  "currency": zod.literal("INR")
+}),zod.null()]).optional(),
+  "errors": zod.array(zod.unknown()).default(summaryApiV1CustomerAppBookingsSummaryPostResponseErrorsDefault),
   "status_code": zod.number()
 })
 
@@ -1033,16 +1062,64 @@ export const SubmitApiV1CustomerAppBookingsPostHeader = zod.object({
   "Idempotency-Key": zod.string().min(1).max(submitApiV1CustomerAppBookingsPostHeaderIdempotencyKeyMax)
 })
 
+export const submitApiV1CustomerAppBookingsPostBodyServiceIdsMax = 20;
+
+export const submitApiV1CustomerAppBookingsPostBodyNotesOneMax = 2000;
+
+export const submitApiV1CustomerAppBookingsPostBodyAttachmentIdsMax = 5;
+
+export const submitApiV1CustomerAppBookingsPostBodyExpectedTotalOneMin = 0;
+
+
+
 export const SubmitApiV1CustomerAppBookingsPostBody = zod.object({
-  "quote_id": zod.string().uuid()
+  "garage_id": zod.string().uuid(),
+  "vehicle_id": zod.string().uuid(),
+  "service_ids": zod.array(zod.string().uuid()).min(1).max(submitApiV1CustomerAppBookingsPostBodyServiceIdsMax),
+  "booking_date": zod.coerce.date(),
+  "notes": zod.union([zod.string().max(submitApiV1CustomerAppBookingsPostBodyNotesOneMax),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()).max(submitApiV1CustomerAppBookingsPostBodyAttachmentIdsMax).optional(),
+  "expected_total": zod.union([zod.number().min(submitApiV1CustomerAppBookingsPostBodyExpectedTotalOneMin),zod.null()]).optional().describe('Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED.')
 })
 
+export const submitApiV1CustomerAppBookingsPostResponseDataOneServicesItemPriceInrOneRegExp = new RegExp('^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$');
 export const submitApiV1CustomerAppBookingsPostResponseErrorsDefault = [];
 
 export const SubmitApiV1CustomerAppBookingsPostResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "data": zod.union([zod.object({
+  "garage": zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string()
+}),
+  "vehicle": zod.object({
+  "id": zod.string().uuid(),
+  "registration_number": zod.string()
+}),
+  "services": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "description": zod.union([zod.string(),zod.null()]).optional(),
+  "price_inr": zod.union([zod.string().regex(submitApiV1CustomerAppBookingsPostResponseDataOneServicesItemPriceInrOneRegExp),zod.null()]).optional(),
+  "amount": zod.number(),
+  "duration_minutes": zod.union([zod.number(),zod.null()]).optional()
+})),
+  "booking_date": zod.union([zod.coerce.date(),zod.null()]),
+  "notes": zod.union([zod.string(),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()),
+  "estimated_total": zod.number().describe('Sum of service amounts in paise; no booking fees.'),
+  "currency": zod.literal("INR"),
+  "id": zod.string().uuid(),
+  "status": zod.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CONVERTED', 'CANCELLED', 'EXPIRED']),
+  "starts_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
+  "ends_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
+  "can_cancel": zod.boolean(),
+  "cancel_reason": zod.union([zod.string(),zod.null()]),
+  "linked_job_id": zod.union([zod.string().uuid(),zod.null()]),
+  "linked_job_status": zod.union([zod.string(),zod.null()]),
+  "created_at": zod.coerce.date()
+}),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(submitApiV1CustomerAppBookingsPostResponseErrorsDefault),
   "status_code": zod.number()
 })
@@ -1085,12 +1162,44 @@ export const BookingDetailApiV1CustomerAppBookingsBookingIdGetParams = zod.objec
   "booking_id": zod.coerce.string().uuid()
 })
 
+export const bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseDataOneServicesItemPriceInrOneRegExp = new RegExp('^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$');
 export const bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseErrorsDefault = [];
 
 export const BookingDetailApiV1CustomerAppBookingsBookingIdGetResponse = zod.object({
   "success": zod.boolean(),
   "message": zod.string(),
-  "data": zod.union([zod.record(zod.string(), zod.unknown()),zod.null()]).optional(),
+  "data": zod.union([zod.object({
+  "garage": zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string()
+}),
+  "vehicle": zod.object({
+  "id": zod.string().uuid(),
+  "registration_number": zod.string()
+}),
+  "services": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "description": zod.union([zod.string(),zod.null()]).optional(),
+  "price_inr": zod.union([zod.string().regex(bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseDataOneServicesItemPriceInrOneRegExp),zod.null()]).optional(),
+  "amount": zod.number(),
+  "duration_minutes": zod.union([zod.number(),zod.null()]).optional()
+})),
+  "booking_date": zod.union([zod.coerce.date(),zod.null()]),
+  "notes": zod.union([zod.string(),zod.null()]).optional(),
+  "attachment_ids": zod.array(zod.string().uuid()),
+  "estimated_total": zod.number().describe('Sum of service amounts in paise; no booking fees.'),
+  "currency": zod.literal("INR"),
+  "id": zod.string().uuid(),
+  "status": zod.enum(['PENDING', 'ACCEPTED', 'REJECTED', 'CONVERTED', 'CANCELLED', 'EXPIRED']),
+  "starts_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
+  "ends_at": zod.union([zod.coerce.date(),zod.null()]).optional(),
+  "can_cancel": zod.boolean(),
+  "cancel_reason": zod.union([zod.string(),zod.null()]),
+  "linked_job_id": zod.union([zod.string().uuid(),zod.null()]),
+  "linked_job_status": zod.union([zod.string(),zod.null()]),
+  "created_at": zod.coerce.date()
+}),zod.null()]).optional(),
   "errors": zod.array(zod.unknown()).default(bookingDetailApiV1CustomerAppBookingsBookingIdGetResponseErrorsDefault),
   "status_code": zod.number()
 })

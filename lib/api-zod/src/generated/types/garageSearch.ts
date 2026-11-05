@@ -8,24 +8,35 @@
 import type { GarageSearchSearchBy } from './garageSearchSearchBy';
 
 export interface GarageSearch {
-  latitude?: number | null;
-  longitude?: number | null;
+  /**
+     * @minimum -90
+     * @maximum 90
+     */
+  latitude: number;
+  /**
+     * @minimum -180
+     * @maximum 180
+     */
+  longitude: number;
   accuracy_meters?: number | null;
   captured_at?: Date | null;
   /** @maxLength 100 */
   q?: string;
   search_by?: GarageSearchSearchBy;
-  /** Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict. */
+  /** Optional exact saved-city filter within the selected location's radius. */
   city?: string | null;
   radius_km?: number | null;
   /**
+     * Ignored: search returns all matches.
+     * @deprecated
      * @minimum 1
      * @maximum 100000
      */
   page?: number;
   /**
+     * Ignored: search returns all matches.
+     * @deprecated
      * @minimum 1
-     * @maximum 100
      */
   page_size?: number;
 }

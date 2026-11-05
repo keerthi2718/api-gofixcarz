@@ -26,20 +26,22 @@ class LocationInput(StrictInput):
 
 
 class GarageSearch(LocationInput):
+    latitude: float = Field(ge=-90, le=90, allow_inf_nan=False)
+    longitude: float = Field(ge=-180, le=180, allow_inf_nan=False)
     q: str = Field(default="", max_length=100)
     search_by: Literal["all", "service", "garage"] = "all"
     city: str | None = Field(
         default=None, max_length=100,
-        description="Exact saved-city match, case-insensitive and trimmed. City browsing includes garages without coordinates. With city, no default radius is imposed; an explicit radius_km remains strict.",
+        description="Optional exact saved-city filter within the selected location's radius.",
     )
     radius_km: float | None = Field(default=None, gt=0, le=200, allow_inf_nan=False)
-    page: int = Field(default=1, ge=1, le=100000)
-    page_size: int = Field(default=20, ge=1, le=100)
+    page: int = Field(default=1, ge=1, le=100000, deprecated=True, description="Ignored: search returns all matches.")
+    page_size: int = Field(default=20, ge=1, deprecated=True, description="Ignored: search returns all matches.")
 
     @field_validator("city")
     @classmethod
     def normalize_city(cls, value):
-        return value or None
+        return value.strip() or None if value else None
 
     @model_validator(mode="after")
     def validate_search(self):

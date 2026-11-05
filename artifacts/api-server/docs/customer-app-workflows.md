@@ -4,8 +4,10 @@
 
 Four additional customer-authenticated discovery operations are implemented:
 POST garage search, GET garage detail, POST located garage detail and GET
-paginated active garage services. They read the owner's catalogue directly and
-return the same IDs used by existing availability, quote and booking submission.
+active garage services. They read the owner's catalogue directly and
+return the same IDs used by direct date-only booking submission. Search requires
+coordinates, defaults to 200 KM, filters verified/active garages, and returns all
+matches with no five-service preview cap or search pagination.
 See [the discovery-to-booking contract](customer-garage-discovery.md) for complete
 headers, payloads, responses, distance semantics and the external app handoff.
 The implementation counts below describe the earlier workflow inventory,
@@ -33,10 +35,12 @@ and one explicit pending checkout operation.
   no animation. Support uploads are images under the same policy.
   DELETE revokes access transactionally; physical S3 removal is deferred until
   a separately approved retention/cleanup policy exists.
-- Owners configure explicit non-overlapping capacity slots and garage timezone.
-  Quotes expire in ten minutes; submission locks capacity, checks unchanged
-  prices/duration and creates deliberate new-work garage contacts/vehicles.
-- Cancellation is only for future PENDING bookings without a job. Cancelled
+- Customers select a booking date directly; no slot_id or quote_id is accepted.
+  An optional summary shows current service prices. Submission locks eligibility
+  and prices, saves an immutable service snapshot, and creates deliberate
+  new-work garage contacts/vehicles. Idempotency prevents duplicate submissions.
+  Legacy slots and earlier booking snapshots remain stored and readable.
+- Cancellation is only for current/future PENDING bookings without a job. Cancelled
   bookings cannot be accepted/converted by garage APIs.
   A 60-second background worker expires past unattended PENDING appointments.
 - Job status is visible on explicitly linked work; details/photos require
@@ -59,7 +63,8 @@ and one explicit pending checkout operation.
 
 ## Participant routes
 
-Owner slot configuration is under `/api/v1/garage/customer-slots`.
+Legacy owner slot configuration remains under `/api/v1/garage/customer-slots`,
+but it is not a prerequisite for new date-only customer bookings.
 Customer-visible job publication and invoice publication are under
 `/api/v1/jobs/{job_id}/customer-publication` and `customer-invoice`.
 Owner conversation participants use `/api/v1/garage/customer-conversations`.

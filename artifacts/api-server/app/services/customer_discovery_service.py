@@ -1,7 +1,7 @@
 """Read the owner's live catalogue without exposing owner/private records.
 
 Distance uses a clamped haversine on a mean-radius Earth (6371.0088 km).
-It is geographic proximity, never road distance. SQL filters before pagination.
+It is geographic proximity, never road distance. Search returns all matches.
 """
 from decimal import Decimal
 from uuid import UUID
@@ -15,7 +15,6 @@ from app.schemas.customer_discovery import GarageSearch, LocationInput
 from app.services.customer_otp_service import fail
 
 EARTH_RADIUS_KM = 6371.0088
-PREVIEW_SIZE = 5
 
 
 def active_services():
@@ -23,7 +22,7 @@ def active_services():
 
 
 def eligible_service():
-    return and_(Service.duration_minutes > 0, Service.price >= 0)
+    return Service.price >= 0
 
 
 def distance_expression(location: LocationInput):
@@ -47,7 +46,7 @@ class CustomerDiscoveryService:
 
     @staticmethod
     def service_row(service):
-        eligible = service.duration_minutes is not None and service.duration_minutes > 0 and service.price >= 0
+        eligible = service.price >= 0
         return {
             "id": service.id, "name": service.name, "description": service.description,
             "price_inr": service.price, "currency": "INR",
@@ -75,6 +74,7 @@ class CustomerDiscoveryService:
             func.coalesce(counts.c.bookable_count, 0).label("bookable_count"),
         ).outerjoin(counts, counts.c.garage_id == Garage.id).where(
             Garage.deleted_at.is_(None), Garage.operational_status == "ACTIVE",
+            Garage.verification_status == "VERIFIED",
         )
         if q:
             service_found = func.coalesce(counts.c.matching_count, 0) > 0
@@ -87,27 +87,19 @@ class CustomerDiscoveryService:
     async def render(self, rows, q="", search_by="all"):
         if not rows:
             return []
-        # Rank previews across the current garage page in one query, not one
-        # catalogue query per garage, and never load unbounded service lists.
+        # One catalogue query for all matching garages, without a preview cap.
         full_ids = [r.Garage.id for r in rows if not q or (r.garage_match and search_by != "service")]
         ids = [r.Garage.id for r in rows]
-        ranked = select(Service.id.label("service_id"), func.row_number().over(
-            partition_by=Service.garage_id, order_by=(func.lower(Service.name), Service.id)
-        ).label("rank")).where(
+        previews = (await self.db.execute(select(Service).where(
             active_services(), Service.garage_id.in_(ids),
             or_(Service.garage_id.in_(full_ids), Service.name.icontains(q, autoescape=True)),
-        ).subquery()
-        previews = (await self.db.execute(select(Service).join(
-            ranked, ranked.c.service_id == Service.id
-        ).where(ranked.c.rank <= PREVIEW_SIZE).order_by(Service.garage_id, ranked.c.rank))).scalars()
+        ).order_by(Service.garage_id, func.lower(Service.name), Service.id))).scalars()
         grouped = {identifier: [] for identifier in ids}
         for service in previews:
             grouped[service.garage_id].append(self.service_row(service))
         results = []
         for row in rows:
             g = row.Garage
-            full = g.id in full_ids
-            count = row.active_count if full else row.matching_count
             results.append({
                 **{key: getattr(g, key) for key in ("id", "name", "address", "city", "state", "zipcode", "country")},
                 "distance_km": round(row.distance, 3) if row.distance is not None else None,
@@ -115,11 +107,11 @@ class CustomerDiscoveryService:
                 "matched_by": (["garage"] if q and row.garage_match and search_by != "service" else [])
                               + (["service"] if q and row.matching_count and search_by != "garage" else []),
                 "active_service_count": row.active_count, "matching_service_count": row.matching_count,
-                "services": grouped[g.id], "services_has_more": count > PREVIEW_SIZE,
+                "services": grouped[g.id], "services_has_more": False,
                 "services_path": f"/api/v1/customer-app/garages/{g.id}/services",
                 "booking_eligible": row.bookable_count > 0,
-                "booking_prerequisites": ["SELECT_VEHICLE", "CHECK_AVAILABILITY", "CONFIRM_QUOTE"]
-                    if row.bookable_count else ["ACTIVE_SERVICE_WITH_VALID_DURATION_REQUIRED"],
+                "booking_prerequisites": ["SELECT_VEHICLE", "SELECT_SERVICES", "SELECT_DATE"]
+                    if row.bookable_count else ["ACTIVE_SERVICE_REQUIRED"],
             })
         return results
 
@@ -127,22 +119,16 @@ class CustomerDiscoveryService:
         query = self.base_query(data, data.q, data.search_by)
         if data.city:
             query = query.where(func.lower(func.trim(Garage.city)) == data.city.lower())
-        # Explicit city browsing uses the saved city, not an inferred map pin.
-        # Keep nearby-only defaults and explicitly requested radii unchanged.
-        radius = data.radius_km
-        if radius is None and data.latitude is not None and not data.city:
-            radius = 5.0
+        radius = data.radius_km if data.radius_km is not None else 200.0
         if radius is not None:
             query = query.where(distance_expression(data) <= radius)
         total = await self.db.scalar(select(func.count()).select_from(query.subquery()))
         ordering = [func.lower(Garage.name), Garage.id]
         if data.latitude is not None:
             ordering.insert(0, distance_expression(data).asc().nulls_last())
-        rows = (await self.db.execute(query.order_by(*ordering).offset(
-            (data.page - 1) * data.page_size).limit(data.page_size))).all()
+        rows = (await self.db.execute(query.order_by(*ordering))).all()
         return {"items": await self.render(rows, data.q, data.search_by), "total": total,
-                "page": data.page, "page_size": data.page_size,
-                "pages": (total + data.page_size - 1) // data.page_size, "radius_km": radius}
+                "page": 1, "page_size": total, "pages": 1 if total else 0, "radius_km": radius}
 
     async def detail(self, garage_id: UUID, location: LocationInput):
         rows = (await self.db.execute(self.base_query(location).where(Garage.id == garage_id))).all()
@@ -150,16 +136,22 @@ class CustomerDiscoveryService:
             fail("GARAGE_NOT_FOUND", 404)
         return (await self.render(rows))[0]
 
-    async def services(self, garage_id: UUID, page: int, page_size: int, q: str):
+    async def services(self, garage_id: UUID, page: int, page_size: int | None, q: str):
         exists = await self.db.scalar(select(Garage.id).where(
-            Garage.id == garage_id, Garage.deleted_at.is_(None), Garage.operational_status == "ACTIVE"))
+            Garage.id == garage_id, Garage.deleted_at.is_(None), Garage.operational_status == "ACTIVE",
+            Garage.verification_status == "VERIFIED"))
         if not exists:
             fail("GARAGE_NOT_FOUND", 404)
         query = select(Service).where(Service.garage_id == garage_id, active_services())
         if q:
             query = query.where(Service.name.icontains(q, autoescape=True))
         total = await self.db.scalar(select(func.count()).select_from(query.subquery()))
-        rows = (await self.db.execute(query.order_by(func.lower(Service.name), Service.id).offset(
-            (page - 1) * page_size).limit(page_size))).scalars()
+        query = query.order_by(func.lower(Service.name), Service.id)
+        if page_size is not None:
+            query = query.offset((page - 1) * page_size).limit(page_size)
+        rows = (await self.db.execute(query)).scalars()
+        effective_size = page_size if page_size is not None else total
+        if page_size is None:
+            page = 1
         return {"items": [self.service_row(s) for s in rows], "total": total, "page": page,
-                "page_size": page_size, "pages": (total + page_size - 1) // page_size}
+                "page_size": effective_size, "pages": (total + effective_size - 1) // effective_size if effective_size else 0}

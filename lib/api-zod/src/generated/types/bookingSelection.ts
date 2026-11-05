@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface QuoteRequest {
+export interface BookingSelection {
   garage_id: string;
   vehicle_id: string;
   /**
@@ -14,8 +14,10 @@ export interface QuoteRequest {
      * @maxItems 20
      */
   service_ids: string[];
-  slot_id: string;
+  booking_date: Date;
   notes?: string | null;
   /** @maxItems 5 */
   attachment_ids?: string[];
+  /** Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED. */
+  expected_total?: number | null;
 }

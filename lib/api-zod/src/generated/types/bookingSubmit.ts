@@ -7,5 +7,17 @@
  */
 
 export interface BookingSubmit {
-  quote_id: string;
+  garage_id: string;
+  vehicle_id: string;
+  /**
+     * @minItems 1
+     * @maxItems 20
+     */
+  service_ids: string[];
+  booking_date: Date;
+  notes?: string | null;
+  /** @maxItems 5 */
+  attachment_ids?: string[];
+  /** Optional reviewed service total in paise. A mismatch returns 409 PRICE_CHANGED. */
+  expected_total?: number | null;
 }

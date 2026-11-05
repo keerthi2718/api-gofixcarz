@@ -699,8 +699,14 @@ paths:
       tags:
       - Customer Discovery
       summary: Search
-      description: Service/garage/city discovery. Nearby-only defaults to 5 km; city
-        browsing has no implicit radius. Explicit radius is strict, maximum 200 km.
+      description: 'All verified ACTIVE garages within 200 km by default, nearest
+        first.
+
+
+        Both coordinates are required. No search pagination or service preview cap.
+
+        An optional city narrows results inside the radius; it cannot substitute for
+        a map pin.'
       operationId: search_api_v1_customer_app_garages_search_post
       requestBody:
         content:
@@ -853,10 +859,11 @@ paths:
         in: query
         required: false
         schema:
-          type: integer
-          maximum: 100
-          minimum: 1
-          default: 20
+          anyOf:
+          - type: integer
+            maximum: 100
+            minimum: 1
+          - type: 'null'
           title: Page Size
       - name: q
         in: query
@@ -1557,6 +1564,7 @@ paths:
       - Customer App
       summary: Availability
       operationId: availability_api_v1_customer_app_garages__garage_id__availability_get
+      deprecated: true
       security:
       - HTTPBearer: []
       parameters:
@@ -1622,17 +1630,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/APIResponse'
-  /v1/customer-app/bookings/quote:
+  /v1/customer-app/bookings/summary:
     post:
       tags:
       - Customer App
-      summary: Quote
-      operationId: quote_api_v1_customer_app_bookings_quote_post
+      summary: Summary
+      description: Optional current-price preview; no quote or slot IDs are created
+        or required.
+      operationId: summary_api_v1_customer_app_bookings_summary_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/QuoteRequest'
+              $ref: '#/components/schemas/BookingSelection'
         required: true
       responses:
         '200':
@@ -1640,7 +1650,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIResponse_dict_'
+                $ref: '#/components/schemas/APIResponse_BookingSummary_'
         '401':
           description: Customer authentication/session required
           content:
@@ -1702,7 +1712,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIResponse_dict_'
+                $ref: '#/components/schemas/APIResponse_CustomerBookingResponse_'
         '401':
           description: Customer authentication/session required
           content:
@@ -1851,7 +1861,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/APIResponse_dict_'
+                $ref: '#/components/schemas/APIResponse_CustomerBookingResponse_'
         '401':
           description: Customer authentication/session required
           content:
@@ -4411,49 +4421,6 @@ components:
       - client_message_id
       - text
       title: TicketReply
-    QuoteRequest:
-      properties:
-        garage_id:
-          type: string
-          format: uuid
-          title: Garage Id
-        vehicle_id:
-          type: string
-          format: uuid
-          title: Vehicle Id
-        service_ids:
-          items:
-            type: string
-            format: uuid
-          type: array
-          maxItems: 20
-          minItems: 1
-          title: Service Ids
-        slot_id:
-          type: string
-          format: uuid
-          title: Slot Id
-        notes:
-          anyOf:
-          - type: string
-            maxLength: 2000
-          - type: 'null'
-          title: Notes
-        attachment_ids:
-          items:
-            type: string
-            format: uuid
-          type: array
-          maxItems: 5
-          title: Attachment Ids
-      additionalProperties: false
-      type: object
-      required:
-      - garage_id
-      - vehicle_id
-      - service_ids
-      - slot_id
-      title: QuoteRequest
     CancelRequest:
       properties:
         reason:
@@ -4649,14 +4616,54 @@ components:
       title: BookingStatus
     BookingSubmit:
       properties:
-        quote_id:
+        garage_id:
           type: string
           format: uuid
-          title: Quote Id
+          title: Garage Id
+        vehicle_id:
+          type: string
+          format: uuid
+          title: Vehicle Id
+        service_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 20
+          minItems: 1
+          title: Service Ids
+        booking_date:
+          type: string
+          format: date
+          title: Booking Date
+        notes:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Notes
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 5
+          title: Attachment Ids
+        expected_total:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Expected Total
+          description: Optional reviewed service total in paise. A mismatch returns
+            409 PRICE_CHANGED.
       additionalProperties: false
       type: object
       required:
-      - quote_id
+      - garage_id
+      - vehicle_id
+      - service_ids
+      - booking_date
       title: BookingSubmit
     ReviewPatch:
       properties:
@@ -4773,18 +4780,14 @@ components:
     GarageSearch:
       properties:
         latitude:
-          anyOf:
-          - type: number
-            maximum: 90.0
-            minimum: -90.0
-          - type: 'null'
+          type: number
+          maximum: 90.0
+          minimum: -90.0
           title: Latitude
         longitude:
-          anyOf:
-          - type: number
-            maximum: 180.0
-            minimum: -180.0
-          - type: 'null'
+          type: number
+          maximum: 180.0
+          minimum: -180.0
           title: Longitude
         accuracy_meters:
           anyOf:
@@ -4818,9 +4821,8 @@ components:
             maxLength: 100
           - type: 'null'
           title: City
-          description: Exact saved-city match, case-insensitive and trimmed. City
-            browsing includes garages without coordinates. With city, no default radius
-            is imposed; an explicit radius_km remains strict.
+          description: Optional exact saved-city filter within the selected location's
+            radius.
         radius_km:
           anyOf:
           - type: number
@@ -4833,15 +4835,21 @@ components:
           maximum: 100000.0
           minimum: 1.0
           title: Page
+          description: 'Ignored: search returns all matches.'
           default: 1
+          deprecated: true
         page_size:
           type: integer
-          maximum: 100.0
           minimum: 1.0
           title: Page Size
+          description: 'Ignored: search returns all matches.'
           default: 20
+          deprecated: true
       additionalProperties: false
       type: object
+      required:
+      - latitude
+      - longitude
       title: GarageSearch
     LocationInput:
       properties:
@@ -5165,6 +5173,324 @@ components:
       - booking_eligible
       - booking_prerequisites
       title: DiscoveryGarage
+    APIResponse_CustomerBookingResponse_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/CustomerBookingResponse'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[CustomerBookingResponse]
+    BookingSelection:
+      properties:
+        garage_id:
+          type: string
+          format: uuid
+          title: Garage Id
+        vehicle_id:
+          type: string
+          format: uuid
+          title: Vehicle Id
+        service_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 20
+          minItems: 1
+          title: Service Ids
+        booking_date:
+          type: string
+          format: date
+          title: Booking Date
+        notes:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Notes
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          maxItems: 5
+          title: Attachment Ids
+        expected_total:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Expected Total
+          description: Optional reviewed service total in paise. A mismatch returns
+            409 PRICE_CHANGED.
+      additionalProperties: false
+      type: object
+      required:
+      - garage_id
+      - vehicle_id
+      - service_ids
+      - booking_date
+      title: BookingSelection
+    CustomerBookingResponse:
+      properties:
+        garage:
+          $ref: '#/components/schemas/BookingGarage'
+        vehicle:
+          $ref: '#/components/schemas/BookingVehicle'
+        services:
+          items:
+            $ref: '#/components/schemas/BookingServiceItem'
+          type: array
+          title: Services
+        booking_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Booking Date
+        notes:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notes
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          title: Attachment Ids
+        estimated_total:
+          type: integer
+          title: Estimated Total
+          description: Sum of service amounts in paise; no booking fees.
+        currency:
+          type: string
+          const: INR
+          title: Currency
+        id:
+          type: string
+          format: uuid
+          title: Id
+        status:
+          type: string
+          enum:
+          - PENDING
+          - ACCEPTED
+          - REJECTED
+          - CONVERTED
+          - CANCELLED
+          - EXPIRED
+          title: Status
+        starts_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Starts At
+        ends_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Ends At
+        can_cancel:
+          type: boolean
+          title: Can Cancel
+        cancel_reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Cancel Reason
+        linked_job_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Linked Job Id
+        linked_job_status:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Linked Job Status
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      additionalProperties: false
+      type: object
+      required:
+      - garage
+      - vehicle
+      - services
+      - booking_date
+      - attachment_ids
+      - estimated_total
+      - currency
+      - id
+      - status
+      - can_cancel
+      - cancel_reason
+      - linked_job_id
+      - linked_job_status
+      - created_at
+      title: CustomerBookingResponse
+    BookingVehicle:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        registration_number:
+          type: string
+          title: Registration Number
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - registration_number
+      title: BookingVehicle
+    BookingServiceItem:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        price_inr:
+          anyOf:
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Price Inr
+        amount:
+          type: integer
+          title: Amount
+        duration_minutes:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Duration Minutes
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      - amount
+      title: BookingServiceItem
+    BookingGarage:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+      additionalProperties: false
+      type: object
+      required:
+      - id
+      - name
+      title: BookingGarage
+    APIResponse_BookingSummary_:
+      properties:
+        success:
+          type: boolean
+          title: Success
+        message:
+          type: string
+          title: Message
+        data:
+          anyOf:
+          - $ref: '#/components/schemas/BookingSummary'
+          - type: 'null'
+        errors:
+          items: {}
+          type: array
+          title: Errors
+          default: []
+        status_code:
+          type: integer
+          title: Status Code
+      type: object
+      required:
+      - success
+      - message
+      - status_code
+      title: APIResponse[BookingSummary]
+    BookingSummary:
+      properties:
+        garage:
+          $ref: '#/components/schemas/BookingGarage'
+        vehicle:
+          $ref: '#/components/schemas/BookingVehicle'
+        services:
+          items:
+            $ref: '#/components/schemas/BookingServiceItem'
+          type: array
+          title: Services
+        booking_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Booking Date
+        notes:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notes
+        attachment_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          title: Attachment Ids
+        estimated_total:
+          type: integer
+          title: Estimated Total
+          description: Sum of service amounts in paise; no booking fees.
+        currency:
+          type: string
+          const: INR
+          title: Currency
+      additionalProperties: false
+      type: object
+      required:
+      - garage
+      - vehicle
+      - services
+      - booking_date
+      - attachment_ids
+      - estimated_total
+      - currency
+      title: BookingSummary
   securitySchemes:
     HTTPBearer:
       type: http

@@ -142,15 +142,24 @@ async def vehicle(d, suffix=None):
 
 async def quote(d, v=None):
     v = v or await vehicle(d)
-    return (await d["call"]("POST", "/bookings/quote", json={
+    return (await d["call"]("POST", "/bookings/summary", json={
         "garage_id": str(d["garage"].id), "vehicle_id": v["id"], "service_ids": [str(d["service"].id)],
-        "slot_id": str(d["slot"].id), "notes": "Please inspect engine noise",
+        "booking_date": d["slot"].starts_at.date().isoformat(), "notes": "Please inspect engine noise",
     })).json()["data"]
+
+
+def booking_request(q):
+    return {
+        "garage_id": q["garage"]["id"], "vehicle_id": q["vehicle"]["id"],
+        "service_ids": [s["id"] for s in q["services"]], "booking_date": q["booking_date"],
+        "notes": q.get("notes"), "attachment_ids": q.get("attachment_ids", []),
+        "expected_total": q["estimated_total"],
+    }
 
 
 async def booking(d, q=None, key=None):
     q = q or await quote(d)
-    return (await d["call"]("POST", "/bookings", expected=201, json={"quote_id": q["quote_id"]},
+    return (await d["call"]("POST", "/bookings", expected=201, json=booking_request(q),
                             headers={**d["headers"], "Idempotency-Key": key or uuid4().hex})).json()["data"]
 
 
@@ -209,7 +218,7 @@ async def test_private_uploads_photo_link_and_actual_byte_validation(workspace):
     await d["call"]("PUT", "/me/photo", expected=422, json={"attachment_id": bad["id"]})
 
 
-async def test_booking_capacity_idempotency_cancellation_and_customer_isolation(workspace):
+async def test_date_booking_idempotency_cancellation_and_customer_isolation(workspace):
     d = workspace
     v = await vehicle(d)
     q = await quote(d, v)
@@ -220,7 +229,7 @@ async def test_booking_capacity_idempotency_cancellation_and_customer_isolation(
     replay = await booking(d, q, key)
     assert replay["id"] == b["id"]
     await d["call"]("POST", "/bookings", expected=409, headers={**d["headers"], "Idempotency-Key": key},
-                    json={"quote_id": str(uuid4())})
+                    json={**booking_request(q), "notes": "Different request"})
     await d["call"]("GET", "/bookings")
     await d["call"]("GET", f"/bookings/{b['id']}")
     await d["call"]("GET", f"/bookings/{b['id']}/timeline")
@@ -230,15 +239,13 @@ async def test_booking_capacity_idempotency_cancellation_and_customer_isolation(
     for path in (f"/vehicles/{v['id']}", f"/bookings/{b['id']}", f"/bookings/{b['id']}/timeline"):
         await d["call"]("GET", path, expected=404, headers=bearer(other))
     await d["call"]("POST", "/bookings", expected=404, headers={**bearer(other), "Idempotency-Key": uuid4().hex},
-                    json={"quote_id": q["quote_id"]})
-    await d["call"]("POST", "/bookings/quote", expected=409, json={
-        "garage_id": str(d["garage"].id), "vehicle_id": v["id"],
-        "service_ids": [str(d["service"].id)], "slot_id": str(d["slot"].id)})
+                    json=booking_request(q))
+    await quote(d, v)  # Date-only requests do not consume appointment-slot capacity.
     await d["call"]("POST", f"/bookings/{b['id']}/cancel", json={"reason": "Change of plans"})
     from app.core.exceptions import BadRequestException
     with pytest.raises(BadRequestException):
         await BookingService(d["db"]).accept(d["garage"].id, UUID(b["id"]))
-    await quote(d, v)  # Cancellation released capacity.
+    await quote(d, v)
 
 
 async def test_tracking_publication_invoices_confirmed_finance_and_reviews(workspace):
@@ -384,23 +391,23 @@ async def test_garage_slot_management_overlap_and_customer_auth_boundary(workspa
     await d["call"]("GET", "/vehicles", expected=401, headers={})
 
 
-async def test_stale_quote_and_linked_attachment_retention(workspace):
+async def test_changed_summary_price_and_linked_attachment_retention(workspace):
     d = workspace
     a = await image(d, "BOOKING_PHOTO")
     v = await vehicle(d)
-    q = (await d["call"]("POST", "/bookings/quote", json={
+    q = (await d["call"]("POST", "/bookings/summary", json={
         "garage_id": str(d["garage"].id), "vehicle_id": v["id"], "service_ids": [str(d["service"].id)],
-        "slot_id": str(d["slot"].id), "attachment_ids": [a["id"]]
+        "booking_date": d["slot"].starts_at.date().isoformat(), "attachment_ids": [a["id"]]
     })).json()["data"]
-    await d["call"]("DELETE", f"/attachments/{a['id']}", expected=409)
     d["service"].price = 1600
     await d["db"].flush()
     await d["call"]("POST", "/bookings", expected=409, headers={**d["headers"], "Idempotency-Key": uuid4().hex},
-                    json={"quote_id": q["quote_id"]})
+                    json=booking_request(q))
     d["service"].price = 1500
     await d["db"].flush()
-    await booking(d, q)
-    quote_row = await d["db"].get(CustomerResource, UUID(q["quote_id"]))
+    b = await booking(d, q)
+    link = await d["db"].get(CustomerBookingLink, UUID(b["id"]))
+    quote_row = await d["db"].get(CustomerResource, link.quote_id)
     quote_row.payload = {**quote_row.payload, "expires_at": (now() - timedelta(hours=1)).isoformat()}
     await d["db"].flush()
     await d["call"]("DELETE", f"/attachments/{a['id']}", expected=409)
@@ -439,8 +446,9 @@ async def test_all_context_resources_reject_other_customer_and_inconsistent_link
 async def test_pending_appointment_expiry_is_recorded_and_releases_work(workspace):
     d = workspace
     b = await booking(d)
-    d["slot"].starts_at = now() - timedelta(minutes=1)
-    d["slot"].ends_at = now() + timedelta(hours=1)
+    from app.models.booking import Booking
+    row = await d["db"].get(Booking, UUID(b["id"]))
+    row.booking_date = now().date() - timedelta(days=1)
     await d["db"].flush()
     from app.services.customer_booking_maintenance import expire_pending_bookings
     assert await expire_pending_bookings(d["db"]) == 1
