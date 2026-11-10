@@ -59,8 +59,9 @@ class SignUpRequest(BaseModel):
     state: Optional[str] = None
     zipcode: Optional[str] = None
     country: Optional[str] = None
-    latitude: Optional[float] = Field(default=None, ge=-90, le=90, allow_inf_nan=False, strict=True)
-    longitude: Optional[float] = Field(default=None, ge=-180, le=180, allow_inf_nan=False, strict=True)
+    # Exact garage coordinates must come from the map pin/device location.
+    latitude: float = Field(..., ge=-90, le=90, allow_inf_nan=False, strict=True)
+    longitude: float = Field(..., ge=-180, le=180, allow_inf_nan=False, strict=True)
     # Country codes — validated against the allowed list; default is India "91"
     country_code: str = DEFAULT_COUNTRY_CODE
     mobile: str                              # exactly 10 digits

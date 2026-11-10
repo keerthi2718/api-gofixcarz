@@ -9,11 +9,11 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("admin_mfa_challenges", sa.Column("credential_version", sa.Integer(), nullable=False, server_default="1"))
+    # credential_version is already created by migration 0011.
+    # This migration only adds the revoked-session-family table.
     from app.models.admin_account import AdminRevokedFamily
     AdminRevokedFamily.__table__.create(op.get_bind())
 
 
 def downgrade():
     op.drop_table("admin_revoked_session_families")
-    op.drop_column("admin_mfa_challenges", "credential_version")

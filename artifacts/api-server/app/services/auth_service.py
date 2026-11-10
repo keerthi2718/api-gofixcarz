@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException, BadRequestException, ConflictException, ForbiddenException, UnauthorizedException
 from app.models.user import AccountStatus, User, UserRole
+from app.models.garage import Garage
 from app.models.admin_audit_log import AdminAuditLog
 from app.core.security import (
     create_access_token,
@@ -227,6 +228,19 @@ class AuthService:
         if user.otp != data.otp:
             raise UnauthorizedException("Invalid OTP.")
         await self.user_repo.clear_otp(user)
+
+        # Partner registration is verified by mobile OTP.  Once the OTP is
+        # accepted, make the partner's garage immediately discoverable without
+        # requiring a separate admin verification step.
+        garages = (await self.session.execute(
+            select(Garage).where(
+                Garage.user_id == user.id,
+                Garage.deleted_at.is_(None),
+            )
+        )).scalars().all()
+        for garage in garages:
+            garage.verification_status = "VERIFIED"
+            garage.operational_status = "ACTIVE"
 
         access_token = create_access_token(subject=str(user.id), role=user.role)
         raw_refresh = generate_refresh_token()

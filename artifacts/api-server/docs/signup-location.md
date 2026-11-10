@@ -23,8 +23,9 @@ Include these at the top level alongside the existing signup fields.
 Send JSON numbers, not strings, booleans, or empty strings.
 Latitude is inclusive [-90, 90]; longitude is inclusive [-180, 180].
 Non-finite numbers and partial coordinate pairs return HTTP 422.
-Both may be omitted or null for compatibility with older clients, but such
-garages cannot appear in radius search until a confirmed pin is saved.
+Both coordinates are required for new partner registration. The frontend must
+obtain them from a confirmed Google Maps pin or device location before calling
+the signup endpoint.
 There is no address geocoding or invented fallback location.
 
 The HTTP 201 response retains existing fields and adds `data.garage`, containing
